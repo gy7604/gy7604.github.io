@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta name="app-version" content="2026.10.04.2">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -265,7 +266,22 @@
 .audit-dialog::backdrop{background:#18253c80}.audit-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px;border-bottom:1px solid #e2e8f0}.audit-head h2{font-size:18px;margin:0}.audit-body{padding:16px;max-height:calc(88vh - 80px);overflow:auto}.audit-tabs{display:flex;gap:8px;margin-bottom:16px}.audit-tabs button{background:#eef2f6;color:#475569}.audit-tabs .audit-active{background:#007bff;color:white}.audit-filters{display:flex;gap:10px;flex-wrap:wrap}.audit-filters label{font-size:13px;max-width:100%}.audit-filters input,.audit-filters select{width:auto;max-width:100%;padding:9px;font-size:14px;display:block;margin:4px 0}.audit-item{border:1px solid #dce3ec;border-radius:7px;padding:14px;margin-bottom:12px;font-size:14px}.audit-item p{line-height:1.6;margin:8px 0}.audit-between{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.audit-tag{background:#e6f2ff;color:#0061ba;padding:4px 8px;border-radius:16px;font-size:12px}.audit-muted{font-size:12px;color:#64748b;line-height:1.6}.audit-empty{text-align:center;background:#f8fafc;padding:24px;color:#64748b}.audit-secondary{background:#eef2f6;color:#34465c}.audit-diff{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.audit-diff div{background:#f1f5f9;padding:10px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}.audit-diff div:last-child{background:#eaf4ff}.audit-diff small{display:block;color:#64748b}.audit-selected{outline:3px solid #ffb000;outline-offset:-3px}.audit-dialog details summary{cursor:pointer;margin-top:12px}body:has(.audit-dialog[open]){overflow:hidden}
 @media(max-width:600px){.audit-diff{grid-template-columns:1fr}.audit-head,.audit-body{padding:12px}}
 
-  </style>
+  
+.app-topbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:10px!important;margin-bottom:8px!important}
+.app-identity{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.app-identity h2{margin:0;font-size:16px}
+.app-identity .btn-small{font-size:12px;padding:6px 8px;white-space:nowrap}
+.app-month{display:flex;align-items:center;justify-content:center;gap:6px}
+.app-month button{width:auto;margin:0;background:#e9ecef;color:#222;padding:6px 8px}
+#currentMonthStr{background:transparent;font-size:18px;font-weight:bold;text-decoration:underline;text-underline-offset:4px;white-space:nowrap}
+.app-actions{display:flex;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+.app-actions button{font-size:0!important;width:34px;min-height:32px;padding:5px!important;margin:0}
+.app-actions button::before{content:attr(data-icon);font-size:16px}
+.app-guide{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px!important;margin-bottom:8px!important;font-size:12px;line-height:1.5}
+.app-guide>div+div{border-left:1px solid #ddd;padding-left:12px}
+.app-calendar{padding:8px!important}
+@media(max-width:700px){.app-topbar{grid-template-columns:1fr auto}.app-identity h2{font-size:14px}.app-month{grid-column:1 / -1;grid-row:2}.app-guide{font-size:11px;gap:8px}.app-guide>div+div{padding-left:8px}}
+</style>
 </head>
 
 <body>
@@ -302,7 +318,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.04.1</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.04.2</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -347,24 +363,11 @@
   <!-- 메인 -->
   <div id="mainScreen">
 
-    <div class="card"
-         style="margin-bottom: 10px; padding: 10px 15px;">
-
-      <div style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      ">
-
-        <h2 id="welcomeMsg"
-            style="margin: 0; font-size: 16px;">
-          환영합니다!
-        </h2>
-
-        <div style="display: flex; gap: 6px;">
-
-          <button
-            id="androidInstallButton"
+<div class="card app-topbar">
+ <div class="app-identity"><h2 id="welcomeMsg">환영합니다!</h2><div id="personalTools" hidden><button class="btn-small" onclick="openPersonalView()" title="내 연차·대근 모아보기">☷ 내 연차·대근 모아보기</button></div></div>
+ <div class="app-month"><button class="btn-small" onclick="changeMonth(-1)" aria-label="이전 달">◀</button><button id="currentMonthStr" onclick="goToMonth()" title="원하는 년월로 이동">2026년 10월</button><button class="btn-small" onclick="changeMonth(1)" aria-label="다음 달">▶</button></div>
+ <div class="app-actions"><button
+            id="androidInstallButton" data-icon="📱" title="Android 앱 설치"
             onclick="installAndroidApp()"
             class="btn-small"
             style="background-color: #007bff; display: none;"
@@ -373,7 +376,7 @@
           </button>
 
           <button
-            id="iphoneInstallButton"
+            id="iphoneInstallButton" data-icon="🍎" title="iPhone 설치 방법"
             onclick="showIphoneInstallGuide()"
             class="btn-small"
             style="background-color: #6f42c1;"
@@ -382,7 +385,7 @@
           </button>
 
           <button
-            id="notificationButton"
+            id="notificationButton" data-icon="🔔" title="알림 설정"
             onclick="enableNotifications()"
             class="btn-small"
             style="background-color: #28a745;"
@@ -391,7 +394,7 @@
           </button>
 
           <button
-            onclick="changePersonalCode()"
+            data-icon="🔑" title="접속 코드 변경" onclick="changePersonalCode()"
             class="btn-small"
             style="background-color: #17a2b8;"
           >
@@ -399,79 +402,20 @@
           </button>
 
           <button
-            onclick="logout()"
+            data-icon="🚪" title="로그아웃" onclick="logout()"
             class="btn-small"
             style="background-color: #6c757d;"
           >
             로그아웃
           </button>
         </div>
-
-      </div>
-
-    </div>
-
-
-
-<div id="personalTools" class="card" hidden style="padding:10px;margin-bottom:10px"><button class="btn-small" onclick="openPersonalView()">내 연차·대근 모아보기</button></div>
-
-    <div class="card" style="padding: 10px; font-size: 13px; line-height: 1.6;">
-      <strong>휴무·추가 지원 신청 안내</strong><br>
+</div>
+<div class="card app-guide"><div><strong>휴무·추가 지원 신청 안내</strong><br>
       사유에 <strong>정수</strong>가 포함되면 이름 대신 <strong>정수 지원</strong>으로 표시됩니다.<br>
       <strong>정수</strong> 없이 <strong>지원</strong>이 포함되면 <strong>지원</strong>으로 표시됩니다.<br>
       예: 정수, 정수지원, 정수 지원 → 정수 지원 · 지원 → 지원<br>
       해당 신청은 추가 지원으로 등록되며, 일반 휴무는 기존처럼 이름과 사유가 표시됩니다.
-    </div>
-
-    <div class="card" style="padding: 10px;">
-
-      <div style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-      ">
-
-        <button
-          onclick="changeMonth(-1)"
-          class="btn-small"
-          style="background-color: #e9ecef; color: black;"
-        >
-          ◀ 이전달
-        </button>
-
-        <h3 id="currentMonthStr"
-            onclick="goToMonth()"
-            title="클릭하여 원하는 년월로 이동"
-            style="
-              margin: 0;
-              font-size: 18px;
-              cursor: pointer;
-              text-decoration: underline;
-              text-underline-offset: 4px;
-            ">
-          2026년 9월
-        </h3>
-
-        <button
-          onclick="changeMonth(1)"
-          class="btn-small"
-          style="background-color: #e9ecef; color: black;"
-        >
-          다음달 ▶
-        </button>
-
-      </div>
-
-
-      <p style="
-        font-size: 12px;
-        color: #555;
-        margin-bottom: 10px;
-        line-height: 1.4;
-      ">
-
-  🔔 <strong>휴무 등록 알림:</strong>
+    </div><div>  🔔 <strong>휴무 등록 알림:</strong>
   휴무를 등록하면 <strong>휴무 신청 조와 해당 날짜의 대근조</strong> 직원에게 알림이 발송됩니다.<br>
 
   🔔 <strong>대근 등록 알림:</strong>
@@ -485,9 +429,8 @@
   💡 <strong>달력 이동:</strong>
   가운데 표시된 <strong>년·월을 클릭</strong>하면 원하는 년·월로 바로 이동할 수 있습니다.
 
-      </p>
-
-
+      </div></div>
+<div class="card app-calendar">
       <div class="cal-wrapper">
 
         <div class="cal-header-row">
@@ -525,6 +468,7 @@
 <dialog id="historyDialog" class="audit-dialog" aria-labelledby="historyTitle"><div class="audit-head"><h2 id="historyTitle">변경 이력 조회</h2><button class="btn-small audit-secondary" data-audit-close="historyDialog" aria-label="변경 이력 닫기">닫기</button></div><div class="audit-body"><p class="audit-muted">슈퍼관리자 전용 · 기존 기록에 처리자 정보가 없으면 확인 불가로 표시합니다.</p><div class="audit-filters"><label>변경 월 <input id="historyMonth" type="month" min="1900-01" max="2200-12"></label><label>유형 <select id="historyType"><option value="all">전체</option><option value="request">신청</option><option value="helper">대근</option><option value="memo">메모</option></select></label><label>이름·근무일 검색 <input id="historySearch" type="search" maxlength="100" placeholder="이름 또는 2026-10-08"></label></div><p id="historySummary" class="audit-muted" aria-live="polite"></p><div id="historyResults"></div><button id="historyMore" class="btn-small audit-secondary" hidden onclick="loadChangeHistory(true)">더보기</button></div></dialog>
 <dialog id="credentialDialog" class="audit-dialog" aria-labelledby="credentialTitle"><div class="audit-head"><h2 id="credentialTitle">개인코드 변경 현황</h2><button class="btn-small audit-secondary" data-audit-close="credentialDialog" aria-label="개인코드 변경 현황 닫기">닫기</button></div><div class="audit-body"><p class="audit-muted">슈퍼관리자 전용 · 본인 변경과 관리자 초기화를 구분합니다. 과거 기록이 없으면 변경 여부와 시각을 추측하지 않습니다.</p><div class="audit-filters"><label>이름 검색 <input id="credentialSearch" type="search" maxlength="100" placeholder="사용자 이름"></label><label>본인 변경 여부 <select id="credentialStatus"><option value="all">전체</option><option value="changed">변경 기록 있음</option><option value="unknown">과거 변경 여부 확인 불가</option></select></label></div><p id="credentialSummary" class="audit-muted" aria-live="polite"></p><div id="credentialResults"></div></div></dialog>
 
+<dialog id="monthJumpDialog"><form onsubmit="event.preventDefault();applyMonthJump()"><h3>이동할 년월 선택</h3><input id="monthJumpValue" type="month" min="1900-01" max="2200-12" required aria-label="이동할 년월"><div style="display:flex;gap:8px;margin-top:12px"><button type="button" onclick="document.getElementById('monthJumpDialog').close()">취소</button><button type="submit">이동</button></div></form></dialog>
 <script>
 
   /*
@@ -1547,68 +1491,16 @@
    */
 
   function goToMonth() {
-
-    const selectedMonth =
-      prompt(
-        "이동할 년월을 입력하세요.\n" +
-        "예: 2028-03",
-        `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
-      );
-
-
-    if (selectedMonth === null) {
-      return;
-    }
-
-
-    const match =
-      selectedMonth
-        .trim()
-        .match(
-          /^(\d{4})\s*[-./년]\s*(\d{1,2})\s*월?$/
-        );
-
-
-    if (!match) {
-
-      alert(
-        "년월 형식을 확인해 주세요.\n" +
-        "예: 2028-03"
-      );
-
-      return;
-
-    }
-
-
-    const year =
-      Number(match[1]);
-
-    const month =
-      Number(match[2]);
-
-
-    if (
-      month < 1 ||
-      month > 12
-    ) {
-
-      alert(
-        "월은 1~12 사이로 입력해 주세요."
-      );
-
-      return;
-
-    }
-
-
-    currentYear = year;
-    currentMonth = month - 1;
-
-    loadData();
-
+    document.getElementById('monthJumpValue').value = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
+    document.getElementById('monthJumpDialog').showModal();
   }
-
+  function applyMonthJump() {
+    const value=document.getElementById('monthJumpValue').value;
+    const match=/^(\d{4})-(\d{2})$/.exec(value);
+    if(!match || +match[1]<1900 || +match[1]>2200 || +match[2]<1 || +match[2]>12) { alert('1900년부터 2200년 사이의 년월을 선택해 주세요.'); return; }
+    currentYear=+match[1];currentMonth=+match[2]-1;
+    document.getElementById('monthJumpDialog').close();loadData();
+  }
 
   /*
    * ==========================================
@@ -3639,71 +3531,78 @@
 </script>
 
 <script>
-  // 앱을 열거나 돌아올 때 새 버전을 확인하고, 사용자 선택 후 적용합니다.
+  const APP_VERSION = '2026.10.04.2';
   let appUpdateRegistration = null;
   let applyingAppUpdate = false;
   let appReloadStarted = false;
   let lastAppUpdateCheck = 0;
-
+  let appUpdateCheckRunning = false;
+  let availableAppVersion = null;
+  function newerAppVersion(candidate) {
+    if(!/^\d{4}\.\d{2}\.\d{2}\.\d+$/.test(candidate || '')) return false;
+    const a=candidate.split('.').map(Number), b=APP_VERSION.split('.').map(Number);
+    for(let i=0;i<a.length;i++){if(a[i]!==b[i])return a[i]>b[i];}
+    return false;
+  }
   function showAppUpdateNotice() {
-    if (appUpdateRegistration?.waiting) {
-      document.getElementById('appUpdateNotice').hidden = false;
-    }
+    document.getElementById('appUpdateNotice').hidden = !(appUpdateRegistration?.waiting || availableAppVersion);
   }
-
   async function checkAppUpdate() {
-    if (!appUpdateRegistration || document.visibilityState === 'hidden') return;
-    if (Date.now() - lastAppUpdateCheck < 30000) return;
-    lastAppUpdateCheck = Date.now();
+    if(document.visibilityState==='hidden' || appUpdateCheckRunning || Date.now()-lastAppUpdateCheck<30000) return;
+    lastAppUpdateCheck=Date.now();appUpdateCheckRunning=true;
     try {
-      await appUpdateRegistration.update();
+      const versionCheck=(async()=>{
+        const response=await fetch('./index.html',{cache:'no-store'});
+        if(!response.ok)return;
+        const html=await response.text();
+        const page=new DOMParser().parseFromString(html,'text/html');
+        const version=page.querySelector('meta[name="app-version"]')?.content;
+        if(newerAppVersion(version))availableAppVersion=version;
+      })();
+      const workerCheck=appUpdateRegistration ? appUpdateRegistration.update() : Promise.resolve();
+      await Promise.allSettled([versionCheck,workerCheck]);
       showAppUpdateNotice();
-    } catch (error) {
-      console.warn('앱 업데이트 확인 실패:', error);
-    }
+    } finally {appUpdateCheckRunning=false;}
   }
-
+  function reloadUpdatedApp() {
+    if(appReloadStarted)return;
+    appReloadStarted=true;window.location.reload();
+  }
   function applyAppUpdate() {
-    const waitingWorker = appUpdateRegistration?.waiting;
-    if (!waitingWorker || applyingAppUpdate) return;
-    applyingAppUpdate = true;
-    const button = document.getElementById('applyAppUpdateButton');
-    button.disabled = true;
-    button.innerText = '업데이트 적용 중…';
-    waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    if(applyingAppUpdate || !(appUpdateRegistration?.waiting || availableAppVersion))return;
+    applyingAppUpdate=true;
+    const button=document.getElementById('applyAppUpdateButton');
+    button.disabled=true;button.innerText='업데이트 적용 중…';
+    const waitingWorker=appUpdateRegistration?.waiting;
+    if(waitingWorker)waitingWorker.postMessage({type:'SKIP_WAITING'});
+    else reloadUpdatedApp();
   }
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (applyingAppUpdate && !appReloadStarted) {
-        appReloadStarted = true;
-        window.location.reload();
-      }
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(applyingAppUpdate)reloadUpdatedApp();
     });
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./service-worker.js', {
-        updateViaCache: 'none'
-      }).then(registration => {
-        appUpdateRegistration = registration;
+  }
+  window.addEventListener('load',async()=>{
+    if('serviceWorker' in navigator){
+      try{
+        const registration=await navigator.serviceWorker.register('./service-worker.js',{updateViaCache:'none'});
+        appUpdateRegistration=registration;
         showAppUpdateNotice();
-        registration.addEventListener('updatefound', () => {
-          const worker = registration.installing;
-          if (!worker) return;
-          worker.addEventListener('statechange', () => {
-            if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-              showAppUpdateNotice();
-            }
+        registration.addEventListener('updatefound',()=>{
+          const worker=registration.installing;
+          if(!worker)return;
+          worker.addEventListener('statechange',()=>{
+            if(worker.state==='installed' && navigator.serviceWorker.controller)showAppUpdateNotice();
           });
         });
-        checkAppUpdate();
-        document.addEventListener('visibilitychange', checkAppUpdate);
-        window.addEventListener('pageshow', checkAppUpdate);
-        setInterval(checkAppUpdate, 60000);
-        updateInAppBrowserNotice();
-        updateInstallButtons();
-      }).catch(error => console.warn('PWA 서비스 워커 등록 실패:', error));
-    });
-  }
+      }catch(error){console.warn('PWA 서비스 워커 등록 실패:',error);}
+    }
+    checkAppUpdate();
+    document.addEventListener('visibilitychange',checkAppUpdate);
+    window.addEventListener('pageshow',checkAppUpdate);
+    setInterval(checkAppUpdate,60000);
+    updateInAppBrowserNotice();updateInstallButtons();
+  });
 </script>
 
 <script>
@@ -3725,7 +3624,7 @@ function refreshAccountTools(){
 function clearAuditViews(){
  ++personalViewVersion;++historyViewVersion;++credentialViewVersion;clearTimeout(historySearchTimer);
  personalViewRows=[];historyViewRows=[];credentialViewUsers=[];
- for(const id of ['personalDialog','historyDialog','credentialDialog']){if(auditEl(id).open)auditEl(id).close();}
+ for(const id of ['personalDialog','historyDialog','credentialDialog','monthJumpDialog']){if(auditEl(id).open)auditEl(id).close();}
  for(const id of ['personalResults','historyResults','credentialResults'])auditEl(id).replaceChildren();
  auditEl('personalTools').hidden=true;
 }
