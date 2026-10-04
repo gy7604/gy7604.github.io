@@ -257,6 +257,14 @@
     #mainScreen {
       display: none;
     }
+
+/* Personal and super-administrator views */
+.audit-icon{width:auto;min-width:40px;min-height:40px;padding:8px;background:transparent;color:#a77800;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center}
+.audit-icon:hover{background:#eef2f6}.audit-icon:focus-visible{outline:3px solid #ffb000;outline-offset:2px}
+.audit-dialog{border:0;border-radius:10px;padding:0;width:min(760px,calc(100% - 24px));max-height:88vh;color:#333;font-family:inherit;box-shadow:0 18px 60px #0004}
+.audit-dialog::backdrop{background:#18253c80}.audit-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px;border-bottom:1px solid #e2e8f0}.audit-head h2{font-size:18px;margin:0}.audit-body{padding:16px;max-height:calc(88vh - 80px);overflow:auto}.audit-tabs{display:flex;gap:8px;margin-bottom:16px}.audit-tabs button{background:#eef2f6;color:#475569}.audit-tabs .audit-active{background:#007bff;color:white}.audit-filters{display:flex;gap:10px;flex-wrap:wrap}.audit-filters label{font-size:13px;max-width:100%}.audit-filters input,.audit-filters select{width:auto;max-width:100%;padding:9px;font-size:14px;display:block;margin:4px 0}.audit-item{border:1px solid #dce3ec;border-radius:7px;padding:14px;margin-bottom:12px;font-size:14px}.audit-item p{line-height:1.6;margin:8px 0}.audit-between{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.audit-tag{background:#e6f2ff;color:#0061ba;padding:4px 8px;border-radius:16px;font-size:12px}.audit-muted{font-size:12px;color:#64748b;line-height:1.6}.audit-empty{text-align:center;background:#f8fafc;padding:24px;color:#64748b}.audit-secondary{background:#eef2f6;color:#34465c}.audit-diff{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.audit-diff div{background:#f1f5f9;padding:10px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}.audit-diff div:last-child{background:#eaf4ff}.audit-diff small{display:block;color:#64748b}.audit-selected{outline:3px solid #ffb000;outline-offset:-3px}.audit-dialog details summary{cursor:pointer;margin-top:12px}body:has(.audit-dialog[open]){overflow:hidden}
+@media(max-width:600px){.audit-diff{grid-template-columns:1fr}.audit-head,.audit-body{padding:12px}}
+
   </style>
 </head>
 
@@ -294,7 +302,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.03.4</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.04.1</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -404,6 +412,9 @@
     </div>
 
 
+
+<div id="personalTools" class="card" hidden style="padding:10px;margin-bottom:10px"><button class="btn-small" onclick="openPersonalView()">내 연차·대근 모아보기</button></div>
+
     <div class="card" style="padding: 10px; font-size: 13px; line-height: 1.6;">
       <strong>휴무·추가 지원 신청 안내</strong><br>
       사유에 <strong>정수</strong>가 포함되면 이름 대신 <strong>정수 지원</strong>으로 표시됩니다.<br>
@@ -508,6 +519,11 @@
 
   </div>
 
+
+
+<dialog id="personalDialog" class="audit-dialog" aria-labelledby="personalTitle"><div class="audit-head"><h2 id="personalTitle">내 연차·대근</h2><button class="btn-small audit-secondary" data-audit-close="personalDialog" aria-label="내 연차·대근 닫기">닫기</button></div><div class="audit-body"><div class="audit-tabs" role="tablist" aria-label="내 기록 유형"><button id="personalRequestTab" role="tab" aria-selected="true" class="btn-small audit-active" onclick="selectPersonalKind('request')">내 연차</button><button id="personalHelperTab" role="tab" aria-selected="false" class="btn-small" onclick="selectPersonalKind('helper')">내 대근</button></div><div class="audit-filters"><label>조회 범위 <select id="personalScope"><option value="upcoming">오늘 이후 예정</option><option value="month">월별 전체 기록</option></select></label><label id="personalMonthLabel" hidden>조회 월 <input id="personalMonth" type="month" min="1900-01" max="2200-12"></label></div><p class="audit-muted">본인 신청과 본인이 등록된 대근만 표시합니다. 내 연차에는 기존 휴무 신청 사유도 함께 표시됩니다. 삭제·대근 취소된 기록은 목록에서 제외됩니다.</p><p id="personalSummary" class="audit-muted" aria-live="polite"></p><div id="personalResults" role="tabpanel" aria-labelledby="personalRequestTab"></div><button id="personalMore" class="btn-small audit-secondary" hidden onclick="loadPersonalView(true)">더보기</button></div></dialog>
+<dialog id="historyDialog" class="audit-dialog" aria-labelledby="historyTitle"><div class="audit-head"><h2 id="historyTitle">변경 이력 조회</h2><button class="btn-small audit-secondary" data-audit-close="historyDialog" aria-label="변경 이력 닫기">닫기</button></div><div class="audit-body"><p class="audit-muted">슈퍼관리자 전용 · 기존 기록에 처리자 정보가 없으면 확인 불가로 표시합니다.</p><div class="audit-filters"><label>변경 월 <input id="historyMonth" type="month" min="1900-01" max="2200-12"></label><label>유형 <select id="historyType"><option value="all">전체</option><option value="request">신청</option><option value="helper">대근</option><option value="memo">메모</option></select></label><label>이름·근무일 검색 <input id="historySearch" type="search" maxlength="100" placeholder="이름 또는 2026-10-08"></label></div><p id="historySummary" class="audit-muted" aria-live="polite"></p><div id="historyResults"></div><button id="historyMore" class="btn-small audit-secondary" hidden onclick="loadChangeHistory(true)">더보기</button></div></dialog>
+<dialog id="credentialDialog" class="audit-dialog" aria-labelledby="credentialTitle"><div class="audit-head"><h2 id="credentialTitle">개인코드 변경 현황</h2><button class="btn-small audit-secondary" data-audit-close="credentialDialog" aria-label="개인코드 변경 현황 닫기">닫기</button></div><div class="audit-body"><p class="audit-muted">슈퍼관리자 전용 · 본인 변경과 관리자 초기화를 구분합니다. 과거 기록이 없으면 변경 여부와 시각을 추측하지 않습니다.</p><div class="audit-filters"><label>이름 검색 <input id="credentialSearch" type="search" maxlength="100" placeholder="사용자 이름"></label><label>본인 변경 여부 <select id="credentialStatus"><option value="all">전체</option><option value="changed">변경 기록 있음</option><option value="unknown">과거 변경 여부 확인 불가</option></select></label></div><p id="credentialSummary" class="audit-muted" aria-live="polite"></p><div id="credentialResults"></div></div></dialog>
 
 <script>
 
@@ -1097,6 +1113,7 @@
       `[${currentUser.team}조] ${currentUser.name} 님 ${roleBadge}`;
 
 
+    refreshAccountTools();
     loadData();
 
     // 로그인 후 현재 기기의 서버 알림 구독 등록 여부를 버튼에 반영
@@ -1356,6 +1373,7 @@
 
       clearTimeout(sessionExpiryTimer);
       sessionExpiryTimer = null;
+      clearAuditViews();
       currentUser = null;
       currentLoginCode = '';
       ++calendarLoadVersion;
@@ -2095,7 +2113,7 @@
 
 
       let dayHtml = `
-        <div class="day-cell">
+        <div class="day-cell" id="calendar-day-${dateStr}">
 
           <div class="day-header-bar">
 
@@ -2511,6 +2529,7 @@
   }
 
   function clearSessionScreen() {
+    clearAuditViews();
     clearTimeout(sessionExpiryTimer);
     sessionExpiryTimer = null;
     currentSessionToken = '';
@@ -2570,7 +2589,7 @@
         body, headers: { 'x-app-session': token }
       });
       if (token !== currentSessionToken) return { success: false, sessionExpired: true };
-      if (!error && data?.success) return { success: true, ...(body.action === 'code_change_status' ? { remaining: data.remaining, limit: data.limit, used: data.used, month: data.month } : {}), ...(body.action === 'push_status' ? { registered: data.registered === true } : {}), ...(body.action === 'helper_lookup' ? { users: data.users || [] } : {}), ...(body.action === 'calendar_read' ? { requests: data.requests || [], memos: data.memos || [] } : {}) };
+      if (!error && data?.success) return { success: true, ...(body.action === 'code_change_status' ? { remaining: data.remaining, limit: data.limit, used: data.used, month: data.month } : {}), ...(body.action === 'push_status' ? { registered: data.registered === true } : {}), ...(body.action === 'helper_lookup' ? { users: data.users || [] } : {}), ...(body.action === 'calendar_read' ? { requests: data.requests || [], memos: data.memos || [] } : {}), ...(['personal_read','history_read'].includes(body.action) ? { rows: data.rows || [], has_more: data.has_more === true } : {}), ...(body.action === 'credential_audit' ? { users: data.users || [] } : {}) };
       let message = data?.message || '잠시 후 다시 시도해 주세요.';
       if (error?.context?.status === 401) {
         expireSession(token);
@@ -3687,5 +3706,116 @@
   }
 </script>
 
+<script>
+// Personal lists and super-administrator audit views use server-verified sessions.
+const auditClockIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7"/><path d="M12 7v5l3 2"/></svg>';
+let personalViewKind='request', personalViewRows=[], personalViewOffset=0, personalViewMore=false;
+let historyViewRows=[], historyViewOffset=0, historyViewMore=false, credentialViewUsers=[];
+let personalViewVersion=0, historyViewVersion=0, credentialViewVersion=0, historySearchTimer;
+const auditEl=id=>document.getElementById(id);
+function auditKstMonth(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7);}
+function auditTime(value){if(!value)return '확인 불가';const date=new Date(value);return Number.isNaN(date.getTime())?'확인 불가':new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(date);}
+function refreshAccountTools(){
+ const superUser=isSuperAdmin();
+ const welcome=auditEl('welcomeMsg');
+ if(superUser){welcome.innerHTML='슈퍼관리자 <button class="audit-icon" onclick="openCredentialAudit()" aria-label="개인코드 변경 여부 조회" title="개인코드 변경 여부 조회">👑</button> <button class="audit-icon" onclick="openChangeHistory()" aria-label="변경 이력 조회" title="변경 이력 조회">'+auditClockIcon+'</button>';}
+ else if(currentUser){welcome.textContent='['+currentUser.team+'조] '+currentUser.name+' 님'+(isTeamAdmin()?' 🛠️(조관리자)':'');}
+ auditEl('personalTools').hidden=superUser||!currentUser;
+}
+function clearAuditViews(){
+ ++personalViewVersion;++historyViewVersion;++credentialViewVersion;clearTimeout(historySearchTimer);
+ personalViewRows=[];historyViewRows=[];credentialViewUsers=[];
+ for(const id of ['personalDialog','historyDialog','credentialDialog']){if(auditEl(id).open)auditEl(id).close();}
+ for(const id of ['personalResults','historyResults','credentialResults'])auditEl(id).replaceChildren();
+ auditEl('personalTools').hidden=true;
+}
+function auditMessage(id,message){auditEl(id).innerHTML='<p class="audit-empty">'+escapeRequestText(message)+'</p>';}
+async function openPersonalView(){
+ if(!currentUser||isSuperAdmin())return;
+ auditEl('personalMonth').value=auditKstMonth();auditEl('personalScope').value='upcoming';
+ auditEl('personalDialog').showModal();await loadPersonalView();
+}
+async function loadPersonalView(append=false){
+ if(!currentUser||isSuperAdmin())return;
+ const version=++personalViewVersion,token=currentSessionToken;
+ if(!append){personalViewRows=[];personalViewOffset=0;auditMessage('personalResults','불러오는 중…');}
+ auditEl('personalMore').hidden=true;
+ const scope=auditEl('personalScope').value;
+ auditEl('personalMonthLabel').hidden=scope!=='month';
+ const result=await callSessionRegistration({action:'personal_read',scope,month:auditEl('personalMonth').value,offset:personalViewOffset});
+ if(version!==personalViewVersion||token!==currentSessionToken||!auditEl('personalDialog').open)return;
+ if(!result.success){auditMessage('personalResults',result.message||'조회할 수 없습니다.');return;}
+ personalViewRows.push(...result.rows);personalViewOffset+=result.rows.length;personalViewMore=result.has_more;
+ renderPersonalView();
+}
+function selectPersonalKind(kind){
+ personalViewKind=kind;
+ for(const [id,type] of [['personalRequestTab','request'],['personalHelperTab','helper']]){auditEl(id).classList.toggle('audit-active',type===kind);auditEl(id).setAttribute('aria-selected',String(type===kind));}
+ renderPersonalView();
+}
+function renderPersonalView(){
+ const list=personalViewRows.filter(r=>personalViewKind==='request'?r.is_my_request:r.is_my_helper);
+ auditEl('personalResults').setAttribute('aria-labelledby',personalViewKind==='request'?'personalRequestTab':'personalHelperTab');
+ auditEl('personalSummary').textContent=(personalViewKind==='request'?'내 연차':'내 대근')+' '+list.length+'건'+(personalViewMore?' · 더 불러올 기록이 있습니다.':'')+' · 근무일 순';
+ auditEl('personalMore').hidden=!personalViewMore||personalViewOffset>10000;
+ auditEl('personalResults').innerHTML=list.length?list.map(r=>'<article class="audit-item"><div class="audit-between"><strong>'+escapeRequestText(r.shift_date)+' · '+escapeRequestText(r.shift_type)+'</strong><span class="audit-tag">'+(r.status==='FILLED'?'대근 확정':'대근 모집 중')+'</span></div><p>'+escapeRequestText(r.team)+'조 · '+escapeRequestText(r.reason||'사유 없음')+'</p><p>'+ (personalViewKind==='request'?'대근자: '+escapeRequestText(r.filled_by||'아직 없음'):'신청자: '+escapeRequestText(requestDisplayName(r)))+'</p><button class="btn-small audit-secondary" data-audit-date="'+escapeRequestText(r.shift_date)+'">달력에서 보기</button></article>').join(''):'<p class="audit-empty">해당 범위에 기록이 없습니다.'+(personalViewMore?' 더보기를 눌러 다음 기록을 확인해 주세요.':'')+'</p>';
+}
+async function openChangeHistory(){
+ if(!isSuperAdmin())return;
+ auditEl('historyMonth').value=auditKstMonth();auditEl('historySearch').value='';auditEl('historyType').value='all';
+ auditEl('historyDialog').showModal();await loadChangeHistory();
+}
+async function loadChangeHistory(append=false){
+ if(!isSuperAdmin())return;
+ const version=++historyViewVersion,token=currentSessionToken;
+ if(!append){historyViewRows=[];historyViewOffset=0;auditMessage('historyResults','불러오는 중…');}
+ auditEl('historyMore').hidden=true;
+ const result=await callSessionRegistration({action:'history_read',month:auditEl('historyMonth').value,type:auditEl('historyType').value,search:auditEl('historySearch').value.trim(),offset:historyViewOffset});
+ if(version!==historyViewVersion||token!==currentSessionToken||!isSuperAdmin()||!auditEl('historyDialog').open)return;
+ if(!result.success){auditMessage('historyResults',result.message||'조회할 수 없습니다.');return;}
+ historyViewRows.push(...result.rows);historyViewOffset+=result.rows.length;historyViewMore=result.has_more;renderChangeHistory();
+}
+function auditSnapshot(data,kind){
+ if(!data)return '기록 없음';if(kind==='memo')return data.memo||'메모 없음';
+ return [data.requested_by?('신청자: '+data.requested_by):'',data.team?data.team+'조':'',data.shift_type||'',data.reason||'',data.status==='FILLED'?'대근자: '+(data.filled_by||'확인 불가'):data.status==='OPEN'?'대근 모집 중':''].filter(Boolean).join(' · ');
+}
+function renderChangeHistory(){
+ auditEl('historySummary').textContent=historyViewRows.length+'건 · 최신 변경 순'+(historyViewMore?' · 더 불러올 기록이 있습니다.':'');
+ auditEl('historyMore').hidden=!historyViewMore||historyViewOffset>10000;
+ auditEl('historyResults').innerHTML=historyViewRows.length?historyViewRows.map(h=>'<article class="audit-item"><p class="audit-muted">'+escapeRequestText(auditTime(h.changed_at))+' · 처리자 '+escapeRequestText(h.actor_name||'확인 불가 (기존 기록 또는 DB 작업)')+'</p><div class="audit-between"><strong>'+escapeRequestText(h.event_type)+'</strong><span class="audit-tag">'+escapeRequestText(h.target_date||'')+'</span></div><details><summary>변경 전·후 보기</summary><div class="audit-diff"><div><small>변경 전</small>'+escapeRequestText(auditSnapshot(h.old_data,h.kind))+'</div><div><small>변경 후</small>'+escapeRequestText(h.new_data?auditSnapshot(h.new_data,h.kind):'삭제됨')+'</div></div></details>'+(h.target_date?'<p><button class="btn-small audit-secondary" data-audit-date="'+escapeRequestText(h.target_date)+'">달력에서 보기</button></p>':'')+'</article>').join(''):'<p class="audit-empty">조건에 맞는 변경 이력이 없습니다.</p>';
+}
+async function openCredentialAudit(){
+ if(!isSuperAdmin())return;
+ const version=++credentialViewVersion,token=currentSessionToken;
+ auditEl('credentialSearch').value='';auditEl('credentialStatus').value='all';auditEl('credentialDialog').showModal();auditMessage('credentialResults','불러오는 중…');
+ const result=await callSessionRegistration({action:'credential_audit'});
+ if(version!==credentialViewVersion||token!==currentSessionToken||!isSuperAdmin()||!auditEl('credentialDialog').open)return;
+ if(!result.success){auditMessage('credentialResults',result.message||'조회할 수 없습니다.');return;}
+ credentialViewUsers=result.users;renderCredentialAudit();
+}
+function credentialStatus(u){return u.last_self_change||u.baseline_self_changes>0?'changed':'unknown';}
+function renderCredentialAudit(){
+ const query=auditEl('credentialSearch').value.trim(),status=auditEl('credentialStatus').value;
+ const users=credentialViewUsers.filter(u=>u.name.includes(query)&&(status==='all'||credentialStatus(u)===status));
+ auditEl('credentialSummary').textContent=users.length+'명 · 활성 계정 · 시간은 한국 기준';
+ auditEl('credentialResults').innerHTML=users.length?users.map(u=>{
+ const known=u.last_self_change||u.baseline_self_changes>0;
+ const self=u.last_self_change?auditTime(u.last_self_change):u.baseline_self_changes>0?'변경 기록 있음 · 정확한 시각 확인 불가':'기록 시작 이후 본인 변경 없음';
+ return '<article class="audit-item"><div class="audit-between"><strong>'+escapeRequestText(u.name)+' <span class="audit-muted">'+escapeRequestText(u.team)+'조</span></strong><span class="audit-tag">'+(known?'본인 변경함':'과거 변경 여부 확인 불가')+'</span></div><p>마지막 본인 변경: '+escapeRequestText(self)+'</p><p>관리자 초기화: '+escapeRequestText(u.last_admin_reset?auditTime(u.last_admin_reset):'기록 시작 이후 없음')+'</p>'+(u.last_external_change?'<p>DB에서 직접 변경: '+escapeRequestText(auditTime(u.last_external_change))+'</p>':'')+'<details><summary>변경 내역 보기</summary><p class="audit-muted">기록 시작: '+escapeRequestText(auditTime(u.recorded_from))+'</p>'+(u.baseline_self_changes>0?'<p class="audit-muted">기존 본인 변경 횟수 기록: '+u.baseline_self_changes+'회 (시각·초기화 이력 확인 불가)</p>':'')+(u.events.length?u.events.map(e=>'<p>'+escapeRequestText(auditTime(e.changed_at))+' · '+escapeRequestText(({self_change:'본인 코드 변경',admin_reset:'관리자 초기화',external_change:'DB에서 직접 변경'})[e.event_type]||'코드 변경')+'<br><span class="audit-muted">처리자: '+escapeRequestText(e.actor_name||'확인 불가')+'</span></p>').join(''):'<p class="audit-muted">기록 시작 이후 변경 내역이 없습니다.</p>')+'<p class="audit-muted">최근 20건 표시 · 코드 내용은 저장하거나 표시하지 않습니다.</p></details></article>';
+ }).join(''):'<p class="audit-empty">조건에 맞는 사용자가 없습니다.</p>';
+}
+async function jumpAuditDate(date){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
+ for(const id of ['personalDialog','historyDialog','credentialDialog'])if(auditEl(id).open)auditEl(id).close();
+ const [year,month]=date.split('-').map(Number);currentYear=year;currentMonth=month-1;await loadData();
+ if(!currentUser)return;const target=document.getElementById('calendar-day-'+date);
+ if(target){target.classList.add('audit-selected');target.tabIndex=-1;target.scrollIntoView({block:'center',inline:'center',behavior:'smooth'});target.focus({preventScroll:true});}
+}
+document.addEventListener('click',event=>{const close=event.target.closest('[data-audit-close]'),jump=event.target.closest('[data-audit-date]');if(close)auditEl(close.dataset.auditClose).close();if(jump)jumpAuditDate(jump.dataset.auditDate);});
+for(const id of ['personalScope','personalMonth'])auditEl(id).addEventListener('change',()=>loadPersonalView());
+for(const id of ['historyMonth','historyType'])auditEl(id).addEventListener('change',()=>loadChangeHistory());
+auditEl('historySearch').addEventListener('input',()=>{clearTimeout(historySearchTimer);++historyViewVersion;historySearchTimer=setTimeout(()=>loadChangeHistory(),300);});
+auditEl('credentialSearch').addEventListener('input',renderCredentialAudit);auditEl('credentialStatus').addEventListener('change',renderCredentialAudit);
+</script>
 </body>
 </html>
