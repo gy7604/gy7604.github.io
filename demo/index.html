@@ -13,19 +13,23 @@
 @media(max-width:620px){.header-account{flex-wrap:wrap;gap:5px}.header-account #mineBtn{margin:0;padding:7px 8px;font-size:11px}.request-guide{gap:0 8px}}
 
 .header-account{gap:6px}.header-account #mineBtn{margin-left:0;margin-right:0}
+
+.row-preview-controls{font-size:12px}.row-preview-controls input[type=checkbox]{width:auto}.row-preview-controls p{margin:5px 0}.row-preview-controls button,.row-preview-controls input{padding:6px;font-size:12px}
+.calendar{grid-template-columns:repeat(7,minmax(150px,1fr));min-width:1050px}.day{min-height:0}.date{min-height:32px;font-size:12px}.slot{display:grid;grid-template-columns:30px minmax(0,1fr) minmax(0,1fr);font-size:11px;min-height:34px;border-bottom:1px solid #eee}.slot>*{padding:5px 3px;display:flex;align-items:center;justify-content:center;min-width:0;overflow-wrap:anywhere}.slot .replacement{color:#0061ba}.slot small{font-size:10px;font-weight:normal;display:block}.team-A .replacement{background:#e9f3ff}.team-B .replacement{background:#eef9ee}.team-C .replacement{background:#fff6e7}.team-D .replacement{background:#f5efff}.slot .person{color:#178447;flex-direction:column}.memo-row{min-height:28px;padding:5px;background:#fff9c4;font-size:11px}.day.empty .slot>*{visibility:hidden}.week-caption{grid-column:1/-1;padding:5px 8px;background:#eef2f6;font-size:11px;color:#475569;border-bottom:1px solid #ccc}
 </style></head><body><main>
 
 <section class="card banner compact-banner"><span><strong>배치 시연</strong> · 가상 데이터 · 운영 앱 미적용</span><label class="row">시연 역할 <select id="role"><option value="jang">장경준 계정</option><option value="super">슈퍼관리자 계정</option><option value="member">일반 사용자 계정</option></select></label></section>
 <section class="card compact-header"><div class="header-account"><span class="badge" id="accountBadge" style="display:inline-flex;align-items:center;gap:4px"><span id="accountName">[A조] 장경준</span><button id="credentialBtn" hidden aria-label="개인코드 변경 여부 조회" title="개인코드 변경 여부 조회" style="background:transparent;color:#ad7900;padding:8px;min-width:40px;min-height:40px;display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5 7.5 9 12 3l4.5 6L21 5l-2 13H5L3 5zm2 15h14v2H5z"/></svg></button></span><button id="historyBtn" class="secondary" aria-label="변경 이력 조회" title="변경 이력 조회"></button><button id="mineBtn"><span aria-hidden="true">☷</span> 내 연차·대근 모아보기</button></div><div class="month-nav"><button id="prev" class="secondary" aria-label="이전 달">◀</button><button id="monthTitle" aria-label="원하는 년월로 이동" title="클릭하여 원하는 년월로 이동"></button><button id="next" class="secondary" aria-label="다음 달">▶</button></div><div class="header-actions"><button class="mock-action bell" aria-label="알림 설정 시연" title="알림 설정" data-demo-action="알림 설정">🔔</button><button class="mock-action code" aria-label="접속 코드 변경 시연" title="접속 코드 변경" data-demo-action="접속 코드 변경">🔑</button><button class="mock-action exit" aria-label="로그아웃 시연" title="로그아웃" data-demo-action="로그아웃">↪</button></div></section>
 <section class="card request-guide"><div class="guide-text"><strong>휴무·추가 지원 신청 안내</strong><br>사유에 <strong>정수</strong>가 포함되면 이름 대신 <strong>정수 지원</strong>으로 표시됩니다.<br><strong>정수</strong> 없이 <strong>지원</strong>이 포함되면 <strong>지원</strong>으로 표시됩니다.<br>예: 정수, 정수지원, 정수 지원 → 정수 지원 · 지원 → 지원<br>해당 신청은 추가 지원으로 등록되며, 일반 휴무는 기존처럼 이름과 사유가 표시됩니다.</div><div class="guide-text notification-guide"><strong>알림·달력 이동 안내</strong><br>🔔 <strong>휴무 등록:</strong> 휴무 신청 조와 해당 날짜의 대근조 직원에게 알림이 발송됩니다.<br>🔔 <strong>대근 등록:</strong> 휴무 신청 조와 대근조 직원에게 알림이 발송됩니다.<br>📌 <strong>예시:</strong> B조 홍길동님이 10월 18일 주간 휴무 신청 → B조 + 대근조(A조)에 알림 발송, C조·D조에는 발송되지 않습니다.<br>💡 가운데 <strong>년·월을 클릭</strong>하면 원하는 달로 바로 이동할 수 있습니다.</div></section>
 <div class="stats" hidden><div><span class="count">4</span><p>예정된 내 연차</p></div><div><span class="count">3</span><p>예정된 내 대근</p></div></div><p id="roleNote" hidden></p>
-<section class="card calendar-card"><div id="notice" role="status" aria-live="polite"></div><div class="calendar-wrap"><div id="calendar" class="calendar"></div></div><div class="row legend muted"><span>주간 <b class="day-shift">주</b> / 야간 <b class="night-shift">야</b> / 휴무 <b class="off-shift">휴</b></span><span>파란 배경: 내 조 · 노란 표시: 내 연차·대근</span><button id="today" class="secondary">시연 기준월</button></div></section>
+<section class="card row-preview-controls"><div class="row"><label for="previewDate">시연 기준일</label><input id="previewDate" type="date" value="2026-10-11" min="1900-01-01" max="2200-12-31"><label class="row"><input id="compactPastRows" type="checkbox" checked>지난 주 빈 행 숨기기</label><button id="restoreRowExample" class="secondary">빈 행에 데이터 추가 시연</button></div><p id="rowPreviewSummary" class="muted" role="status" aria-live="polite"></p><p class="muted">10월 4~10일 예시: A·B조 네 번째 행, C·D조 세 번째 행을 숨깁니다. 각 조는 최소 한 행 유지 · 실제 데이터 삭제 없음 · 메모는 별도 유지</p></section><section class="card calendar-card"><div id="notice" role="status" aria-live="polite"></div><div class="calendar-wrap"><div id="calendar" class="calendar"></div></div><div class="row legend muted"><span>주간 <b class="day-shift">주</b> / 야간 <b class="night-shift">야</b> / 휴무 <b class="off-shift">휴</b></span><span>파란 배경: 내 조 · 노란 표시: 내 연차·대근</span><button id="today" class="secondary">시연 기준월</button></div></section>
 </main><dialog id="monthDialog" aria-labelledby="monthDialogTitle"><div class="modal-head row between"><h2 id="monthDialogTitle">원하는 달로 이동</h2><button class="secondary" data-close="monthDialog" aria-label="월 이동 닫기">닫기</button></div><form id="monthForm" class="modal-body"><label for="targetMonth">이동할 년·월</label><input id="targetMonth" type="month" min="1900-01" max="2200-12" required style="display:block;margin:12px 0;width:100%"><button type="submit">이동</button></form></dialog>
 <dialog id="mine"><div class="modal-head row between"><h2>내 연차·대근</h2><button class="secondary" data-close="mine" aria-label="내 연차·대근 닫기">닫기</button></div><div class="modal-body"><div class="tabs" role="tablist" aria-label="내 기록 유형"><button id="requestTab" role="tab" aria-selected="true" class="active">내 연차</button><button id="helpTab" role="tab" aria-selected="false">내 대근</button></div><div class="row filters"><label>조회 범위 <select id="scope"><option value="upcoming">오늘 이후 예정</option><option value="month">월별 전체 기록</option></select></label><label id="myMonthLabel" hidden>조회 월 <input id="myMonth" type="month" value="2026-10"></label></div><p class="muted" id="mineSummary"></p><div id="mineList" role="tabpanel" aria-labelledby="requestTab"></div></div></dialog>
 <dialog id="history"><div class="modal-head row between"><h2>변경 이력 조회</h2><button class="secondary" data-close="history" aria-label="변경 이력 닫기">닫기</button></div><div class="modal-body"><p class="muted">권한이 있는 계정의 시연 화면 · 아래 기록은 모두 가상입니다.</p><div class="row filters"><label>변경 월 <input id="historyMonth" type="month" value="2026-10"></label><label>유형 <select id="historyType"><option value="all">전체</option><option value="request">신청</option><option value="helper">대근</option><option value="memo">메모</option></select></label><label>이름·근무일 검색 <input id="search" type="search" placeholder="예: 김하늘 또는 2026-10-08"></label></div><p id="historySummary" class="muted" aria-live="polite"></p><div id="historyList"></div></div></dialog>
 <dialog id="credentials"><div class="modal-head row between"><h2>개인코드 변경 현황</h2><button class="secondary" data-close="credentials" aria-label="개인코드 변경 현황 닫기">닫기</button></div><div class="modal-body"><p class="muted">가상 기록 · 코드 내용은 표시하지 않습니다. 본인 변경과 관리자 초기화를 구분합니다.</p><div class="row filters"><label>이름 검색 <input id="codeSearch" type="search" placeholder="사용자 이름"></label><label>본인 변경 여부 <select id="codeStatus"><option value="all">전체</option><option value="changed">변경함</option><option value="unchanged">변경하지 않음</option><option value="unknown">확인 불가</option></select></label></div><p class="muted">‘변경하지 않음’은 기록을 시작한 이후 기준입니다. 기록 시작 전의 변경 여부는 확인 불가로 표시합니다.</p><p id="codeSummary" class="muted" aria-live="polite"></p><div id="codeList"></div></div></dialog><script>
 'use strict';
-const TODAY='2026-10-03', $=id=>document.getElementById(id);
+let TODAY='2026-10-11';
+const $=id=>document.getElementById(id);
 const records=[
 {kind:'request',date:'2026-10-08',shift:'주간',team:'A',reason:'연차',helper:'김하늘',status:'대근 확정'},
 {kind:'request',date:'2026-10-09',shift:'주간',team:'A',reason:'반차',helper:'',status:'대근 모집 중'},
@@ -49,7 +53,58 @@ let month='2026-10',kind='request',selected='';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pretty=d=>d.replaceAll('-','.');
 function shift(date,team){const n=Math.round((Date.parse(date+'T00:00:00Z')-Date.parse('2026-09-30T00:00:00Z'))/86400000);const i=((n+({A:0,C:2,D:4,B:6}[team]))%8+8)%8;return ['주','주','휴','휴','야','야','휴','휴'][i];}
-function renderCalendar(){const [y,m]=month.split('-').map(Number),first=new Date(Date.UTC(y,m-1,1)).getUTCDay();let days=new Date(Date.UTC(y,m,0)).getUTCDate();$('monthTitle').textContent=y+'년 '+m+'월';let html=['일','월','화','수','목','금','토'].map((w,i)=>`<div class="weekday ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join('');for(let i=0;i<first;i++)html+='<div class="day empty" aria-hidden="true"></div>';for(let d=1;d<=days;d++){const date=month+'-'+String(d).padStart(2,'0');const events=records.filter(r=>r.date===date&&r.status!=='취소');html+=`<div class="day ${date===TODAY?'today':''} ${date===selected?'selected':''}" id="day-${date}"><div class="date"><span>${d}</span><span>${date===TODAY?'기준일':''}</span></div>${['A','B','C','D'].map(t=>{const s=shift(date,t);return `<div class="team ${t==='A'?'own':''}"><b>${t}조</b><span class="shift ${s==='주'?'day':s==='야'?'night':'off'}-shift">${s}</span><span>${t==='A'?'장경준':''}</span></div>`;}).join('')}${events.map(r=>`<div class="event">${r.kind==='request'?'내 연차 · '+esc(r.reason):'내 대근 · '+esc(r.owner)}</div>`).join('')}</div>`;}while((first+days)%7){html+='<div class="day empty" aria-hidden="true"></div>';days++;}$('calendar').innerHTML=html;}
+
+const baseTeamRows={A:4,B:4,C:3,D:3};
+let addedRowExample=false;
+const sampleSlots=[
+ ['2026-10-04','A',0,'김하늘','박서연'],['2026-10-05','A',0,'이도윤','김하늘'],
+ ['2026-10-08','A',0,'장경준','박서연'],['2026-10-08','A',1,'김하늘',''],
+ ['2026-10-08','A',2,'이도윤','김하늘'],['2026-10-09','A',0,'박서연','김하늘'],['2026-10-09','A',1,'이도윤','박서연'],
+ ['2026-10-10','B',0,'김하늘','박서연'],['2026-10-10','B',1,'이도윤','김하늘'],['2026-10-10','B',2,'박서연','이도윤'],
+ ['2026-10-06','C',0,'김하늘','이도윤'],['2026-10-06','C',1,'지원','박서연'],['2026-10-07','C',0,'김하늘','박서연'],['2026-10-10','C',0,'이도윤','김하늘'],
+ ['2026-10-04','D',0,'이도윤','김하늘'],['2026-10-04','D',1,'박서연','이도윤'],['2026-10-05','D',0,'김하늘','박서연'],['2026-10-09','D',0,'이도윤','박서연']
+].map(([date,team,row,person,helper])=>({date,team,row,person,helper}));
+function slotData(date,team,row){
+ if(addedRowExample && date==='2026-10-04' && team==='A' && row===3)return {person:'추가 시연',helper:''};
+ const sample=sampleSlots.find(s=>s.date===date&&s.team===team&&s.row===row);
+ if(sample)return sample;
+ if(row===0){const r=records.find(r=>r.date===date&&r.team===team&&r.status!=='취소');if(r)return {person:r.kind==='request'?'장경준':r.owner,helper:r.kind==='request'?r.helper:'장경준'};}
+ return null;
+}
+function visibleTeamRows(dates,team,today,compact,readSlot=slotData){
+ const all=Array.from({length:baseTeamRows[team]},(_,i)=>i);
+ if(!compact || dates[6]>=today)return all;
+ const kept=all.filter(row=>dates.some(date=>{const item=readSlot(date,team,row);return !!(item&&(item.person||item.helper||item.support));}));
+ return kept.length?kept:[0];
+}
+function renderCalendar(){
+ const [y,m]=month.split('-').map(Number),first=new Date(Date.UTC(y,m-1,1)),offset=first.getUTCDay(),days=new Date(Date.UTC(y,m,0)).getUTCDate();
+ const compact=$('compactPastRows').checked;
+ $('monthTitle').textContent=y+'년 '+m+'월';
+ let html=['일','월','화','수','목','금','토'].map((w,i)=>'<div class="weekday '+(i===0?'sun':i===6?'sat':'')+'">'+w+'</div>').join('');
+ let hiddenCount=0;
+ for(let w=0;w<Math.ceil((offset+days)/7);w++){
+  const dates=Array.from({length:7},(_,i)=>new Date(Date.UTC(y,m-1,1-offset+w*7+i)).toISOString().slice(0,10));
+  const rows=Object.fromEntries(['A','B','C','D'].map(t=>[t,visibleTeamRows(dates,t,TODAY,compact)]));
+  const removed=Object.keys(rows).reduce((n,t)=>n+baseTeamRows[t]-rows[t].length,0);hiddenCount+=removed;
+  html+='<div class="week-caption" data-week="'+dates[0]+'">'+pretty(dates[0])+' ~ '+pretty(dates[6])+' · '+(dates[6]<TODAY?'지난 주':'진행 중·예정')+' · '+Object.entries(rows).map(([t,r])=>t+'조 '+r.length+'행').join(' / ')+(removed?' · 빈 행 '+removed+'개 숨김':'')+'</div>';
+  for(let i=0;i<7;i++){
+   const date=dates[i],inMonth=date.startsWith(month),day=Number(date.slice(-2));
+   html+='<div class="day '+(!inMonth?'empty ':'')+(date===TODAY?'today ':'')+(date===selected?'selected':'')+'"'+(inMonth?' id="day-'+date+'"':'')+'><div class="date"><span>'+(inMonth?month.slice(5)+'/'+String(day).padStart(2,'0'):'')+'</span><span>'+(inMonth?'대근':'')+'</span></div>';
+   for(const team of ['A','B','C','D'])for(const row of rows[team]){
+    const s=shift(date,team),item=inMonth?slotData(date,team,row):null;
+    const placeholder=s==='휴'?'':({'A':'C','B':'A','C':'D','D':'B'}[team]+'조');
+    html+='<div class="slot team-'+team+'" data-team="'+team+'" data-slot="'+row+'"><b class="'+(s==='주'?'day':s==='야'?'night':'off')+'-shift">'+team+s+'</b><span class="person">'+esc(item?.person||'')+'</span><span class="replacement">'+esc(item?.helper||placeholder)+'</span></div>';
+   }
+   html+='<div class="memo-row">'+(inMonth?'메모':'')+'</div></div>';
+  }
+ }
+ $('calendar').innerHTML=html;
+ $('rowPreviewSummary').textContent='기준일 '+pretty(TODAY)+' · '+(compact?'지난 주의 빈 행 '+hiddenCount+'개 숨김':'전체 행 표시')+' · 각 조 최소 한 행 유지';
+}
+$('previewDate').onchange=()=>{const value=$('previewDate').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(value)||value<'1900-01-01'||value>'2200-12-31')return;TODAY=value;renderCalendar();};
+$('compactPastRows').onchange=renderCalendar;
+$('restoreRowExample').onclick=()=>{addedRowExample=!addedRowExample;$('restoreRowExample').textContent=addedRowExample?'추가 시연 데이터 제거':'빈 행에 데이터 추가 시연';renderCalendar();};
 function moveMonth(delta){const [y,m]=month.split('-').map(Number),d=new Date(Date.UTC(y,m-1+delta,1));month=d.toISOString().slice(0,7);selected='';$('notice').textContent='';renderCalendar();}
 function jump(date){for(const d of document.querySelectorAll('dialog[open]'))d.close();month=date.slice(0,7);selected=date;renderCalendar();$('notice').textContent=pretty(date)+' 근무일을 표시했습니다.';const cell=$('day-'+date);cell.scrollIntoView({block:'center',inline:'center',behavior:'smooth'});cell.tabIndex=-1;cell.focus({preventScroll:true});}
 function renderMine(){const scope=$('scope').value;const list=records.filter(r=>r.kind===kind&&(scope==='upcoming'?r.date>=TODAY&&r.status!=='취소':r.date.startsWith($('myMonth').value))).sort((a,b)=>a.date.localeCompare(b.date));$('myMonthLabel').hidden=scope!=='month';$('mineSummary').textContent=(kind==='request'?'내 연차':'내 대근')+' '+list.length+'건 · '+(scope==='upcoming'?'시연 기준일 이후 근무일 순':'선택한 월의 완료·취소 기록 포함');$('mineList').setAttribute('aria-labelledby',kind==='request'?'requestTab':'helpTab');$('mineList').innerHTML=list.length?list.map(r=>`<article class="item"><div class="row between"><h3>${pretty(r.date)} · ${esc(r.shift)}</h3><span class="badge ${r.status==='취소'?'gray':r.helper||r.kind==='helper'?'green':'orange'}">${esc(r.status)}</span></div><p>${esc(r.team)}조 · ${esc(r.reason)}</p><p>${r.kind==='request'?'대근자: '+esc(r.helper||'아직 없음'):'신청자: '+esc(r.owner)+' · 대근자: 장경준'}</p><button class="secondary" data-jump="${r.date}">달력에서 보기</button></article>`).join(''):'<div class="empty-state">해당 범위에 기록이 없습니다.<br>다른 월이나 유형을 선택해 보세요.</div>';}
