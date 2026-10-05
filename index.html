@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.05.10">
+  <meta name="app-version" content="2026.10.05.11">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -331,7 +331,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.10</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.11</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -378,17 +378,18 @@
       🍎 iPhone 설치 방법
     </button>
 
+    <!-- Release history policy: exclude super-administrator features from all current and future public entries. -->
     <details id="appReleaseHistory" style="margin-top:18px;text-align:left;border-top:1px solid #e2e8f0;padding-top:12px;">
       <summary style="cursor:pointer;text-align:center;font-size:14px;color:#526477;font-weight:bold;padding:8px;">📋 업데이트 내역</summary>
       <div style="max-height:320px;overflow-y:auto;padding:6px 4px;line-height:1.65;font-size:13px;">
         <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">초기 기능부터 주요 변경 사항을 정리했습니다.</p>
-        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><small style="color:#64748b;">2026.09.30</small><h3 style="font-size:14px;margin:3px 0 5px;">초기 교대 근무 앱</h3><p style="margin:0;">A·B·C·D조 근무 달력, 휴무 신청, 대근 등록·취소, 날짜별 메모, 사용자·관리자 기능을 구성했습니다.</p></article>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><small style="color:#64748b;">2026.09.30</small><h3 style="font-size:14px;margin:3px 0 5px;">초기 교대 근무 앱</h3><p style="margin:0;">A·B·C·D조 근무 달력, 휴무 신청, 대근 등록·취소, 날짜별 메모와 기본 로그인 기능을 구성했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><small style="color:#64748b;">2026.10.01</small><h3 style="font-size:14px;margin:3px 0 5px;">달력·접속코드·앱 설치</h3><p style="margin:0;">이전·다음 달과 원하는 년월 이동, 공휴일 자동 표시, 개인 접속코드 변경, 홈 화면에 설치하는 앱 기능을 추가했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><small style="color:#64748b;">2026.10.02</small><h3 style="font-size:14px;margin:3px 0 5px;">지원 신청·권한·알림 개선</h3><p style="margin:0;">지원·정수 지원 표시를 추가하고 조관리자의 대근 지정 범위를 정비했습니다. 로그인과 신청·대근 처리의 본인 확인을 강화하고 기기별 알림 등록을 개선했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><small style="color:#64748b;">2026.10.03</small><h3 style="font-size:14px;margin:3px 0 5px;">안전한 데이터 처리·앱 업데이트</h3><p style="margin:0;">휴무 삭제·메모·달력 조회의 권한 확인을 강화했습니다. 앱 복귀 시 데이터 갱신, 알림 등록 상태 표시, 알림별 개별 표시, 업데이트 적용 버튼, 접속코드 월 2회 변경 제한 안내를 보완했습니다.</p></article>
-        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><small style="color:#64748b;">2026.10.04</small><h3 style="font-size:14px;margin:3px 0 5px;">개인 조회·변경 이력·화면 정리</h3><p style="margin:0;">내 연차·대근 모아보기와 슈퍼관리자의 변경 이력·접속코드 변경 여부 조회를 추가했습니다. 달력 상단 메뉴와 안내를 간결하게 정리했습니다.</p></article>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><small style="color:#64748b;">2026.10.04</small><h3 style="font-size:14px;margin:3px 0 5px;">개인 조회·화면 정리</h3><p style="margin:0;">내 연차·대근 모아보기를 추가했습니다. 달력 상단 메뉴와 안내를 간결하게 정리했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><small style="color:#64748b;">2026.10.05</small><h3 style="font-size:14px;margin:3px 0 5px;">최근 기능 업데이트</h3><p style="margin:0;">지난 주의 빈 행 숨김, 기존 코드 확인 후 접속코드 변경, 새 코드 입력 규칙 안내, 숫자 키패드와 영문·특수문자 전환을 적용했습니다. 패스키 등록·로그인을 전체 활성 계정에 제공하고 등록 기기의 자동 인증 및 취소 시 비밀번호 전환을 추가했습니다. 상단 패스키 안내 문구를 정리했습니다.</p></article>
-        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><small style="color:#64748b;">2026.10.05 · 2026.10.05.10</small><h3 style="font-size:14px;margin:3px 0 5px;">업데이트 내역 안내</h3><p style="margin:0;">로그인 페이지에서 초기 기능부터 주요 업데이트 내역을 펼쳐 볼 수 있도록 추가했습니다.</p></article>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><small style="color:#64748b;">2026.10.05 · 2026.10.05.11</small><h3 style="font-size:14px;margin:3px 0 5px;">업데이트 내역 안내</h3><p style="margin:0;">로그인 페이지에서 초기 기능부터 주요 업데이트 내역을 펼쳐 볼 수 있도록 추가했습니다.</p></article>
       </div>
     </details>
 
@@ -3677,7 +3678,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
 </script>
 
 <script>
-  const APP_VERSION = '2026.10.05.10';
+  const APP_VERSION = '2026.10.05.11';
   let appUpdateRegistration = null;
   let applyingAppUpdate = false;
   let appReloadStarted = false;
