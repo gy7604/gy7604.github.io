@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.04.2">
+  <meta name="app-version" content="2026.10.05.1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -1526,7 +1526,22 @@
     await loadHolidaysForYear(currentYear);
     if (loadVersion !== calendarLoadVersion || sessionToken !== currentSessionToken) return;
 
-    const result = await callSessionRegistration({ action: 'calendar_read', ...range });
+    // 월 경계 주도 전체 조회하며 각 요청은 기존 서버의 31일 제한을 지킵니다.
+    const monthStart = new Date(currentYear, currentMonth, 1);
+    const monthEnd = new Date(currentYear, currentMonth + 1, 1);
+    const fullStart = weekStart(monthStart);
+    const fullEnd = weekStart(new Date(currentYear, currentMonth + 1, 0));
+    fullEnd.setDate(fullEnd.getDate()+7);
+    const ranges = [range];
+    if (fullStart < monthStart) ranges.push({start_date:localDateKey(fullStart), end_date:range.start_date});
+    if (fullEnd > monthEnd) ranges.push({start_date:range.end_date, end_date:localDateKey(fullEnd)});
+    const results = await Promise.all(ranges.map(readRange =>
+      callSessionRegistration({ action: 'calendar_read', ...readRange })));
+    const result = results.find(readResult => !readResult.success) || {
+      success:true,
+      requests:results.flatMap(readResult => readResult.requests),
+      memos:results[0].memos
+    };
     if (loadVersion !== calendarLoadVersion || sessionToken !== currentSessionToken || !currentUser) return;
 
     if (result.sessionExpired) return;
@@ -1793,6 +1808,35 @@
    * ==========================================
    */
 
+function localDateKey(date) {
+  return [date.getFullYear(), String(date.getMonth()+1).padStart(2,'0'), String(date.getDate()).padStart(2,'0')].join('-');
+}
+function weekStart(date) {
+  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  start.setDate(start.getDate() - start.getDay());
+  return start;
+}
+function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
+  const start = weekStart(weekDate);
+  const end = new Date(start); end.setDate(end.getDate()+7);
+  const daily = Array.from({length:7}, (_,day) => {
+    const date = new Date(start); date.setDate(date.getDate()+day);
+    return data.filter(request => request.team === team && request.shift_date === localDateKey(date));
+  });
+  const count = Math.max(1, ...daily.map(rows => rows.length+1));
+  const midnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const indexes = Array.from({length:count}, (_,index)=>index);
+  if (!compact || end > midnight) return indexes;
+  // Only stored request/support/helper data count; automatic guide labels never enter this calculation.
+  const filled = indexes.filter(index => daily.some(rows => {
+    const request = rows[index];
+    return request && (String(request.requested_by ?? '').trim() ||
+      String(request.filled_by ?? '').trim() || request.request_kind === 'support' ||
+      String(request.reason ?? '').trim() || request.requested_by_id != null);
+  }));
+  return filled.length ? filled : [0];
+}
+
   function renderCalendar() {
 
     document
@@ -1918,6 +1962,23 @@
 
     }
 
+
+    // 지난 주만 일요일~토요일 전체의 실제 입력을 검사합니다.
+    // 이번 주와 미래 주는 기존 월내 최대 신청 수 + 빈 행을 유지합니다.
+    const calendarToday = new Date();
+    for (let day = 1; day <= lastDate; day++) {
+      const date = new Date(currentYear, currentMonth, day);
+      const key = `${currentYear}-${currentMonth}-${day-date.getDay()+1}`;
+      if (Array.isArray(weekTeamRows[key][TEAMS[0]])) continue;
+      const nextSunday = weekStart(date);
+      nextSunday.setDate(nextSunday.getDate()+7);
+      const todayStart = new Date(calendarToday.getFullYear(), calendarToday.getMonth(), calendarToday.getDate());
+      for (const team of TEAMS) {
+        weekTeamRows[key][team] = nextSunday <= todayStart
+          ? visibleTeamRowIndexes(date, team, requestsData, calendarToday)
+          : Array.from({length:weekTeamRows[key][team]}, (_,index)=>index);
+      }
+    }
 
     for (
       let i = 0;
@@ -2099,7 +2160,7 @@
           (
             weekTeamRows[weekKey] &&
             weekTeamRows[weekKey][team]
-          ) || 1;
+          ) || [0];
 
 
         /*
@@ -2108,11 +2169,7 @@
          * 나머지 날짜에는 빈 행을 유지합니다.
          */
 
-        for (
-          let rowIndex = 0;
-          rowIndex < rowsForThisTeam;
-          rowIndex++
-        ) {
+        for (const rowIndex of rowsForThisTeam) {
 
           /*
            * 기존 조 행 자체가 첫 번째 휴무 신청 행입니다.
