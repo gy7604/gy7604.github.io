@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.05.8">
+  <meta name="app-version" content="2026.10.05.9">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -331,7 +331,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.8</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.9</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -383,7 +383,6 @@
 
   <!-- 메인 -->
   <div id="mainScreen">
-    <p id="passkeyPilotHint" hidden style="font-size:12px;text-align:center;color:#526477;">생체인증 · 등록은 기존 코드 로그인 후 15분 이내에 가능합니다. 기기에 따라 지문·얼굴·기기 잠금 PIN으로 인증됩니다.</p>
 
 <div class="card app-topbar">
  <div class="app-identity"><h2 id="welcomeMsg">환영합니다!</h2><div id="personalTools" hidden><button class="btn-small" onclick="openPersonalView()" title="내 연차·대근 모아보기">☷ 내 연차·대근 모아보기</button></div></div>
@@ -3664,7 +3663,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
 </script>
 
 <script>
-  const APP_VERSION = '2026.10.05.8';
+  const APP_VERSION = '2026.10.05.9';
   let appUpdateRegistration = null;
   let applyingAppUpdate = false;
   let appReloadStarted = false;
@@ -3884,10 +3883,8 @@ async function updatePasskeyUI() {
   const version = ++passkeyUIVersion;
   const loginButton = document.getElementById('passkeyLoginButton');
   const registerButton = document.getElementById('passkeyRegisterButton');
-  const hint = document.getElementById('passkeyPilotHint');
   loginButton.hidden = !passkeySupported() || !savedPasskeyID();
   registerButton.hidden = true;
-  hint.hidden = true;
   if (!passkeySupported() || !currentUser?.is_active) return;
   const token = currentSessionToken;
   try {
@@ -3895,7 +3892,6 @@ async function updatePasskeyUI() {
     if (version !== passkeyUIVersion || token !== currentSessionToken || !status.eligible) return;
     registerButton.hidden = false;
     registerButton.textContent = savedPasskeyID() ? '🔐 생체인증 추가 등록' : '🔐 생체인증 등록';
-    hint.hidden = false;
   } catch { /* Existing code login and notification controls remain available. */ }
 }
 function passkeyFailure(error) {
