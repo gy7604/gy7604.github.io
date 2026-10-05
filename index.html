@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.05.1">
+  <meta name="app-version" content="2026.10.05.2">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -293,6 +293,19 @@
   </div>
 
 
+  <dialog id="currentCodeDialog" class="audit-dialog" style="max-width:400px;">
+    <form id="currentCodeForm" style="padding:20px;">
+      <h2 style="margin-top:0;font-size:18px;">기존 접속코드 확인</h2>
+      <p style="font-size:14px;">코드를 변경하려면 기존 접속코드를 입력해 주세요.</p>
+      <label for="currentCodeInput">기존 접속코드</label>
+      <input id="currentCodeInput" type="password" autocomplete="current-password" maxlength="200" required autofocus>
+      <div style="display:flex;gap:8px;">
+        <button id="cancelCurrentCode" type="button" class="audit-secondary">취소</button>
+        <button type="submit">확인</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="inAppBrowserNotice" style="
     display: none;
     background: #fff3cd;
@@ -318,7 +331,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.1</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.2</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -1349,6 +1362,32 @@
    * ==========================================
    */
 
+  function askCurrentCode() {
+    const dialog = document.getElementById('currentCodeDialog');
+    const form = document.getElementById('currentCodeForm');
+    const input = document.getElementById('currentCodeInput');
+    const cancelButton = document.getElementById('cancelCurrentCode');
+    if (dialog.open) return Promise.resolve(null);
+    input.value = '';
+    return new Promise(resolve => {
+      let answer = null;
+      form.onsubmit = event => {
+        event.preventDefault();
+        answer = input.value.trim();
+        dialog.close();
+      };
+      cancelButton.onclick = () => dialog.close();
+      dialog.onclose = () => {
+        input.value = '';
+        form.onsubmit = null;
+        cancelButton.onclick = null;
+        dialog.onclose = null;
+        resolve(answer);
+      };
+      dialog.showModal();
+    });
+  }
+
   async function changePersonalCode() {
 
     if (!currentUser || !currentLoginCode) {
@@ -1370,6 +1409,15 @@
     }
     if (quota.remaining <= 0) {
       alert('이번 달 남은 변경 횟수: 0회 / 2회\n\n이번 달 변경 기회를 모두 사용했습니다. 다음 달에 다시 변경할 수 있습니다.');
+      return;
+    }
+
+    const expectedSession = currentSessionToken;
+    const enteredCurrentCode = await askCurrentCode();
+    if (enteredCurrentCode === null) return;
+    if (!currentUser || expectedSession !== currentSessionToken) return;
+    if (!enteredCurrentCode || enteredCurrentCode !== currentLoginCode) {
+      alert('기존 접속코드가 일치하지 않습니다.');
       return;
     }
 
@@ -1433,7 +1481,7 @@
 
 
     const result = await callSessionRegistration({
-      currentCode: currentLoginCode, newCode: trimmedNewCode
+      currentCode: enteredCurrentCode, newCode: trimmedNewCode
     }, 'change-login-code');
     if (result.sessionExpired) return;
     if (!result.success) {
@@ -3588,7 +3636,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
 </script>
 
 <script>
-  const APP_VERSION = '2026.10.05.1';
+  const APP_VERSION = '2026.10.05.2';
   let appUpdateRegistration = null;
   let applyingAppUpdate = false;
   let appReloadStarted = false;
