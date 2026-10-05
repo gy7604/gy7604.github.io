@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.05.7">
+  <meta name="app-version" content="2026.10.05.8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -331,7 +331,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.7</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.8</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -383,12 +383,12 @@
 
   <!-- 메인 -->
   <div id="mainScreen">
-    <p id="passkeyPilotHint" hidden style="font-size:12px;text-align:center;color:#526477;">생체인증 시험 · 등록은 기존 코드 로그인 후 15분 이내에 가능합니다. 기기에 따라 지문·얼굴·기기 잠금 PIN으로 인증됩니다.</p>
+    <p id="passkeyPilotHint" hidden style="font-size:12px;text-align:center;color:#526477;">생체인증 · 등록은 기존 코드 로그인 후 15분 이내에 가능합니다. 기기에 따라 지문·얼굴·기기 잠금 PIN으로 인증됩니다.</p>
 
 <div class="card app-topbar">
  <div class="app-identity"><h2 id="welcomeMsg">환영합니다!</h2><div id="personalTools" hidden><button class="btn-small" onclick="openPersonalView()" title="내 연차·대근 모아보기">☷ 내 연차·대근 모아보기</button></div></div>
  <div class="app-month"><button class="btn-small" onclick="changeMonth(-1)" aria-label="이전 달">◀</button><button id="currentMonthStr" onclick="goToMonth()" title="원하는 년월로 이동">2026년 10월</button><button class="btn-small" onclick="changeMonth(1)" aria-label="다음 달">▶</button></div>
- <div class="app-actions"><button id="passkeyRegisterButton" type="button" hidden data-icon="🔐" title="생체인증 등록 (시험)" onclick="registerPasskey()" class="btn-small" style="background:#355a78;">생체인증 등록 (시험)</button><button
+ <div class="app-actions"><button id="passkeyRegisterButton" type="button" hidden data-icon="🔐" title="생체인증 등록" onclick="registerPasskey()" class="btn-small" style="background:#355a78;">생체인증 등록</button><button
             id="androidInstallButton" data-icon="📱" title="Android 앱 설치"
             onclick="installAndroidApp()"
             class="btn-small"
@@ -3664,7 +3664,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
 </script>
 
 <script>
-  const APP_VERSION = '2026.10.05.7';
+  const APP_VERSION = '2026.10.05.8';
   let appUpdateRegistration = null;
   let applyingAppUpdate = false;
   let appReloadStarted = false;
@@ -3850,8 +3850,7 @@ auditEl('historySearch').addEventListener('input',()=>{clearTimeout(historySearc
 auditEl('credentialSearch').addEventListener('input',renderCredentialAudit);auditEl('credentialStatus').addEventListener('change',renderCredentialAudit);
 </script>
 <script>
-// Pilot UI. The server independently enforces the account allowlist.
-const PASSKEY_PILOT_USER_ID = '29';
+// Passkey registration and login are available to server-verified active accounts.
 const PASSKEY_LOCAL_KEY = 'snnc-passkey-pilot-v1';
 let passkeyBusy = false;
 let passkeyUIVersion = 0;
@@ -3889,13 +3888,13 @@ async function updatePasskeyUI() {
   loginButton.hidden = !passkeySupported() || !savedPasskeyID();
   registerButton.hidden = true;
   hint.hidden = true;
-  if (!passkeySupported() || String(currentUser?.id) !== PASSKEY_PILOT_USER_ID) return;
+  if (!passkeySupported() || !currentUser?.is_active) return;
   const token = currentSessionToken;
   try {
     const status = await passkeyAPI({action:'status'},true);
     if (version !== passkeyUIVersion || token !== currentSessionToken || !status.eligible) return;
     registerButton.hidden = false;
-    registerButton.textContent = savedPasskeyID() ? '🔐 생체인증 추가 등록' : '🔐 생체인증 등록 (시험)';
+    registerButton.textContent = savedPasskeyID() ? '🔐 생체인증 추가 등록' : '🔐 생체인증 등록';
     hint.hidden = false;
   } catch { /* Existing code login and notification controls remain available. */ }
 }
@@ -3907,7 +3906,7 @@ function passkeyFailure(error) {
   } else { alert(error?.message || '이 기기에서 생체인증을 사용할 수 없습니다.'); }
 }
 async function registerPasskey() {
-  if (passkeyBusy || !passkeySupported() || String(currentUser?.id) !== PASSKEY_PILOT_USER_ID) return;
+  if (passkeyBusy || !passkeySupported() || !currentUser?.is_active) return;
   passkeyBusy = true;
   const button = document.getElementById('passkeyRegisterButton');
   const token = currentSessionToken;
@@ -3949,7 +3948,7 @@ async function loginWithPasskey({automatic = false} = {}) {
     const response = {id:credential.id,rawId:passkeyEncode(credential.rawId),type:credential.type,authenticatorAttachment:credential.authenticatorAttachment,clientExtensionResults:credential.getClientExtensionResults(),response:{clientDataJSON:passkeyEncode(credential.response.clientDataJSON),authenticatorData:passkeyEncode(credential.response.authenticatorData),signature:passkeyEncode(credential.response.signature),userHandle:credential.response.userHandle?passkeyEncode(credential.response.userHandle):null}};
     const result = await passkeyAPI({action:'login_verify',challenge_id:data.challenge_id,response});
     if (controller.signal.aborted || currentUser) return;
-    if (!/^[0-9a-f]{64}$/.test(result.token||'') || String(result.user?.id)!==PASSKEY_PILOT_USER_ID || !result.user?.is_active) throw new Error('생체인증 세션을 확인하지 못했습니다.');
+    if (!/^[0-9a-f]{64}$/.test(result.token||'') || !/^\d+$/.test(String(result.user?.id||'')) || !result.user?.is_active) throw new Error('생체인증 세션을 확인하지 못했습니다.');
     status.hidden = true;
     completeSessionLogin(result,'');
   } catch (error) {
