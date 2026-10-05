@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.05.2">
+  <meta name="app-version" content="2026.10.05.3">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -331,7 +331,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.2</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.3</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -1425,8 +1425,11 @@
       prompt(
         '이번 달 남은 변경 횟수: ' + quota.remaining + '회 / ' + quota.limit + '회\n\n' +
         "새 접속 코드를 입력하세요.\n" +
-        "(6~50자, 현재 코드와 다른 값)\n" +
-        "(한글·이모지 포함 시 최대 72바이트)\n\n" +
+        "(최소 6자, 현재 코드와 다른 값)\n" +
+        "• 영문·숫자만 입력: 최대 50자\n" +
+        "• 한글만 입력: 최대 24자\n" +
+        "• 😀 같은 단일 이모지만 입력: 최대 18개\n" +
+        "※ 섞어 쓰거나 가족·국기 같은 조합 이모지를 쓰면 한도가 달라집니다.\n\n" +
         "※ 접속 코드는 월 2회까지만 변경할 수 있습니다."
       );
 
@@ -1447,7 +1450,7 @@
     ) {
 
       alert(
-        "새 접속 코드는 6~50자, 최대 72바이트로 입력해 주세요.\n한글·이모지가 많으면 더 짧게 입력해야 합니다."
+        "새 접속 코드는 최소 6자로 입력해 주세요.\n영문·숫자만 쓰면 최대 50자, 한글만 쓰면 최대 24자, 😀 같은 단일 이모지만 쓰면 최대 18개입니다.\n섞어 쓰거나 조합 이모지를 넣었을 때 길이 제한에 걸리면 코드를 더 짧게 입력해 주세요."
       );
 
       return;
@@ -3636,7 +3639,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
 </script>
 
 <script>
-  const APP_VERSION = '2026.10.05.2';
+  const APP_VERSION = '2026.10.05.3';
   let appUpdateRegistration = null;
   let applyingAppUpdate = false;
   let appReloadStarted = false;
