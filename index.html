@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.05.6">
+  <meta name="app-version" content="2026.10.05.7">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -331,7 +331,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.6</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.7</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -348,6 +348,8 @@
     <button id="loginKeyboardToggle" type="button" onclick="toggleLoginKeyboard()" aria-controls="loginCode" aria-pressed="false" style="width:auto;padding:6px 10px;margin:0 0 12px;background:#eef2f6;color:#34465c;font-size:13px;">영문·특수문자 입력</button>
 
     <button onclick="login()">로그인</button>
+    <p id="passkeyLoginStatus" role="status" aria-live="polite" hidden style="font-size:13px;color:#526477;"></p>
+    <button id="passkeyPasswordButton" type="button" hidden onclick="usePasswordLogin()" style="margin-top:8px;background:#526477;">비밀번호로 로그인</button>
     <button id="passkeyLoginButton" type="button" hidden onclick="loginWithPasskey()" style="margin-top:8px;background:#355a78;">🔐 생체인증 로그인</button>
 
     <button
@@ -961,6 +963,7 @@
   }
 
   async function login() {
+    if (passkeyLoginController) usePasswordLogin(false);
     if (passkeyBusy) return;
     passkeyBusy = true;
     try { await loginWithCode(); } finally { passkeyBusy = false; }
@@ -3661,7 +3664,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
 </script>
 
 <script>
-  const APP_VERSION = '2026.10.05.6';
+  const APP_VERSION = '2026.10.05.7';
   let appUpdateRegistration = null;
   let applyingAppUpdate = false;
   let appReloadStarted = false;
@@ -3852,6 +3855,8 @@ const PASSKEY_PILOT_USER_ID = '29';
 const PASSKEY_LOCAL_KEY = 'snnc-passkey-pilot-v1';
 let passkeyBusy = false;
 let passkeyUIVersion = 0;
+let passkeyLoginController = null;
+let automaticPasskeyAttempted = false;
 function passkeySupported() {
   return window.isSecureContext && typeof window.PublicKeyCredential === 'function' && !!navigator.credentials;
 }
@@ -3918,31 +3923,71 @@ async function registerPasskey() {
     const response = {id:credential.id,rawId:passkeyEncode(credential.rawId),type:credential.type,authenticatorAttachment:credential.authenticatorAttachment,clientExtensionResults:credential.getClientExtensionResults(),response:{clientDataJSON:passkeyEncode(credential.response.clientDataJSON),attestationObject:passkeyEncode(credential.response.attestationObject),transports:credential.response.getTransports?.()||[]}};
     const result = await passkeyAPI({action:'register_verify',challenge_id:data.challenge_id,response},true);
     try { localStorage.setItem(PASSKEY_LOCAL_KEY,result.credential_id); } catch { alert('패스키는 등록되었지만 이 브라우저에 로그인 버튼 설정을 저장하지 못했습니다.'); return; }
-    alert('생체인증 등록을 완료했습니다. 다음에 이 브라우저나 앱의 로그인 화면에서 「생체인증 로그인」을 눌러 주세요. 알림 구독은 그대로 유지됩니다.');
+    alert('생체인증 등록을 완료했습니다. 다음에 이 브라우저나 앱을 열면 생체인증을 자동으로 시작합니다. 취소하면 기존 비밀번호로 로그인할 수 있습니다. 알림 구독은 그대로 유지됩니다.');
   } catch (error) { passkeyFailure(error); }
   finally { passkeyBusy=false; button.disabled=false; updatePasskeyUI(); }
 }
-async function loginWithPasskey() {
+async function loginWithPasskey({automatic = false} = {}) {
   if (passkeyBusy || !passkeySupported() || currentUser) return;
   const id = savedPasskeyID(); if (!id) return;
   passkeyBusy = true;
+  const controller = new AbortController();
+  passkeyLoginController = controller;
+  const status = document.getElementById('passkeyLoginStatus');
+  const passwordButton = document.getElementById('passkeyPasswordButton');
+  status.hidden = false;
+  status.textContent = '지문·얼굴 인증을 시작합니다. 취소하면 비밀번호로 로그인할 수 있습니다.';
+  passwordButton.hidden = false;
   const button = document.getElementById('passkeyLoginButton');
   button.disabled = true;
   try {
     const data = await passkeyAPI({action:'login_options',credential_id:id});
+    if (controller.signal.aborted || currentUser) return;
     const options = {...data.options,challenge:passkeyDecode(data.options.challenge),allowCredentials:(data.options.allowCredentials||[]).map(c=>({...c,id:passkeyDecode(c.id)}))};
-    const credential = await navigator.credentials.get({publicKey:options});
-    if (!credential || currentUser) return;
+    const credential = await navigator.credentials.get({publicKey:options, signal:controller.signal, mediation:'required'});
+    if (!credential || controller.signal.aborted || currentUser) return;
     const response = {id:credential.id,rawId:passkeyEncode(credential.rawId),type:credential.type,authenticatorAttachment:credential.authenticatorAttachment,clientExtensionResults:credential.getClientExtensionResults(),response:{clientDataJSON:passkeyEncode(credential.response.clientDataJSON),authenticatorData:passkeyEncode(credential.response.authenticatorData),signature:passkeyEncode(credential.response.signature),userHandle:credential.response.userHandle?passkeyEncode(credential.response.userHandle):null}};
     const result = await passkeyAPI({action:'login_verify',challenge_id:data.challenge_id,response});
-    if (currentUser) return;
+    if (controller.signal.aborted || currentUser) return;
     if (!/^[0-9a-f]{64}$/.test(result.token||'') || String(result.user?.id)!==PASSKEY_PILOT_USER_ID || !result.user?.is_active) throw new Error('생체인증 세션을 확인하지 못했습니다.');
+    status.hidden = true;
     completeSessionLogin(result,'');
-  } catch (error) { passkeyFailure(error); }
-  finally { passkeyBusy=false; button.disabled=false; }
+  } catch (error) {
+    if (!controller.signal.aborted && !currentUser) {
+      status.textContent = automatic || ['NotAllowedError','AbortError'].includes(error?.name)
+        ? '비밀번호를 입력하거나 생체인증 로그인 버튼을 눌러 주세요.'
+        : (error?.message || '생체인증을 시작하지 못했습니다. 비밀번호로 로그인해 주세요.');
+    }
+  } finally {
+    if (passkeyLoginController === controller) {
+      passkeyLoginController = null; passkeyBusy = false;
+      button.disabled = false; passwordButton.hidden = true;
+    }
+  }
 }
-window.addEventListener('load',()=>updatePasskeyUI());
+function usePasswordLogin(focusInput = true) {
+  if (passkeyLoginController) {
+    passkeyLoginController.abort();
+    passkeyLoginController = null;
+    passkeyBusy = false;
+    document.getElementById('passkeyLoginButton').disabled = false;
+  }
+  document.getElementById('passkeyPasswordButton').hidden = true;
+  const status = document.getElementById('passkeyLoginStatus');
+  status.hidden = false;
+  status.textContent = '비밀번호를 입력해 주세요.';
+  if (focusInput) document.getElementById('loginCode').focus();
+}
+function startAutomaticPasskeyLogin() {
+  if (automaticPasskeyAttempted || document.visibilityState !== 'visible' || currentUser || passkeyBusy || !passkeySupported() || !savedPasskeyID()) return;
+  automaticPasskeyAttempted = true;
+  loginWithPasskey({automatic:true});
+}
+window.addEventListener('load',()=>{updatePasskeyUI();startAutomaticPasskeyLogin();});
+document.addEventListener('visibilitychange',startAutomaticPasskeyLogin);
+document.getElementById('loginCode').addEventListener('pointerdown',()=>{if(passkeyLoginController)usePasswordLogin(false);});
 
 </script>
 </body>
 </html>
+
