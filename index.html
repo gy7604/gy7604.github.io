@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.05.5">
+  <meta name="app-version" content="2026.10.05.6">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -331,7 +331,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.5</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.6</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -348,6 +348,7 @@
     <button id="loginKeyboardToggle" type="button" onclick="toggleLoginKeyboard()" aria-controls="loginCode" aria-pressed="false" style="width:auto;padding:6px 10px;margin:0 0 12px;background:#eef2f6;color:#34465c;font-size:13px;">영문·특수문자 입력</button>
 
     <button onclick="login()">로그인</button>
+    <button id="passkeyLoginButton" type="button" hidden onclick="loginWithPasskey()" style="margin-top:8px;background:#355a78;">🔐 생체인증 로그인</button>
 
     <button
       id="installAppButton"
@@ -380,11 +381,12 @@
 
   <!-- 메인 -->
   <div id="mainScreen">
+    <p id="passkeyPilotHint" hidden style="font-size:12px;text-align:center;color:#526477;">생체인증 시험 · 등록은 기존 코드 로그인 후 15분 이내에 가능합니다. 기기에 따라 지문·얼굴·기기 잠금 PIN으로 인증됩니다.</p>
 
 <div class="card app-topbar">
  <div class="app-identity"><h2 id="welcomeMsg">환영합니다!</h2><div id="personalTools" hidden><button class="btn-small" onclick="openPersonalView()" title="내 연차·대근 모아보기">☷ 내 연차·대근 모아보기</button></div></div>
  <div class="app-month"><button class="btn-small" onclick="changeMonth(-1)" aria-label="이전 달">◀</button><button id="currentMonthStr" onclick="goToMonth()" title="원하는 년월로 이동">2026년 10월</button><button class="btn-small" onclick="changeMonth(1)" aria-label="다음 달">▶</button></div>
- <div class="app-actions"><button
+ <div class="app-actions"><button id="passkeyRegisterButton" type="button" hidden data-icon="🔐" title="생체인증 등록 (시험)" onclick="registerPasskey()" class="btn-small" style="background:#355a78;">생체인증 등록 (시험)</button><button
             id="androidInstallButton" data-icon="📱" title="Android 앱 설치"
             onclick="installAndroidApp()"
             class="btn-small"
@@ -959,6 +961,12 @@
   }
 
   async function login() {
+    if (passkeyBusy) return;
+    passkeyBusy = true;
+    try { await loginWithCode(); } finally { passkeyBusy = false; }
+  }
+
+  async function loginWithCode() {
 
     const code =
       document
@@ -1003,6 +1011,10 @@
       alert('로그인 세션을 확인할 수 없습니다. 다시 시도해 주세요.');
       return;
     }
+    completeSessionLogin(sessionData, code);
+  }
+
+  function completeSessionLogin(sessionData, code) {
     const data = sessionData.user;
 
     if (!data) {
@@ -1088,6 +1100,7 @@
 
 
     refreshAccountTools();
+    updatePasskeyUI();
     loadData();
 
     // 로그인 후 현재 기기의 서버 알림 구독 등록 여부를 버튼에 반영
@@ -1368,6 +1381,7 @@
         .style.display = 'block';
 
       updateNotificationButton();
+      updatePasskeyUI();
     }
 
   }
@@ -1379,10 +1393,12 @@
    * ==========================================
    */
 
-  function askCurrentCode() {
+  function askCurrentCode(purpose = 'change') {
     const dialog = document.getElementById('currentCodeDialog');
     const form = document.getElementById('currentCodeForm');
     const input = document.getElementById('currentCodeInput');
+    dialog.querySelector('h2').textContent = purpose === 'passkey' ? '생체인증 등록 · 기존 코드 확인' : '기존 접속코드 확인';
+    dialog.querySelector('p').textContent = purpose === 'passkey' ? '패스키를 등록하려면 기존 접속코드를 입력해 주세요.' : '코드를 변경하려면 기존 접속코드를 입력해 주세요.';
     const cancelButton = document.getElementById('cancelCurrentCode');
     if (dialog.open) return Promise.resolve(null);
     input.value = '';
@@ -1407,7 +1423,7 @@
 
   async function changePersonalCode() {
 
-    if (!currentUser || !currentLoginCode) {
+    if (!currentUser || !currentSessionToken) {
 
       alert(
         "로그인 후 이용해 주세요."
@@ -1433,7 +1449,7 @@
     const enteredCurrentCode = await askCurrentCode();
     if (enteredCurrentCode === null) return;
     if (!currentUser || expectedSession !== currentSessionToken) return;
-    if (!enteredCurrentCode || enteredCurrentCode !== currentLoginCode) {
+    if (!enteredCurrentCode || (currentLoginCode && enteredCurrentCode !== currentLoginCode)) {
       alert('기존 접속코드가 일치하지 않습니다.');
       return;
     }
@@ -2549,6 +2565,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
     document.getElementById('mainScreen').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'block';
     updateNotificationButton();
+    updatePasskeyUI();
   }
 
   function expireSession(expectedToken) {
@@ -3644,7 +3661,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
 </script>
 
 <script>
-  const APP_VERSION = '2026.10.05.5';
+  const APP_VERSION = '2026.10.05.6';
   let appUpdateRegistration = null;
   let applyingAppUpdate = false;
   let appReloadStarted = false;
@@ -3828,6 +3845,104 @@ for(const id of ['personalScope','personalMonth'])auditEl(id).addEventListener('
 for(const id of ['historyMonth','historyType'])auditEl(id).addEventListener('change',()=>loadChangeHistory());
 auditEl('historySearch').addEventListener('input',()=>{clearTimeout(historySearchTimer);++historyViewVersion;historySearchTimer=setTimeout(()=>loadChangeHistory(),300);});
 auditEl('credentialSearch').addEventListener('input',renderCredentialAudit);auditEl('credentialStatus').addEventListener('change',renderCredentialAudit);
+</script>
+<script>
+// Pilot UI. The server independently enforces the account allowlist.
+const PASSKEY_PILOT_USER_ID = '29';
+const PASSKEY_LOCAL_KEY = 'snnc-passkey-pilot-v1';
+let passkeyBusy = false;
+let passkeyUIVersion = 0;
+function passkeySupported() {
+  return window.isSecureContext && typeof window.PublicKeyCredential === 'function' && !!navigator.credentials;
+}
+function savedPasskeyID() {
+  try { const id = localStorage.getItem(PASSKEY_LOCAL_KEY) || ''; return /^[A-Za-z0-9_-]{1,2048}$/.test(id) ? id : ''; } catch { return ''; }
+}
+function passkeyEncode(value) {
+  return btoa(String.fromCharCode(...new Uint8Array(value))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function passkeyDecode(value) {
+  const padded = value.replace(/-/g,'+').replace(/_/g,'/');
+  return Uint8Array.from(atob(padded + '='.repeat((4-padded.length%4)%4)), c=>c.charCodeAt(0));
+}
+async function passkeyAPI(body, authenticated = false) {
+  const token = currentSessionToken;
+  const {data,error} = await supabaseClient.functions.invoke('app-passkey', {
+    body, ...(authenticated ? {headers:{'x-app-session':token}} : {})
+  });
+  if (authenticated && token !== currentSessionToken) throw new Error('로그인 상태가 변경되었습니다.');
+  if (!error && data?.success) return data;
+  let message = data?.message || '생체인증을 처리하지 못했습니다. 기존 접속코드를 사용할 수 있습니다.';
+  if (error?.context?.clone) { try { message = (await error.context.clone().json()).message || message; } catch {} }
+  throw new Error(message);
+}
+async function updatePasskeyUI() {
+  const version = ++passkeyUIVersion;
+  const loginButton = document.getElementById('passkeyLoginButton');
+  const registerButton = document.getElementById('passkeyRegisterButton');
+  const hint = document.getElementById('passkeyPilotHint');
+  loginButton.hidden = !passkeySupported() || !savedPasskeyID();
+  registerButton.hidden = true;
+  hint.hidden = true;
+  if (!passkeySupported() || String(currentUser?.id) !== PASSKEY_PILOT_USER_ID) return;
+  const token = currentSessionToken;
+  try {
+    const status = await passkeyAPI({action:'status'},true);
+    if (version !== passkeyUIVersion || token !== currentSessionToken || !status.eligible) return;
+    registerButton.hidden = false;
+    registerButton.textContent = savedPasskeyID() ? '🔐 생체인증 추가 등록' : '🔐 생체인증 등록 (시험)';
+    hint.hidden = false;
+  } catch { /* Existing code login and notification controls remain available. */ }
+}
+function passkeyFailure(error) {
+  if (error?.name === 'NotAllowedError' || error?.name === 'AbortError') {
+    alert('생체인증이 취소되었거나 시간이 지났습니다. 기존 접속코드로도 로그인할 수 있습니다.');
+  } else if (error?.name === 'InvalidStateError') {
+    alert('이미 이 기기에 등록된 패스키입니다. 등록했던 브라우저에서 생체인증 로그인을 이용해 주세요.');
+  } else { alert(error?.message || '이 기기에서 생체인증을 사용할 수 없습니다.'); }
+}
+async function registerPasskey() {
+  if (passkeyBusy || !passkeySupported() || String(currentUser?.id) !== PASSKEY_PILOT_USER_ID) return;
+  passkeyBusy = true;
+  const button = document.getElementById('passkeyRegisterButton');
+  const token = currentSessionToken;
+  button.disabled = true;
+  try {
+    const currentCode = currentLoginCode || await askCurrentCode('passkey');
+    if (!currentCode || token !== currentSessionToken) return;
+    const data = await passkeyAPI({action:'register_options',current_code:currentCode},true);
+    if (token !== currentSessionToken) return;
+    const options = {...data.options, challenge:passkeyDecode(data.options.challenge), user:{...data.options.user,id:passkeyDecode(data.options.user.id)}, excludeCredentials:(data.options.excludeCredentials||[]).map(c=>({...c,id:passkeyDecode(c.id)}))};
+    const credential = await navigator.credentials.create({publicKey:options});
+    if (!credential || token !== currentSessionToken) return;
+    const response = {id:credential.id,rawId:passkeyEncode(credential.rawId),type:credential.type,authenticatorAttachment:credential.authenticatorAttachment,clientExtensionResults:credential.getClientExtensionResults(),response:{clientDataJSON:passkeyEncode(credential.response.clientDataJSON),attestationObject:passkeyEncode(credential.response.attestationObject),transports:credential.response.getTransports?.()||[]}};
+    const result = await passkeyAPI({action:'register_verify',challenge_id:data.challenge_id,response},true);
+    try { localStorage.setItem(PASSKEY_LOCAL_KEY,result.credential_id); } catch { alert('패스키는 등록되었지만 이 브라우저에 로그인 버튼 설정을 저장하지 못했습니다.'); return; }
+    alert('생체인증 등록을 완료했습니다. 다음에 이 브라우저나 앱의 로그인 화면에서 「생체인증 로그인」을 눌러 주세요. 알림 구독은 그대로 유지됩니다.');
+  } catch (error) { passkeyFailure(error); }
+  finally { passkeyBusy=false; button.disabled=false; updatePasskeyUI(); }
+}
+async function loginWithPasskey() {
+  if (passkeyBusy || !passkeySupported() || currentUser) return;
+  const id = savedPasskeyID(); if (!id) return;
+  passkeyBusy = true;
+  const button = document.getElementById('passkeyLoginButton');
+  button.disabled = true;
+  try {
+    const data = await passkeyAPI({action:'login_options',credential_id:id});
+    const options = {...data.options,challenge:passkeyDecode(data.options.challenge),allowCredentials:(data.options.allowCredentials||[]).map(c=>({...c,id:passkeyDecode(c.id)}))};
+    const credential = await navigator.credentials.get({publicKey:options});
+    if (!credential || currentUser) return;
+    const response = {id:credential.id,rawId:passkeyEncode(credential.rawId),type:credential.type,authenticatorAttachment:credential.authenticatorAttachment,clientExtensionResults:credential.getClientExtensionResults(),response:{clientDataJSON:passkeyEncode(credential.response.clientDataJSON),authenticatorData:passkeyEncode(credential.response.authenticatorData),signature:passkeyEncode(credential.response.signature),userHandle:credential.response.userHandle?passkeyEncode(credential.response.userHandle):null}};
+    const result = await passkeyAPI({action:'login_verify',challenge_id:data.challenge_id,response});
+    if (currentUser) return;
+    if (!/^[0-9a-f]{64}$/.test(result.token||'') || String(result.user?.id)!==PASSKEY_PILOT_USER_ID || !result.user?.is_active) throw new Error('생체인증 세션을 확인하지 못했습니다.');
+    completeSessionLogin(result,'');
+  } catch (error) { passkeyFailure(error); }
+  finally { passkeyBusy=false; button.disabled=false; }
+}
+window.addEventListener('load',()=>updatePasskeyUI());
+
 </script>
 </body>
 </html>
