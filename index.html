@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.06.10">
+  <meta name="app-version" content="2026.10.06.11">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -21,6 +21,7 @@ let earlyPasskeyOptions = (() => {
     if (!window.isSecureContext || document.visibilityState !== 'visible' ||
         typeof PublicKeyCredential !== 'function' || !navigator.credentials ||
         !/^[A-Za-z0-9_-]{1,2048}$/.test(id)) return null;
+    const controller = new AbortController();
     const promise = fetch(SUPABASE_URL + '/functions/v1/app-passkey', {
       method: 'POST',
       headers: {'apikey': SUPABASE_ANON_KEY, 'authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'content-type': 'application/json'},
@@ -29,13 +30,27 @@ let earlyPasskeyOptions = (() => {
     }).then(async response => {
       const data = await response.json();
       if (!response.ok || !data?.success) throw new Error(data?.message || '생체인증을 시작하지 못했습니다.');
-      return {data};
+      let credentialPromise = null;
+      if (!controller.signal.aborted && document.visibilityState === 'visible') {
+        const decode = value => {
+          const base64 = value.replace(/-/g,'+').replace(/_/g,'/');
+          return Uint8Array.from(atob(base64 + '='.repeat((4-base64.length%4)%4)), c=>c.charCodeAt(0));
+        };
+        const options = {...data.options, challenge:decode(data.options.challenge), allowCredentials:(data.options.allowCredentials||[]).map(c=>({...c,id:decode(c.id)}))};
+        credentialPromise = navigator.credentials.get({publicKey:options, signal:controller.signal, mediation:'required'})
+          .then(credential=>({credential}), error=>({error}));
+      }
+      return {data, credentialPromise};
     }).catch(error => ({error}));
-    return {id, promise};
+    return {id, promise, controller};
   } catch { return null; }
 })();
+// 라이브러리 로딩 중에도 접속코드를 선택하면 자동 인증을 취소합니다.
+document.addEventListener('pointerdown', event => {
+  if (event.target?.id === 'loginCode') earlyPasskeyOptions?.controller.abort();
+}, true);
   </script>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <link rel="preload" as="script" href="https://unpkg.com/@supabase/supabase-js@2">
 
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#007bff">
@@ -369,7 +384,7 @@ let earlyPasskeyOptions = (() => {
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.06.10</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.06.11</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -437,7 +452,8 @@ let earlyPasskeyOptions = (() => {
       <summary style="cursor:pointer;text-align:center;font-size:14px;color:#526477;font-weight:bold;padding:8px;">📋 버전별 업데이트 내역</summary>
       <div style="max-height:320px;overflow-y:auto;padding:6px 4px;line-height:1.65;font-size:13px;">
         <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p>
-        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.06.10 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">칸 색상 구분 개선</h3><p style="margin:0;">B조 휴무 신청칸은 민트색, A조 대근칸은 선명한 주황색으로 구분했습니다.</p></article>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.06.11 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">생체인증창 우선 실행</h3><p style="margin:0;">인증 준비가 완료되면 앱 라이브러리 로딩을 기다리지 않고 생체인증창을 요청합니다.</p></article>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.06.10</strong><h3 style="font-size:14px;margin:3px 0 5px;">칸 색상 구분 개선</h3><p style="margin:0;">B조 휴무 신청칸은 민트색, A조 대근칸은 선명한 주황색으로 구분했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.06.9</strong><h3 style="font-size:14px;margin:3px 0 5px;">알림 끄기 아이콘</h3><p style="margin:0;">알림 끄기 버튼을 붉은색 음소거 종 아이콘으로 표시합니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.06.8</strong><h3 style="font-size:14px;margin:3px 0 5px;">로그아웃 후 알림 유지</h3><p style="margin:0;">로그아웃해도 알림 등록을 유지하고, 이 기기 알림 끄기를 눌렀을 때만 해제합니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.06.7</strong><small style="color:#64748b;">2026.10.06</small></div><h3 style="font-size:14px;margin:3px 0 5px;">생체인증 준비 병렬 처리</h3><p style="margin:0;">등록된 기기에서는 앱 로딩과 동시에 생체인증 준비를 시작합니다.</p></article>
@@ -578,6 +594,7 @@ let earlyPasskeyOptions = (() => {
 <dialog id="credentialDialog" class="audit-dialog" aria-labelledby="credentialTitle"><div class="audit-head"><h2 id="credentialTitle">개인코드 변경 현황</h2><button class="btn-small audit-secondary" data-audit-close="credentialDialog" aria-label="개인코드 변경 현황 닫기">닫기</button></div><div class="audit-body"><p class="audit-muted">슈퍼관리자 전용 · 본인 변경과 관리자 초기화를 구분합니다. 과거 기록이 없으면 변경 여부와 시각을 추측하지 않습니다.</p><div class="audit-filters"><label>이름 검색 <input id="credentialSearch" type="search" maxlength="100" placeholder="사용자 이름"></label><label>본인 변경 여부 <select id="credentialStatus"><option value="all">전체</option><option value="changed">변경 기록 있음</option><option value="unknown">과거 변경 여부 확인 불가</option></select></label></div><p id="credentialSummary" class="audit-muted" aria-live="polite"></p><div id="credentialResults"></div></div></dialog>
 
 <dialog id="monthJumpDialog"><form onsubmit="event.preventDefault();applyMonthJump()"><h3>이동할 년월 선택</h3><input id="monthJumpValue" type="month" min="1900-01" max="2200-12" required aria-label="이동할 년월"><div style="display:flex;gap:8px;margin-top:12px"><button type="button" onclick="document.getElementById('monthJumpDialog').close()">취소</button><button type="submit">이동</button></div></form></dialog>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 
   /*
@@ -4076,7 +4093,9 @@ async function loginWithPasskey({automatic = false} = {}) {
   if (passkeyBusy || !passkeySupported() || currentUser) return;
   const id = savedPasskeyID(); if (!id) return;
   passkeyBusy = true;
-  const controller = new AbortController();
+  const preparedAttempt = earlyPasskeyOptions?.id === id ? earlyPasskeyOptions : null;
+  if (preparedAttempt) earlyPasskeyOptions = null;
+  const controller = preparedAttempt?.controller || new AbortController();
   passkeyLoginController = controller;
   const status = document.getElementById('passkeyLoginStatus');
   const passwordButton = document.getElementById('passkeyPasswordButton');
@@ -4086,19 +4105,25 @@ async function loginWithPasskey({automatic = false} = {}) {
   const button = document.getElementById('passkeyLoginButton');
   button.disabled = true;
   try {
-    let data;
-    if (earlyPasskeyOptions?.id === id) {
-      const preparedAttempt = earlyPasskeyOptions;
-      earlyPasskeyOptions = null;
+    let data, credentialPromise;
+    if (preparedAttempt) {
       const prepared = await preparedAttempt.promise;
       if (prepared.error) throw prepared.error;
       data = prepared.data;
+      credentialPromise = prepared.credentialPromise;
     } else {
       data = await passkeyAPI({action:'login_options',credential_id:id});
     }
     if (controller.signal.aborted || currentUser) return;
     const options = {...data.options,challenge:passkeyDecode(data.options.challenge),allowCredentials:(data.options.allowCredentials||[]).map(c=>({...c,id:passkeyDecode(c.id)}))};
-    const credential = await navigator.credentials.get({publicKey:options, signal:controller.signal, mediation:'required'});
+    let credential;
+    if (credentialPromise) {
+      const outcome = await credentialPromise;
+      if (outcome.error) throw outcome.error;
+      credential = outcome.credential;
+    } else {
+      credential = await navigator.credentials.get({publicKey:options, signal:controller.signal, mediation:'required'});
+    }
     if (!credential || controller.signal.aborted || currentUser) return;
     const response = {id:credential.id,rawId:passkeyEncode(credential.rawId),type:credential.type,authenticatorAttachment:credential.authenticatorAttachment,clientExtensionResults:credential.getClientExtensionResults(),response:{clientDataJSON:passkeyEncode(credential.response.clientDataJSON),authenticatorData:passkeyEncode(credential.response.authenticatorData),signature:passkeyEncode(credential.response.signature),userHandle:credential.response.userHandle?passkeyEncode(credential.response.userHandle):null}};
     const result = await passkeyAPI({action:'login_verify',challenge_id:data.challenge_id,response});
@@ -4141,6 +4166,7 @@ function usePasswordLogin(focusInput = true) {
 function startAutomaticPasskeyLogin() {
   if (automaticPasskeyAttempted || document.visibilityState !== 'visible' || currentUser || passkeyBusy || !passkeySupported() || !savedPasskeyID()) return;
   automaticPasskeyAttempted = true;
+  if (earlyPasskeyOptions?.controller.signal.aborted) { earlyPasskeyOptions = null; return; }
   loginWithPasskey({automatic:true});
 }
 // 이 스크립트는 로그인 화면 뒤에 있으므로 전체 리소스의 load 완료를 기다릴 필요가 없습니다.
