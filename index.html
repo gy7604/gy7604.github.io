@@ -2,9 +2,39 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.06.6">
+  <meta name="app-version" content="2026.10.06.7">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
+  <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
+  <script>
+  const SUPABASE_URL =
+    'https://lqqjyedfwlqinppcrvjf.supabase.co';
+
+  /*
+   * 형님이 기존에 사용하시던 ANON KEY를 입력하세요.
+   */
+  const SUPABASE_ANON_KEY =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxxcWp5ZWRmd2xxaW5wcGNydmpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MzQ3NDgsImV4cCI6MjEwNjMxMDc0OH0.8N5fmaNOdNG1hKDTzAYYX6Pd9bc0AnJvBzGQpfsndFo';
+let earlyPasskeyOptions = (() => {
+  try {
+    const id = localStorage.getItem('snnc-passkey-pilot-v1') || '';
+    if (!window.isSecureContext || document.visibilityState !== 'visible' ||
+        typeof PublicKeyCredential !== 'function' || !navigator.credentials ||
+        !/^[A-Za-z0-9_-]{1,2048}$/.test(id)) return null;
+    const promise = fetch(SUPABASE_URL + '/functions/v1/app-passkey', {
+      method: 'POST',
+      headers: {'apikey': SUPABASE_ANON_KEY, 'authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'content-type': 'application/json'},
+      body: JSON.stringify({action: 'login_options', credential_id: id}),
+      cache: 'no-store'
+    }).then(async response => {
+      const data = await response.json();
+      if (!response.ok || !data?.success) throw new Error(data?.message || '생체인증을 시작하지 못했습니다.');
+      return {data};
+    }).catch(error => ({error}));
+    return {id, promise};
+  } catch { return null; }
+})();
+  </script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
   <link rel="manifest" href="./manifest.json">
@@ -337,7 +367,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.06.6</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.06.7</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -405,7 +435,8 @@
       <summary style="cursor:pointer;text-align:center;font-size:14px;color:#526477;font-weight:bold;padding:8px;">📋 버전별 업데이트 내역</summary>
       <div style="max-height:320px;overflow-y:auto;padding:6px 4px;line-height:1.65;font-size:13px;">
         <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p>
-        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.06.6 · 최신</strong><small style="color:#64748b;">2026.10.06</small></div><h3 style="font-size:14px;margin:3px 0 5px;">지문·얼굴 인증창 시작 속도</h3><p style="margin:0;">로그인 화면이 준비되면 기기의 생체인증 요청을 바로 시작하도록 개선했습니다.</p></article>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.06.7 · 최신</strong><small style="color:#64748b;">2026.10.06</small></div><h3 style="font-size:14px;margin:3px 0 5px;">생체인증 준비 병렬 처리</h3><p style="margin:0;">등록된 기기에서는 앱 로딩과 동시에 생체인증 준비를 시작합니다.</p></article>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.06.6</strong><small style="color:#64748b;">2026.10.06</small></div><h3 style="font-size:14px;margin:3px 0 5px;">지문·얼굴 인증창 시작 속도</h3><p style="margin:0;">로그인 화면이 준비되면 기기의 생체인증 요청을 바로 시작하도록 개선했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.06.5</strong><small style="color:#64748b;">2026.10.06</small></div><h3 style="font-size:14px;margin:3px 0 5px;">대근칸 조별 바탕색</h3><p style="margin:0;">대근칸 바탕을 A조 주황·B조 녹색·C조 파랑·D조 노랑으로 구분하고 글씨 색을 조정했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.06.4</strong><small style="color:#64748b;">2026.10.06</small></div><h3 style="font-size:14px;margin:3px 0 5px;">휴무·대근 이름 조별 색상</h3><p style="margin:0;">소속 조가 같으면 휴무와 대근 이름을 같은 색으로 표시합니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.06.3</strong><small style="color:#64748b;">2026.10.06</small></div><h3 style="font-size:14px;margin:3px 0 5px;">로그인 화면에서 지문·얼굴 인식 등록</h3><p style="margin:0;">접속코드로 계정을 확인하고 기기의 지문·얼굴 인식을 등록할 수 있습니다.</p></article>
@@ -548,14 +579,7 @@
    * ==========================================
    */
 
-  const SUPABASE_URL =
-    'https://lqqjyedfwlqinppcrvjf.supabase.co';
 
-  /*
-   * 형님이 기존에 사용하시던 ANON KEY를 입력하세요.
-   */
-  const SUPABASE_ANON_KEY =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxxcWp5ZWRmd2xxaW5wcGNydmpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MzQ3NDgsImV4cCI6MjEwNjMxMDc0OH0.8N5fmaNOdNG1hKDTzAYYX6Pd9bc0AnJvBzGQpfsndFo';
 
   // 🔔 Web Push VAPID 공개키
   // 아래 문자열에 생성한 Public Key를 넣어주세요.
@@ -4078,7 +4102,16 @@ async function loginWithPasskey({automatic = false} = {}) {
   const button = document.getElementById('passkeyLoginButton');
   button.disabled = true;
   try {
-    const data = await passkeyAPI({action:'login_options',credential_id:id});
+    let data;
+    if (earlyPasskeyOptions?.id === id) {
+      const preparedAttempt = earlyPasskeyOptions;
+      earlyPasskeyOptions = null;
+      const prepared = await preparedAttempt.promise;
+      if (prepared.error) throw prepared.error;
+      data = prepared.data;
+    } else {
+      data = await passkeyAPI({action:'login_options',credential_id:id});
+    }
     if (controller.signal.aborted || currentUser) return;
     const options = {...data.options,challenge:passkeyDecode(data.options.challenge),allowCredentials:(data.options.allowCredentials||[]).map(c=>({...c,id:passkeyDecode(c.id)}))};
     const credential = await navigator.credentials.get({publicKey:options, signal:controller.signal, mediation:'required'});
