@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.05.12">
+  <meta name="app-version" content="2026.10.06.1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -331,7 +331,7 @@
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.05.12</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.06.1</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -351,6 +351,18 @@
     <p id="passkeyLoginStatus" role="status" aria-live="polite" hidden style="font-size:13px;color:#526477;"></p>
     <button id="passkeyPasswordButton" type="button" hidden onclick="usePasswordLogin()" style="margin-top:8px;background:#526477;">비밀번호로 로그인</button>
     <button id="passkeyLoginButton" type="button" hidden onclick="loginWithPasskey()" style="margin-top:8px;background:#355a78;">🔐 생체인증 로그인</button>
+
+    <div id="shortCodeUpgradePanel" hidden style="margin-top:14px;padding:14px;border:1px solid #e0a800;background:#fff8e1;border-radius:8px;text-align:left;">
+      <strong>접속코드 변경이 필요합니다</strong>
+      <p style="font-size:13px;line-height:1.5;">기존 4자리 코드는 사용할 수 없습니다. 새 코드를 영문·숫자·특수문자로 6~50자 입력해 주세요.</p>
+      <label for="upgradeNewCode">새 접속코드</label>
+      <input id="upgradeNewCode" type="password" inputmode="text" autocomplete="new-password" maxlength="50" placeholder="6~50자">
+      <label for="upgradeRepeatCode">새 접속코드 다시 입력</label>
+      <input id="upgradeRepeatCode" type="password" inputmode="text" autocomplete="new-password" maxlength="50" placeholder="새 코드를 다시 입력">
+      <p id="shortCodeUpgradeStatus" role="status" aria-live="polite" hidden style="font-size:13px;color:#9a3412;"></p>
+      <button id="shortCodeUpgradeSubmit" type="button" onclick="submitShortCodeUpgrade()">새 접속코드로 변경</button>
+    </div>
+
 
     <button
       id="installAppButton"
@@ -383,6 +395,8 @@
       <summary style="cursor:pointer;text-align:center;font-size:14px;color:#526477;font-weight:bold;padding:8px;">📋 버전별 업데이트 내역</summary>
       <div style="max-height:320px;overflow-y:auto;padding:6px 4px;line-height:1.65;font-size:13px;">
         <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.06.1 · 최신</strong><small style="color:#64748b;">2026.10.06</small></div><h3 style="font-size:14px;margin:3px 0 5px;">4자리 접속코드 변경</h3><p style="margin:0;">4자리 코드로는 로그인을 완료할 수 없으며, 새 코드로 변경해야 사용할 수 있습니다.</p></article>
+        
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.05.12 · 최신</strong><small style="color:#64748b;">2026.10.05</small></div><h3 style="font-size:14px;margin:3px 0 5px;">버전별 업데이트 내역</h3><p style="margin:0;">업데이트 내역을 버전별로 구분하고 최신 버전부터 표시합니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.05.11</strong><small style="color:#64748b;">2026.10.05</small></div><h3 style="font-size:14px;margin:3px 0 5px;">업데이트 안내 정리</h3><p style="margin:0;">로그인 화면의 공개 업데이트 내역을 정리했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><strong style="color:#0061ba;">2026.10.05.10</strong><small style="color:#64748b;">2026.10.05</small></div><h3 style="font-size:14px;margin:3px 0 5px;">업데이트 내역 추가</h3><p style="margin:0;">로그인 페이지에서 초기 기능부터 주요 변경 사항을 펼쳐 볼 수 있습니다.</p></article>
@@ -637,6 +651,7 @@
 
   // 로그인에 성공한 현재 코드입니다. 로그아웃 시 메모리에서 지웁니다.
   let currentLoginCode = '';
+  let pendingLegacyCode = '';
   // 서버 세션 토큰은 현재 창의 메모리에만 보관합니다.
   let currentSessionToken = '';
   let sessionExpiryTimer = null;
@@ -1030,11 +1045,54 @@
       alert(message);
       return;
     }
+    if (sessionData.requires_code_upgrade) {
+      showShortCodeUpgrade(code);
+      return;
+    }
     if (!/^[0-9a-f]{64}$/.test(sessionData.token || '')) {
       alert('로그인 세션을 확인할 수 없습니다. 다시 시도해 주세요.');
       return;
     }
     completeSessionLogin(sessionData, code);
+  }
+
+  function showShortCodeUpgrade(currentCode) {
+    pendingLegacyCode = currentCode;
+    document.getElementById('loginCode').value='';
+    for (const id of ['loginCode','loginKeyboardToggle','passkeyLoginButton','passkeyPasswordButton','installAppButton','loginIphoneInstallButton']) {
+      const el=document.getElementById(id); if(el) el.hidden=true;
+    }
+    const loginButton=document.querySelector('#loginScreen button[onclick="login()"]');
+    if(loginButton) loginButton.hidden=true;
+    document.getElementById('passkeyLoginStatus').hidden=true;
+    document.getElementById('shortCodeUpgradePanel').hidden=false;
+    document.getElementById('upgradeNewCode').focus();
+  }
+
+  async function submitShortCodeUpgrade() {
+    if (!pendingLegacyCode || passkeyBusy) return;
+    const newCode=document.getElementById('upgradeNewCode').value;
+    const repeatCode=document.getElementById('upgradeRepeatCode').value;
+    const status=document.getElementById('shortCodeUpgradeStatus');
+    const button=document.getElementById('shortCodeUpgradeSubmit');
+    status.hidden=false;
+    if (!/^[!-~]{6,50}$/.test(newCode) || newCode!==newCode.trim()) {
+      status.textContent='영문·숫자·키보드 특수문자로 공백 없이 6~50자를 입력해 주세요.';
+      return;
+    }
+    if (newCode!==repeatCode) { status.textContent='새 접속코드가 서로 다릅니다.'; return; }
+    button.disabled=true; status.textContent='접속코드를 변경하고 있습니다.';
+    try {
+      const {data,error}=await supabaseClient.functions.invoke('app-session',{body:{action:'upgrade_short_code',current_code:pendingLegacyCode,new_code:newCode,repeat_code:repeatCode}});
+      let result=data;
+      if(error?.context?.clone) { try { result=await error.context.clone().json(); } catch {} }
+      if(error || !result?.success) throw new Error(result?.message||'접속코드 변경에 실패했습니다.');
+      pendingLegacyCode='';
+      status.hidden=true;
+      completeSessionLogin(result,newCode);
+    } catch(error) {
+      status.textContent=error?.message||'접속코드 변경에 실패했습니다. 다시 시도해 주세요.';
+    } finally { button.disabled=false; }
   }
 
   function completeSessionLogin(sessionData, code) {
@@ -3970,9 +4028,15 @@ async function loginWithPasskey({automatic = false} = {}) {
     completeSessionLogin(result,'');
   } catch (error) {
     if (!controller.signal.aborted && !currentUser) {
-      status.textContent = automatic || ['NotAllowedError','AbortError'].includes(error?.name)
-        ? '비밀번호를 입력하거나 생체인증 로그인 버튼을 눌러 주세요.'
-        : (error?.message || '생체인증을 시작하지 못했습니다. 비밀번호로 로그인해 주세요.');
+      if (error?.message?.includes('접속코드를 한 번 확인')) {
+        usePasswordLogin();
+        status.hidden=false;
+        status.textContent='기존 접속코드를 한 번 입력해 주세요. 4자리 코드라면 변경 후 이용할 수 있습니다.';
+      } else {
+        status.textContent = automatic || ['NotAllowedError','AbortError'].includes(error?.name)
+          ? '비밀번호를 입력하거나 생체인증 로그인 버튼을 눌러 주세요.'
+          : (error?.message || '생체인증을 시작하지 못했습니다. 비밀번호로 로그인해 주세요.');
+      }
     }
   } finally {
     if (passkeyLoginController === controller) {
