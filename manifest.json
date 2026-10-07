@@ -2,7 +2,7 @@
   "name": "교대 근무",
   "short_name": "교대 근무",
   "description": "일꾼 근태 관리",
-  "start_url": "./index.html",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#e9ecef",
   "theme_color": "#007bff",
@@ -18,5 +18,7 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "id": "/index.html",
+  "scope": "/index.html"
 }

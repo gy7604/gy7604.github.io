@@ -1,4 +1,4 @@
-const CACHE_NAME = 'snnc-pwa-v11';
+const CACHE_NAME = 'snnc-pwa-v12';
 
 const FILES_TO_CACHE = [
   './',
@@ -41,7 +41,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys =>
       Promise.all(
         keys
-          .filter(key => key !== CACHE_NAME)
+          .filter(key => key.startsWith('snnc-pwa-') && key !== CACHE_NAME)
           .map(key => caches.delete(key))
       )
     ).then(() => self.clients.claim())
@@ -54,6 +54,8 @@ self.addEventListener('activate', event => {
 ========================= */
 
 self.addEventListener('fetch', event => {
+  // 다른 앱의 페이지와 자산은 해당 앱의 서비스 워커가 처리합니다.
+  if (new URL(event.request.url).pathname.startsWith('/worktable')) return;
   event.respondWith(
     (event.request.mode === 'navigate'
       ? fetch(event.request, { cache: 'no-cache' })
@@ -83,7 +85,7 @@ self.addEventListener('push', event => {
   let data = {
     title: '휴무계획표',
     body: '새로운 알림이 있습니다.',
-    url: './'
+    url: './index.html'
   };
 
   /*
@@ -114,7 +116,7 @@ self.addEventListener('push', event => {
     badge: './icons/notification-helmet-badge-96.png',
 
     data: {
-      url: data.url || './'
+      url: data.url === './' || data.url === '/' ? './index.html' : (data.url || './index.html')
     },
 
     // 수신마다 고유한 tag를 사용해 이전 알림과 분리합니다.
@@ -159,7 +161,7 @@ self.addEventListener('notificationclick', event => {
        */
       for (const client of clientList) {
 
-        if ('focus' in client) {
+        if ('focus' in client && new URL(client.url).origin === self.location.origin && ['/', '/index.html'].includes(new URL(client.url).pathname)) {
           return client.focus();
         }
 
