@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.07.2">
+  <meta name="app-version" content="2026.10.07.3">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -374,7 +374,7 @@ document.addEventListener('pointerdown', event => {
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.07.2</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.07.3</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -442,7 +442,8 @@ document.addEventListener('pointerdown', event => {
       <summary style="cursor:pointer;text-align:center;font-size:14px;color:#526477;font-weight:bold;padding:8px;">📋 버전별 업데이트 내역</summary>
       <div style="max-height:320px;overflow-y:auto;padding:6px 4px;line-height:1.65;font-size:13px;">
         <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p>
-        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.2 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">자동 생체인증 시작 안정화</h3><p style="margin:0;">로그인 화면과 브라우저 포커스가 준비된 뒤 자동 인증을 시작하도록 조정했습니다.</p></article>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.3 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">기존 생체인증 연결 복구</h3><p style="margin:0;">이미 등록된 인증이 있을 때 기기 인증을 확인하고 자동 로그인 연결을 복구합니다.</p></article>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.2</strong><h3 style="font-size:14px;margin:3px 0 5px;">자동 생체인증 시작 안정화</h3><p style="margin:0;">로그인 화면과 브라우저 포커스가 준비된 뒤 자동 인증을 시작하도록 조정했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.1</strong><h3 style="font-size:14px;margin:3px 0 5px;">안전모 알림 아이콘</h3><p style="margin:0;">알림에는 노란 안전모, 상태표시줄에는 안전모 모양의 단색 아이콘을 사용합니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.06.11</strong><h3 style="font-size:14px;margin:3px 0 5px;">생체인증창 우선 실행</h3><p style="margin:0;">인증 준비가 완료되면 앱 라이브러리 로딩을 기다리지 않고 생체인증창을 요청합니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.06.10</strong><h3 style="font-size:14px;margin:3px 0 5px;">칸 색상 구분 개선</h3><p style="margin:0;">B조 휴무 신청칸은 민트색, A조 대근칸은 선명한 주황색으로 구분했습니다.</p></article>
@@ -4015,10 +4016,39 @@ function passkeyFailure(error) {
     alert('이미 이 기기에 등록된 지문·얼굴 인식입니다. 등록했던 브라우저에서 생체인증 로그인을 이용해 주세요.');
   } else { alert(error?.message || '이 기기에서 생체인증을 사용할 수 없습니다.'); }
 }
+async function restoreExistingPasskey(id, expectedUserHandle) {
+  const data = await passkeyAPI({action:'login_options',credential_id:id});
+  const options = {...data.options,challenge:passkeyDecode(data.options.challenge),allowCredentials:(data.options.allowCredentials||[]).map(c=>({...c,id:passkeyDecode(c.id)}))};
+  const credential = await navigator.credentials.get({publicKey:options,mediation:'required'});
+  if (!credential) throw new Error('기존 생체인증 연결이 취소되었습니다.');
+  const response = {id:credential.id,rawId:passkeyEncode(credential.rawId),type:credential.type,authenticatorAttachment:credential.authenticatorAttachment,clientExtensionResults:credential.getClientExtensionResults(),response:{clientDataJSON:passkeyEncode(credential.response.clientDataJSON),authenticatorData:passkeyEncode(credential.response.authenticatorData),signature:passkeyEncode(credential.response.signature),userHandle:credential.response.userHandle?passkeyEncode(credential.response.userHandle):null}};
+  const result = await passkeyAPI({action:'login_verify',challenge_id:data.challenge_id,response});
+  try {
+    if (!/^[0-9a-f]{64}$/.test(result.token||'') || !result.user?.is_active ||
+        passkeyEncode(new TextEncoder().encode('snnc-user-'+result.user.id)) !== expectedUserHandle ||
+        credential.id !== id) throw new Error('기존 생체인증 계정을 확인하지 못했습니다.');
+    let localSaved=true;
+    try { localStorage.setItem(PASSKEY_LOCAL_KEY,credential.id); } catch { localSaved=false; }
+    return {localSaved,recovered:true};
+  } finally {
+    if (/^[0-9a-f]{64}$/.test(result.token||'')) {
+      try { await supabaseClient.functions.invoke('app-session',{body:{action:'logout'},headers:{'x-app-session':result.token}}); } catch {}
+    }
+  }
+}
 async function createPasskeyWithVerifiedCode(token, currentCode) {
   const data = await passkeyAPI({action:'register_options',current_code:currentCode},true,token);
   const options = {...data.options,challenge:passkeyDecode(data.options.challenge),user:{...data.options.user,id:passkeyDecode(data.options.user.id)},excludeCredentials:(data.options.excludeCredentials||[]).map(c=>({...c,id:passkeyDecode(c.id)}))};
-  const credential = await navigator.credentials.create({publicKey:options});
+  let credential;
+  try {
+    credential = await navigator.credentials.create({publicKey:options});
+  } catch (error) {
+    if (error?.name !== 'InvalidStateError') throw error;
+    const existing = data.options.excludeCredentials || [];
+    if (existing.length !== 1) throw new Error('등록된 인증이 여러 개입니다. 기존 인증을 사용한 브라우저에서 연결해 주세요.');
+    const restored = await restoreExistingPasskey(existing[0].id, data.options.user.id);
+    return restored;
+  }
   if (!credential) throw new Error('기기의 지문·얼굴 인식 등록이 취소되었습니다.');
   const response = {id:credential.id,rawId:passkeyEncode(credential.rawId),type:credential.type,authenticatorAttachment:credential.authenticatorAttachment,clientExtensionResults:credential.getClientExtensionResults(),response:{clientDataJSON:passkeyEncode(credential.response.clientDataJSON),attestationObject:passkeyEncode(credential.response.attestationObject),transports:credential.response.getTransports?.()||[]}};
   const result = await passkeyAPI({action:'register_verify',challenge_id:data.challenge_id,response},true,token);
@@ -4052,7 +4082,7 @@ async function registerBiometricFromLogin() {
     input.value='';
     status.hidden=true;
     alert(registered.localSaved
-      ? '지문·얼굴 인식 등록을 완료했습니다. 다음에 이 기기에서 앱을 열면 인증을 시작합니다.'
+      ? (registered.recovered ? '기존 지문·얼굴 인식 연결을 복구했습니다. 다음부터 앱을 열면 자동 인증을 시작합니다.' : '지문·얼굴 인식 등록을 완료했습니다. 다음에 이 기기에서 앱을 열면 인증을 시작합니다.')
       : '등록은 완료됐지만 이 브라우저에 자동 로그인 설정을 저장하지 못했습니다. 기존 접속코드로 로그인할 수 있습니다.');
   } catch (error) {
     status.hidden=false;
@@ -4076,7 +4106,7 @@ async function registerPasskey() {
     const registered=await createPasskeyWithVerifiedCode(token,currentCode);
     if (token !== currentSessionToken) return;
     alert(registered.localSaved
-      ? '지문·얼굴 인식 등록을 완료했습니다. 다음에 이 기기에서 앱을 열면 인증을 시작합니다.'
+      ? (registered.recovered ? '기존 지문·얼굴 인식 연결을 복구했습니다. 다음부터 앱을 열면 자동 인증을 시작합니다.' : '지문·얼굴 인식 등록을 완료했습니다. 다음에 이 기기에서 앱을 열면 인증을 시작합니다.')
       : '등록은 완료됐지만 이 브라우저에 자동 로그인 설정을 저장하지 못했습니다.');
   } catch (error) { passkeyFailure(error); }
   finally { passkeyBusy=false; button.disabled=false; updatePasskeyUI(); }
@@ -4122,7 +4152,7 @@ async function loginWithPasskey({automatic = false} = {}) {
         status.hidden=false;
         status.textContent='기존 접속코드를 한 번 입력해 주세요. 4자리 코드라면 변경 후 이용할 수 있습니다.';
       } else {
-        status.textContent = automatic || ['NotAllowedError','AbortError'].includes(error?.name)
+        status.textContent = ['NotAllowedError','AbortError'].includes(error?.name)
           ? '비밀번호를 입력하거나 생체인증 로그인 버튼을 눌러 주세요.'
           : (error?.message || '생체인증을 시작하지 못했습니다. 비밀번호로 로그인해 주세요.');
       }
@@ -4148,7 +4178,7 @@ function usePasswordLogin(focusInput = true) {
   if (focusInput) document.getElementById('loginCode').focus();
 }
 function startAutomaticPasskeyLogin() {
-  if (document.readyState === 'loading' || !document.hasFocus()) return;
+  if (document.readyState === 'loading') return;
   if (automaticPasskeyAttempted || document.visibilityState !== 'visible' || currentUser || passkeyBusy || !passkeySupported() || !savedPasskeyID()) return;
   automaticPasskeyAttempted = true;
   if (earlyPasskeyOptions?.controller.signal.aborted) { earlyPasskeyOptions = null; return; }
