@@ -1,11 +1,13 @@
-const CACHE_NAME = 'snnc-pwa-v10';
+const CACHE_NAME = 'snnc-pwa-v11';
 
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './icons/notification-helmet-192.png',
+  './icons/notification-helmet-badge-96.png'
 ];
 
 /* =========================
@@ -107,9 +109,9 @@ self.addEventListener('push', event => {
   const notificationOptions = {
     body: data.body,
 
-    icon: './icons/icon-192.png',
+    icon: './icons/notification-helmet-192.png',
 
-    badge: './icons/icon-192.png',
+    badge: './icons/notification-helmet-badge-96.png',
 
     data: {
       url: data.url || './'
