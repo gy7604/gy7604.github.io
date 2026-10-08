@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.07.4">
+  <meta name="app-version" content="2026.10.08.1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -374,7 +374,7 @@ document.addEventListener('pointerdown', event => {
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.07.4</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.08.1</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -441,8 +441,8 @@ document.addEventListener('pointerdown', event => {
     <details id="appReleaseHistory" style="margin-top:18px;text-align:left;border-top:1px solid #e2e8f0;padding-top:12px;">
       <summary style="cursor:pointer;text-align:center;font-size:14px;color:#526477;font-weight:bold;padding:8px;">📋 버전별 업데이트 내역</summary>
       <div style="max-height:320px;overflow-y:auto;padding:6px 4px;line-height:1.65;font-size:13px;">
-        <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p>
-        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.4 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">앱별 설치 범위 분리</h3><p style="margin:0;">근무배치표 앱과 설치·캐시 범위가 겹치지 않도록 설정을 조정했습니다.</p></article>
+        <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p><article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.08.1 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">근무 기상 알람 연결 테스트</h3><p style="margin:0;">Android 보조 앱에서 주간 05:00, 야간 17:10 기상 알람을 설정하고 본인 휴무·대근을 반영할 수 있습니다.</p></article>
+        <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.4</strong><h3 style="font-size:14px;margin:3px 0 5px;">앱별 설치 범위 분리</h3><p style="margin:0;">근무배치표 앱과 설치·캐시 범위가 겹치지 않도록 설정을 조정했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.3</strong><h3 style="font-size:14px;margin:3px 0 5px;">기존 생체인증 연결 복구</h3><p style="margin:0;">이미 등록된 인증이 있을 때 기기 인증을 확인하고 자동 로그인 연결을 복구합니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.2</strong><h3 style="font-size:14px;margin:3px 0 5px;">자동 생체인증 시작 안정화</h3><p style="margin:0;">로그인 화면과 브라우저 포커스가 준비된 뒤 자동 인증을 시작하도록 조정했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.1</strong><h3 style="font-size:14px;margin:3px 0 5px;">안전모 알림 아이콘</h3><p style="margin:0;">알림에는 노란 안전모, 상태표시줄에는 안전모 모양의 단색 아이콘을 사용합니다.</p></article>
@@ -477,13 +477,26 @@ document.addEventListener('pointerdown', event => {
   </div>
 
 
+<dialog id="wakeAlarmDialog" style="max-width:420px;width:calc(100% - 48px);border:0;border-radius:16px;padding:20px;box-shadow:0 12px 48px #0004;">
+ <h2 style="font-size:20px;margin-top:0;">기상 알람 연결 · 테스트</h2>
+ <p style="line-height:1.6;">Android 보조 앱에서 본인 근무에 맞춰 울립니다.<br>주간·주간 대근 <strong>05:00</strong><br>야간·야간 대근 <strong>17:10</strong><br>휴무일은 알람 없이 적용합니다.</p>
+ <p style="font-size:13px;line-height:1.6;">코드를 발급한 뒤 복사하여 보조 앱의 ‘내 계정 연결’에 붙여넣으세요. 코드는 10분 동안 한 번 사용할 수 있습니다. 급한 일정 변경 후에는 보조 앱에서 ‘지금 일정 동기화’를 눌러 주세요.</p>
+ <a href="https://github.com/gy7604/worktable/releases/download/alarm-test/shift-alarm-test.apk" target="_blank" rel="noopener" style="display:block;padding:10px;text-align:center;">Android 기상 알람 테스트 앱 다운로드</a>
+ <button id="wakeAlarmIssue" type="button" onclick="issueWakeAlarmCode()">연결 코드 발급</button>
+ <input id="wakeAlarmCode" readonly hidden aria-label="기상 알람 연결 코드" style="box-sizing:border-box;width:100%;margin-top:12px;font-size:13px;" autocomplete="off">
+ <button id="wakeAlarmCopy" type="button" hidden onclick="copyWakeAlarmCode()" style="margin-top:8px;">연결 코드 복사</button>
+ <p id="wakeAlarmStatus" role="status" style="font-size:13px;"></p>
+ <button type="button" onclick="revokeWakeAlarmDevices()" style="background:#b42332;margin-top:8px;">내 기상 알람 연결 모두 해제</button>
+ <button type="button" onclick="closeWakeAlarmDialog()" style="background:#64748b;margin-top:8px;">닫기</button>
+</dialog>
+
   <!-- 메인 -->
   <div id="mainScreen">
 
 <div class="card app-topbar">
  <div class="app-identity"><h2 id="welcomeMsg">환영합니다!</h2><div id="personalTools" hidden><button class="btn-small" onclick="openPersonalView()" title="내 연차·대근 모아보기">☷ 내 연차·대근 모아보기</button></div></div>
  <div class="app-month"><button class="btn-small" onclick="changeMonth(-1)" aria-label="이전 달">◀</button><button id="currentMonthStr" onclick="goToMonth()" title="원하는 년월로 이동">2026년 10월</button><button class="btn-small" onclick="changeMonth(1)" aria-label="다음 달">▶</button></div>
- <div class="app-actions"><button id="passkeyRegisterButton" type="button" hidden data-icon="🔐" title="지문·얼굴 인식 등록" onclick="registerPasskey()" class="btn-small" style="background:#355a78;">지문·얼굴 인식 등록</button><button
+ <div class="app-actions"><button type="button" data-icon="⏰" title="기상 알람 연결" onclick="openWakeAlarmDialog()" class="btn-small" style="background:#355a78;">기상 알람 연결</button><button id="passkeyRegisterButton" type="button" hidden data-icon="🔐" title="지문·얼굴 인식 등록" onclick="registerPasskey()" class="btn-small" style="background:#355a78;">지문·얼굴 인식 등록</button><button
             id="androidInstallButton" data-icon="📱" title="Android 앱 설치"
             onclick="installAndroidApp()"
             class="btn-small"
@@ -1455,7 +1468,49 @@ document.addEventListener('pointerdown', event => {
   // 사용자 요구사항: 알림 구독은 본인의 명시적 끄기 전까지 유지합니다.
   // 로그아웃·세션 만료·앱 업데이트·코드 변경에서는 push_delete/unsubscribe를 호출하지 않습니다.
   // 로그아웃은 세션만 종료하고 알림 구독은 유지합니다.
+  function closeWakeAlarmDialog() {
+    const dialog=document.getElementById('wakeAlarmDialog');
+    dialog.close();document.getElementById('wakeAlarmCode').value='';
+    document.getElementById('wakeAlarmCode').hidden=true;
+    document.getElementById('wakeAlarmCopy').hidden=true;
+  }
+  function openWakeAlarmDialog() {
+    if(!currentUser || !currentSessionToken)return;
+    document.getElementById('wakeAlarmStatus').textContent='';
+    document.getElementById('wakeAlarmDialog').showModal();
+  }
+  async function wakeAlarmAction(action) {
+    const token=currentSessionToken;
+    if(!currentUser || !token)throw new Error('로그인 후 이용해 주세요.');
+    const {data,error}=await supabaseClient.functions.invoke('app-alarm',{body:{action},headers:{'x-app-session':token}});
+    if(token!==currentSessionToken)throw new Error('다시 로그인해 주세요.');
+    if(error || !data?.success){
+      if(error?.context?.status===401)expireSession(token);
+      throw new Error(data?.message || '잠시 후 다시 시도해 주세요.');
+    }
+    return data;
+  }
+  async function issueWakeAlarmCode() {
+    const button=document.getElementById('wakeAlarmIssue'),status=document.getElementById('wakeAlarmStatus');
+    button.disabled=true;status.textContent='연결 코드를 준비하고 있습니다…';
+    try{const data=await wakeAlarmAction('issue');if(!document.getElementById('wakeAlarmDialog').open)return;
+      const field=document.getElementById('wakeAlarmCode');field.value=data.code;field.hidden=false;
+      document.getElementById('wakeAlarmCopy').hidden=false;status.textContent='10분 안에 보조 앱에서 연결해 주세요. 코드를 다른 사람에게 공유하지 마세요.';
+    }catch(error){status.textContent=error.message;}finally{button.disabled=false;}
+  }
+  async function copyWakeAlarmCode(){
+    const field=document.getElementById('wakeAlarmCode');
+    try{await navigator.clipboard.writeText(field.value);document.getElementById('wakeAlarmStatus').textContent='복사했습니다. 보조 앱에서 붙여넣어 주세요.';}
+    catch{field.focus();field.select();document.getElementById('wakeAlarmStatus').textContent='선택된 코드를 길게 눌러 복사해 주세요.';}
+  }
+  async function revokeWakeAlarmDevices(){
+    if(!confirm('연결된 모든 보조 앱의 기상 알람 연결을 해제할까요? 각 기기가 서버에 다시 연결할 때 중지됩니다.'))return;
+    try{await wakeAlarmAction('revoke');document.getElementById('wakeAlarmCode').value='';document.getElementById('wakeAlarmCode').hidden=true;document.getElementById('wakeAlarmCopy').hidden=true;document.getElementById('wakeAlarmStatus').textContent='기상 알람 연결을 해제했습니다. 바로 중지하려면 보조 앱의 알람 스위치도 꺼 주세요.';}
+    catch(error){document.getElementById('wakeAlarmStatus').textContent=error.message;}
+  }
+
   async function logout() {
+    closeWakeAlarmDialog();
     try {
       const sessionToken = currentSessionToken;
       currentSessionToken = '';
