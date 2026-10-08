@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.08.1">
+  <meta name="app-version" content="2026.10.08.2">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -374,7 +374,7 @@ document.addEventListener('pointerdown', event => {
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.08.1</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.08.2</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -441,7 +441,7 @@ document.addEventListener('pointerdown', event => {
     <details id="appReleaseHistory" style="margin-top:18px;text-align:left;border-top:1px solid #e2e8f0;padding-top:12px;">
       <summary style="cursor:pointer;text-align:center;font-size:14px;color:#526477;font-weight:bold;padding:8px;">📋 버전별 업데이트 내역</summary>
       <div style="max-height:320px;overflow-y:auto;padding:6px 4px;line-height:1.65;font-size:13px;">
-        <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p><article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.08.1 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">근무 기상 알람 연결 테스트</h3><p style="margin:0;">Android 보조 앱에서 주간 05:00, 야간 17:10 기상 알람을 설정하고 본인 휴무·대근을 반영할 수 있습니다.</p></article>
+        <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.4</strong><h3 style="font-size:14px;margin:3px 0 5px;">앱별 설치 범위 분리</h3><p style="margin:0;">근무배치표 앱과 설치·캐시 범위가 겹치지 않도록 설정을 조정했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.3</strong><h3 style="font-size:14px;margin:3px 0 5px;">기존 생체인증 연결 복구</h3><p style="margin:0;">이미 등록된 인증이 있을 때 기기 인증을 확인하고 자동 로그인 연결을 복구합니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.2</strong><h3 style="font-size:14px;margin:3px 0 5px;">자동 생체인증 시작 안정화</h3><p style="margin:0;">로그인 화면과 브라우저 포커스가 준비된 뒤 자동 인증을 시작하도록 조정했습니다.</p></article>
@@ -496,7 +496,7 @@ document.addEventListener('pointerdown', event => {
 <div class="card app-topbar">
  <div class="app-identity"><h2 id="welcomeMsg">환영합니다!</h2><div id="personalTools" hidden><button class="btn-small" onclick="openPersonalView()" title="내 연차·대근 모아보기">☷ 내 연차·대근 모아보기</button></div></div>
  <div class="app-month"><button class="btn-small" onclick="changeMonth(-1)" aria-label="이전 달">◀</button><button id="currentMonthStr" onclick="goToMonth()" title="원하는 년월로 이동">2026년 10월</button><button class="btn-small" onclick="changeMonth(1)" aria-label="다음 달">▶</button></div>
- <div class="app-actions"><button type="button" data-icon="⏰" title="기상 알람 연결" onclick="openWakeAlarmDialog()" class="btn-small" style="background:#355a78;">기상 알람 연결</button><button id="passkeyRegisterButton" type="button" hidden data-icon="🔐" title="지문·얼굴 인식 등록" onclick="registerPasskey()" class="btn-small" style="background:#355a78;">지문·얼굴 인식 등록</button><button
+ <div class="app-actions"><button id="wakeAlarmPilotButton" hidden type="button" data-icon="⏰" title="기상 알람 연결" onclick="openWakeAlarmDialog()" class="btn-small" style="background:#355a78;display:none;">기상 알람 연결</button><button id="passkeyRegisterButton" type="button" hidden data-icon="🔐" title="지문·얼굴 인식 등록" onclick="registerPasskey()" class="btn-small" style="background:#355a78;">지문·얼굴 인식 등록</button><button
             id="androidInstallButton" data-icon="📱" title="Android 앱 설치"
             onclick="installAndroidApp()"
             class="btn-small"
@@ -1212,6 +1212,7 @@ document.addEventListener('pointerdown', event => {
 
     currentLoginCode = code;
     currentSessionToken = sessionData.token;
+    updateWakeAlarmPilot();
     scheduleSessionExpiry(sessionData.expires_at);
 
 
@@ -1474,14 +1475,21 @@ document.addEventListener('pointerdown', event => {
     document.getElementById('wakeAlarmCode').hidden=true;
     document.getElementById('wakeAlarmCopy').hidden=true;
   }
+  function isWakeAlarmPilot(){ return Number(currentUser?.id)===29; }
+  function updateWakeAlarmPilot(){
+    const button=document.getElementById('wakeAlarmPilotButton');
+    const allowed=isWakeAlarmPilot();
+    button.hidden=!allowed;button.style.display=allowed?'':'none';
+    if(!allowed)closeWakeAlarmDialog();
+  }
   function openWakeAlarmDialog() {
-    if(!currentUser || !currentSessionToken)return;
+    if(!isWakeAlarmPilot() || !currentSessionToken)return;
     document.getElementById('wakeAlarmStatus').textContent='';
     document.getElementById('wakeAlarmDialog').showModal();
   }
   async function wakeAlarmAction(action) {
     const token=currentSessionToken;
-    if(!currentUser || !token)throw new Error('로그인 후 이용해 주세요.');
+    if(!isWakeAlarmPilot() || !token)throw new Error('현재 시험 계정에서만 이용할 수 있습니다.');
     const {data,error}=await supabaseClient.functions.invoke('app-alarm',{body:{action},headers:{'x-app-session':token}});
     if(token!==currentSessionToken)throw new Error('다시 로그인해 주세요.');
     if(error || !data?.success){
@@ -2726,6 +2734,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
     sessionExpiryTimer = null;
     currentSessionToken = '';
     currentUser = null;
+    updateWakeAlarmPilot();
     currentLoginCode = '';
     ++calendarLoadVersion;
     requestsData = [];
