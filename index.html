@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.09.1">
+  <meta name="app-version" content="2026.10.09.2">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -22,6 +22,7 @@ let earlyPasskeyOptions = (() => {
         typeof PublicKeyCredential !== 'function' || !navigator.credentials ||
         !/^[A-Za-z0-9_-]{1,2048}$/.test(id)) return null;
     const controller = new AbortController();
+    const timing = {started:performance.now(), finished:null};
     const promise = fetch(SUPABASE_URL + '/functions/v1/app-passkey', {
       method: 'POST',
       headers: {'apikey': SUPABASE_ANON_KEY, 'authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'content-type': 'application/json'},
@@ -31,8 +32,8 @@ let earlyPasskeyOptions = (() => {
       const data = await response.json();
       if (!response.ok || !data?.success) throw new Error(data?.message || '생체인증을 시작하지 못했습니다.');
       return {data};
-    }).catch(error => ({error}));
-    return {id, promise, controller};
+    }).catch(error => ({error})).finally(()=>{timing.finished=performance.now();});
+    return {id, promise, controller, timing};
   } catch { return null; }
 })();
 // 라이브러리 로딩 중에도 접속코드를 선택하면 자동 인증을 취소합니다.
@@ -374,7 +375,7 @@ document.addEventListener('pointerdown', event => {
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.09.1</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.09.2</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -392,6 +393,11 @@ document.addEventListener('pointerdown', event => {
 
     <button onclick="login()">로그인</button>
     <p id="passkeyLoginStatus" role="status" aria-live="polite" hidden style="font-size:13px;color:#526477;"></p>
+    <details id="passkeyTimingDetails" hidden style="text-align:left;margin:8px 0;font-size:12px;color:#64748b;">
+      <summary style="cursor:pointer;">인증 속도 확인</summary>
+      <p id="passkeyTimingText" style="white-space:pre-line;line-height:1.6;"></p>
+      <p style="line-height:1.5;">휴대폰 인증 시간에는 창 대기와 본인이 지문을 확인한 시간이 함께 포함됩니다. 측정값은 서버로 전송하지 않습니다.</p>
+    </details>
     <button id="passkeyPasswordButton" type="button" hidden onclick="usePasswordLogin()" style="margin-top:8px;background:#526477;">비밀번호로 로그인</button>
     <button id="passkeyLoginButton" type="button" hidden onclick="loginWithPasskey()" style="margin-top:8px;background:#355a78;">🔐 지문·얼굴 인식 로그인</button>
 
@@ -441,7 +447,7 @@ document.addEventListener('pointerdown', event => {
     <details id="appReleaseHistory" style="margin-top:18px;text-align:left;border-top:1px solid #e2e8f0;padding-top:12px;">
       <summary style="cursor:pointer;text-align:center;font-size:14px;color:#526477;font-weight:bold;padding:8px;">📋 버전별 업데이트 내역</summary>
       <div style="max-height:320px;overflow-y:auto;padding:6px 4px;line-height:1.65;font-size:13px;">
-        <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p><article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.09.1 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">PC 입력과 달력 스크롤 개선</h3><p style="margin:0;">PC 로그인 화면에서 접속코드 입력 칸에 커서를 자동으로 놓고, 스크롤해도 상단 년월과 월 이동 버튼이 고정됩니다.</p></article>
+        <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p><article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.09.2 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">생체인증 대기 단계 확인</h3><p style="margin:0;">인증 준비·휴대폰 인증·로그인 검증 상태를 구분하고 인증 속도를 기기에서 확인할 수 있습니다.</p></article><article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.09.1</strong><h3 style="font-size:14px;margin:3px 0 5px;">PC 입력과 달력 스크롤 개선</h3><p style="margin:0;">PC 로그인 화면에서 접속코드 입력 칸에 커서를 자동으로 놓고, 스크롤해도 상단 년월과 월 이동 버튼이 고정됩니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.4</strong><h3 style="font-size:14px;margin:3px 0 5px;">앱별 설치 범위 분리</h3><p style="margin:0;">근무배치표 앱과 설치·캐시 범위가 겹치지 않도록 설정을 조정했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.3</strong><h3 style="font-size:14px;margin:3px 0 5px;">기존 생체인증 연결 복구</h3><p style="margin:0;">이미 등록된 인증이 있을 때 기기 인증을 확인하고 자동 로그인 연결을 복구합니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.2</strong><h3 style="font-size:14px;margin:3px 0 5px;">자동 생체인증 시작 안정화</h3><p style="margin:0;">로그인 화면과 브라우저 포커스가 준비된 뒤 자동 인증을 시작하도록 조정했습니다.</p></article>
@@ -4178,6 +4184,18 @@ async function registerPasskey() {
   } catch (error) { passkeyFailure(error); }
   finally { passkeyBusy=false; button.disabled=false; updatePasskeyUI(); }
 }
+function updatePasskeyTiming(timing) {
+  const format=n=>Number.isFinite(n)?(Math.max(0,n)/1000).toFixed(2)+'초':'대기 중';
+  document.getElementById('passkeyTimingDetails').hidden=false;
+  const rows=[
+    '페이지 시작 → 인증 준비 요청: '+format(timing.started),
+    '서버 준비 요청·응답: '+format(timing.prepared==null?null:timing.prepared-timing.started),
+    '서버 준비 완료 → 휴대폰 인증 요청: '+format(timing.deviceStarted==null||timing.prepared==null?null:timing.deviceStarted-timing.prepared),
+    '휴대폰 인증 요청 → 인증 완료/취소: '+format(timing.deviceFinished==null||timing.deviceStarted==null?null:timing.deviceFinished-timing.deviceStarted)
+  ];
+  if(timing.verifyStarted!=null)rows.push('서버 로그인 검증: '+format(timing.verifyFinished==null?null:timing.verifyFinished-timing.verifyStarted));
+  document.getElementById('passkeyTimingText').textContent=rows.join('\n');
+}
 async function loginWithPasskey({automatic = false} = {}) {
   if (passkeyBusy || !passkeySupported() || currentUser) return;
   const id = savedPasskeyID(); if (!id) return;
@@ -4185,11 +4203,13 @@ async function loginWithPasskey({automatic = false} = {}) {
   const preparedAttempt = earlyPasskeyOptions?.id === id ? earlyPasskeyOptions : null;
   if (preparedAttempt) earlyPasskeyOptions = null;
   const controller = preparedAttempt?.controller || new AbortController();
+  const timing = {started:preparedAttempt?.timing?.started ?? performance.now(),prepared:null,deviceStarted:null,deviceFinished:null,verifyStarted:null,verifyFinished:null};
   passkeyLoginController = controller;
   const status = document.getElementById('passkeyLoginStatus');
   const passwordButton = document.getElementById('passkeyPasswordButton');
   status.hidden = false;
-  status.textContent = '지문·얼굴 인증을 시작합니다. 취소하면 비밀번호로 로그인할 수 있습니다.';
+  status.textContent = '서버에서 지문·얼굴 인증을 준비하고 있습니다…';
+  updatePasskeyTiming(timing);
   passwordButton.hidden = false;
   const button = document.getElementById('passkeyLoginButton');
   button.disabled = true;
@@ -4202,12 +4222,22 @@ async function loginWithPasskey({automatic = false} = {}) {
     } else {
       data = await passkeyAPI({action:'login_options',credential_id:id});
     }
+    timing.prepared=preparedAttempt?.timing?.finished ?? performance.now();
+    updatePasskeyTiming(timing);
     if (controller.signal.aborted || currentUser) return;
+    status.textContent='휴대폰에 지문·얼굴 인증 창을 요청했습니다. 잠시 기다려 주세요.';
     const options = {...data.options,challenge:passkeyDecode(data.options.challenge),allowCredentials:(data.options.allowCredentials||[]).map(c=>({...c,id:passkeyDecode(c.id)}))};
-    const credential = await navigator.credentials.get({publicKey:options, signal:controller.signal, mediation:'required'});
+    timing.deviceStarted=performance.now();updatePasskeyTiming(timing);
+    let credential;
+    try { credential = await navigator.credentials.get({publicKey:options, signal:controller.signal, mediation:'required'}); }
+    finally { timing.deviceFinished=performance.now();updatePasskeyTiming(timing); }
     if (!credential || controller.signal.aborted || currentUser) return;
     const response = {id:credential.id,rawId:passkeyEncode(credential.rawId),type:credential.type,authenticatorAttachment:credential.authenticatorAttachment,clientExtensionResults:credential.getClientExtensionResults(),response:{clientDataJSON:passkeyEncode(credential.response.clientDataJSON),authenticatorData:passkeyEncode(credential.response.authenticatorData),signature:passkeyEncode(credential.response.signature),userHandle:credential.response.userHandle?passkeyEncode(credential.response.userHandle):null}};
-    const result = await passkeyAPI({action:'login_verify',challenge_id:data.challenge_id,response});
+    timing.verifyStarted=performance.now();
+    status.textContent='인증을 확인하고 로그인하고 있습니다…';
+    let result;
+    try { result = await passkeyAPI({action:'login_verify',challenge_id:data.challenge_id,response}); }
+    finally { timing.verifyFinished=performance.now();updatePasskeyTiming(timing); }
     if (controller.signal.aborted || currentUser) return;
     if (!/^[0-9a-f]{64}$/.test(result.token||'') || !/^\d+$/.test(String(result.user?.id||'')) || !result.user?.is_active) throw new Error('생체인증 세션을 확인하지 못했습니다.');
     status.hidden = true;
