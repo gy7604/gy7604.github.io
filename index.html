@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.09.2">
+  <meta name="app-version" content="2026.10.09.3">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -375,7 +375,7 @@ document.addEventListener('pointerdown', event => {
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.09.2</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.10.09.3</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -447,7 +447,7 @@ document.addEventListener('pointerdown', event => {
     <details id="appReleaseHistory" style="margin-top:18px;text-align:left;border-top:1px solid #e2e8f0;padding-top:12px;">
       <summary style="cursor:pointer;text-align:center;font-size:14px;color:#526477;font-weight:bold;padding:8px;">📋 버전별 업데이트 내역</summary>
       <div style="max-height:320px;overflow-y:auto;padding:6px 4px;line-height:1.65;font-size:13px;">
-        <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p><article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.09.2 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">생체인증 대기 단계 확인</h3><p style="margin:0;">인증 준비·휴대폰 인증·로그인 검증 상태를 구분하고 인증 속도를 기기에서 확인할 수 있습니다.</p></article><article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.09.1</strong><h3 style="font-size:14px;margin:3px 0 5px;">PC 입력과 달력 스크롤 개선</h3><p style="margin:0;">PC 로그인 화면에서 접속코드 입력 칸에 커서를 자동으로 놓고, 스크롤해도 상단 년월과 월 이동 버튼이 고정됩니다.</p></article>
+        <p style="margin:4px 0 14px;color:#64748b;font-size:12px;">최신 버전부터 표시합니다.</p><article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.09.3 · 최신</strong><h3 style="font-size:14px;margin:3px 0 5px;">알림 연결 유지 개선</h3><p style="margin:0;">전송 실패 시 알림 구독 기록을 유지하고, 이전에 알림을 켠 기기는 접속 시 연결 복구를 시도합니다. 권한 차단과 연결 상태를 구분해 표시합니다.</p></article><article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.09.2</strong><h3 style="font-size:14px;margin:3px 0 5px;">생체인증 대기 단계 확인</h3><p style="margin:0;">인증 준비·휴대폰 인증·로그인 검증 상태를 구분하고 인증 속도를 기기에서 확인할 수 있습니다.</p></article><article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.09.1</strong><h3 style="font-size:14px;margin:3px 0 5px;">PC 입력과 달력 스크롤 개선</h3><p style="margin:0;">PC 로그인 화면에서 접속코드 입력 칸에 커서를 자동으로 놓고, 스크롤해도 상단 년월과 월 이동 버튼이 고정됩니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.4</strong><h3 style="font-size:14px;margin:3px 0 5px;">앱별 설치 범위 분리</h3><p style="margin:0;">근무배치표 앱과 설치·캐시 범위가 겹치지 않도록 설정을 조정했습니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.3</strong><h3 style="font-size:14px;margin:3px 0 5px;">기존 생체인증 연결 복구</h3><p style="margin:0;">이미 등록된 인증이 있을 때 기기 인증을 확인하고 자동 로그인 연결을 복구합니다.</p></article>
         <article style="padding:10px 0;border-bottom:1px solid #edf0f3;"><strong style="color:#0061ba;">2026.10.07.2</strong><h3 style="font-size:14px;margin:3px 0 5px;">자동 생체인증 시작 안정화</h3><p style="margin:0;">로그인 화면과 브라우저 포커스가 준비된 뒤 자동 인증을 시작하도록 조정했습니다.</p></article>
@@ -1360,6 +1360,7 @@ document.addEventListener('pointerdown', event => {
         return;
       }
 
+      rememberPushIntent(currentUser.id,true);
       updateNotificationButton();
 
       alert(
@@ -1383,6 +1384,8 @@ document.addEventListener('pointerdown', event => {
     if (!currentUser || !currentSessionToken) return;
     if (!confirm('이 기기의 알림을 끄시겠습니까? 다시 켜기 전까지 알림을 받지 않습니다.')) return;
     const token = currentSessionToken;
+    rememberPushIntent(currentUser.id,false);
+    ++notificationStatusCheckVersion;
     const button = document.getElementById('disableNotificationButton');
     button.disabled = true;
     try {
@@ -1419,50 +1422,59 @@ document.addEventListener('pointerdown', event => {
 
   let notificationStatusCheckVersion = 0;
 
+  const PUSH_INTENT_KEY = 'snnc-push-intent-v1';
+  function readPushIntent(userId) {
+    try { const saved=JSON.parse(localStorage.getItem(PUSH_INTENT_KEY)||'null');return saved && String(saved.userId)===String(userId) ? saved.enabled===true : null; } catch { return null; }
+  }
+  function rememberPushIntent(userId,enabled) {
+    try { localStorage.setItem(PUSH_INTENT_KEY,JSON.stringify({userId:String(userId),enabled})); } catch { /* Browser storage may be unavailable. */ }
+  }
   async function updateNotificationButton() {
-    const version = ++notificationStatusCheckVersion;
-    const button = document.getElementById('notificationButton');
-    if (!button) return;
-    button.disabled = false;
-    const offButton = document.getElementById('disableNotificationButton');
-    if (offButton) offButton.hidden = true;
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-      button.innerText = '🔔 알림 미지원';
-      button.disabled = true;
-      return;
-    }
-    button.innerText = '🔔 알림 설정';
-    button.style.backgroundColor = '#28a745';
-    if (!currentUser || !currentSessionToken || Notification.permission !== 'granted') return;
-    const token = currentSessionToken;
-    const userId = currentUser.id;
-    button.innerText = '🔔 등록 확인 중';
+    const version=++notificationStatusCheckVersion;
+    const button=document.getElementById('notificationButton');
+    if(!button)return;
+    const offButton=document.getElementById('disableNotificationButton');
+    button.disabled=false;if(offButton)offButton.hidden=true;
+    const display=(label,color='#6c757d')=>{button.innerText='🔔 '+label;button.title=label;button.setAttribute('aria-label',label);button.style.backgroundColor=color;};
+    if(!('Notification' in window)||!('serviceWorker' in navigator)){display('알림 미지원');button.disabled=true;return;}
+    if(!currentUser||!currentSessionToken){display('알림 상태 확인 필요');return;}
+    if(Notification.permission!=='granted'){display(Notification.permission==='denied'?'알림 권한 차단됨':'알림 권한 필요','#b7791f');return;}
+    const token=currentSessionToken,userId=currentUser.id;
+    const valid=()=>version===notificationStatusCheckVersion && token===currentSessionToken && userId===currentUser?.id;
+    display('등록 확인 중');
     try {
-      const registration = await navigator.serviceWorker.getRegistration();
-      const subscription = registration
-        ? await registration.pushManager.getSubscription() : null;
-      if (version !== notificationStatusCheckVersion || token !== currentSessionToken || userId !== currentUser?.id) return;
-      const endpoint = subscription?.endpoint || subscription?.toJSON?.().endpoint;
-      if (!endpoint) {
-        button.innerText = '🔔 알림 설정';
-        return;
+      const registration=await navigator.serviceWorker.getRegistration();
+      let subscription=registration?await registration.pushManager.getSubscription():null;
+      if(!valid())return;
+      // Renew only for the same account that previously enabled this browser's notifications.
+      // Permission alone does not mean the user enabled notifications for this account.
+      if(!subscription && registration && readPushIntent(userId)===true) {
+        display('알림 연결 복구 중');
+        subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
+        if(!valid()||readPushIntent(userId)!==true)return;
       }
-      const result = await callSessionRegistration({ action: 'push_status', endpoint });
-      if (version !== notificationStatusCheckVersion || token !== currentSessionToken || userId !== currentUser?.id) return;
-      if (!result.success) {
-        button.innerText = '🔔 등록 확인 불가';
-        button.style.backgroundColor = '#6c757d';
-        return;
+      const endpoint=subscription?.endpoint||subscription?.toJSON?.().endpoint;
+      if(!endpoint){display('알림 연결 없음','#b7791f');return;}
+      const result=await callSessionRegistration({action:'push_status',endpoint});
+      if(!valid())return;
+      if(!result.success){display('등록 확인 불가');return;}
+      let registered=result.registered;
+      if(!registered && readPushIntent(userId)===true) {
+        display('알림 연결 복구 중');
+        const saved=await callSessionRegistration({action:'push_upsert',subscription:subscription.toJSON()});
+        if(!valid())return;
+        if(!saved.success){display('알림 연결 복구 필요','#b7791f');return;}
+        registered=true;
       }
-      if (offButton) offButton.hidden = !result.registered;
-      button.innerText = result.registered ? '🔔 알림 등록됨' : '🔔 알림 설정';
-      button.style.backgroundColor = result.registered ? '#6c757d' : '#28a745';
+      if(registered && readPushIntent(userId)===null)rememberPushIntent(userId,true);
+      if(offButton)offButton.hidden=!registered;
+      display(registered?'알림 등록됨':'알림 등록 필요',registered?'#6c757d':'#b7791f');
     } catch {
-      if (version !== notificationStatusCheckVersion || token !== currentSessionToken) return;
-      button.innerText = '🔔 등록 확인 불가';
-      button.style.backgroundColor = '#6c757d';
+      if(!valid())return;
+      display(readPushIntent(userId)===true?'알림 연결 복구 필요':'등록 확인 불가','#b7791f');
     }
   }
+
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && currentUser) updateNotificationButton();
