@@ -1,0 +1,23 @@
+{
+  "id": "/share/",
+  "name": "가족 근무 확인",
+  "short_name": "근무 확인",
+  "description": "공유된 근무·휴무·대근 일정 열람",
+  "start_url": "/share/",
+  "scope": "/share/",
+  "display": "standalone",
+  "theme_color": "#183b56",
+  "background_color": "#f1f5f9",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
