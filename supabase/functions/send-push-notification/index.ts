@@ -1,5 +1,5 @@
 import webpush from "npm:web-push@3.6.7";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.95.0";
 
 interface WebhookPayload {
   type: "INSERT" | "UPDATE" | "DELETE";
@@ -82,10 +82,8 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: true, sent: 0, message: "Target user not found" }), { status: 200, headers: { "Content-Type": "application/json" } });
     }
 
-    const { data: subscriptions, error: subscriptionError } = await supabase
-      .from("push_subscriptions")
-      .select("id, user_id, user_name, subscription")
-      .in("user_id", userIds);
+    // Preserve every record; deduplicate delivery addresses and respect explicit disable.
+    const { data: subscriptions, error: subscriptionError } = await supabase.rpc("app_push_delivery_targets",{p_user_ids:userIds});
 
     if (subscriptionError) throw subscriptionError;
     if (!subscriptions || subscriptions.length === 0) {

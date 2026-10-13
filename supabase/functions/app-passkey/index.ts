@@ -6,7 +6,7 @@ const encode=(bytes:Uint8Array)=>btoa(String.fromCharCode(...bytes)).replace(/\+
 const decode=(value:string)=>Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
 const digest=async(value:string)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),b=>b.toString(16).padStart(2,'0')).join('');
 const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers});
-const messages:Record<string,string>={invalid:'생체인증 등록 또는 세션을 확인해 주세요. 기존 코드로 로그인할 수 있습니다.',forbidden:'이 계정은 생체인증 시험 대상이 아닙니다.',reauth:'기존 접속코드로 다시 로그인한 뒤 15분 이내에 등록해 주세요.',rate_limited:'잠시 후 다시 시도해 주세요.',limit:'등록 가능한 패스키 수를 초과했습니다.',conflict:'이미 등록된 패스키입니다.'};
+const messages:Record<string,string>={invalid:'생체인증 등록 또는 세션을 확인해 주세요. 기존 코드로 로그인할 수 있습니다.',code_required:'보안을 위해 기존 접속코드를 한 번 확인해 주세요. 4자리 코드는 변경해야 합니다.',upgrade_required:'4자리 접속코드는 변경해야 합니다. 기존 코드를 입력해 주세요.',forbidden:'이 계정 또는 패스키로 생체인증을 사용할 수 없습니다.',reauth:'기존 접속코드로 다시 로그인한 뒤 15분 이내에 등록해 주세요.',rate_limited:'잠시 후 다시 시도해 주세요.',limit:'등록 가능한 패스키 수를 초과했습니다.',conflict:'이미 등록된 패스키입니다.'};
 Deno.serve(async(request:Request)=>{
  if(request.headers.get('origin')!==origin) return reply({success:false,message:'허용되지 않은 요청입니다.'},403);
  if(request.method==='OPTIONS') return new Response('ok',{headers});
@@ -19,7 +19,7 @@ Deno.serve(async(request:Request)=>{
   const url=Deno.env.get('SUPABASE_URL'),key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if(!url||!key)return reply({success:false,message:'서버 설정을 확인해 주세요.'},503);
   const rpc=async(args:Record<string,unknown>)=>{
-   const res=await fetch(url+'/rest/v1/rpc/app_passkey_access',{method:'POST',headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(args)});
+   const res=await fetch(url+'/rest/v1/rpc/app_passkey_access',{method:'POST',headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(args),signal:AbortSignal.timeout(15000)});
    if(!res.ok)throw Error('RPC unavailable');return await res.json();
   };
   let tokenHash:string|undefined;
@@ -76,3 +76,4 @@ Deno.serve(async(request:Request)=>{
   return reply({success:false,message:'생체인증을 확인하지 못했습니다. 기존 접속코드로 로그인할 수 있습니다.'},400);
  }
 });
+

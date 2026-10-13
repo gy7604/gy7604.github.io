@@ -1,0 +1,275 @@
+
+    body {
+      font-family: 'Malgun Gothic', sans-serif;
+      padding: 10px;
+      background-color: #e9ecef;
+      margin: 0;
+      color: #333;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0 15px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn-small {
+      width: auto;
+      padding: 6px 12px;
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .cal-wrapper {
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      min-width: 950px;
+      border-top: 2px solid #555;
+      border-left: 1px solid #ccc;
+      background: #fff;
+    }
+
+    .cal-header-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      min-width: 950px;
+      text-align: center;
+      font-weight: bold;
+      background: #f8f9fa;
+      border-left: 1px solid #ccc;
+    }
+
+    .cal-header-cell {
+      padding: 8px 0;
+      border-right: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .day-cell {
+      border-right: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .day-header-bar {
+      display: grid;
+      grid-template-columns: calc(50% + 22.5px) calc(50% - 22.5px);
+      background: #f1f3f5;
+      border-bottom: 1px solid #ddd;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    /*
+     * 아래 실제 행 구조는
+     * [조/근무 45px] + [휴무 입력] + [대근 입력]
+     * 이므로 헤더도 동일한 열 비율을 사용합니다.
+     */
+    .day-date-part {
+      width: 100%;
+      padding: 4px;
+      border-right: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .day-sub-title {
+      width: 100%;
+      padding: 4px;
+      color: #0056b3;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .holiday-name {
+      font-size: 11px;
+      font-weight: normal;
+      margin-left: 3px;
+      letter-spacing: -0.5px;
+    }
+
+    .team-row {
+      display: flex;
+      min-height: 35px;
+      border-bottom: 1px solid #eee;
+      font-size: 12px;
+    }
+
+    .memo-row {
+      border-top: 1px solid #ccc;
+      background-color: #fff9c4;
+      border-bottom: none;
+    }
+
+    .my-team-row {
+      background-color: #e6f2ff;
+    }
+
+    .cell-shift {
+      width: 45px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      border-right: 1px solid #eee;
+    }
+
+    .cell-name {
+      flex: 1 1 0;
+      min-width: 0;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-right: 1px solid #eee;
+      color: #495057;
+      position: relative;
+    }
+
+    .cell-name:last-child {
+      border-right: none;
+    }
+
+    .off-request-cell {
+      background-color: #ffffff !important;
+    }
+
+    .clickable {
+      cursor: pointer;
+    }
+
+    .clickable:hover {
+      background-color: #f1f3f5;
+    }
+
+    .has-data {
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.2;
+    }
+
+    .req-data {
+      color: #1e8449;
+    }
+
+    .sub-data {
+      color: #495057;
+      background-color: transparent;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      display: flex;
+      align-items: center;
+    }
+
+    .reason-text {
+      font-size: 10px;
+      color: #888;
+      font-weight: normal;
+    }
+
+    .suggest-guide {
+      color: inherit;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    /* 대근칸 바탕은 신청 조, 이름 색은 대근자의 소속 조를 따릅니다. */
+    .cell-name.sub-cell-A { background-color: #ffd29a; color: #663300; }
+    .cell-name.sub-cell-B { background-color: #dff2df; color: #14532d; }
+    .cell-name.sub-cell-C { background-color: #deecff; color: #123e73; }
+    .cell-name.sub-cell-D { background-color: #fff2b8; color: #594400; }
+    .cell-name.sub-cell-A .suggest-guide { color: #663300; }
+    .cell-name.sub-cell-B .suggest-guide { color: #14532d; }
+    .cell-name.sub-cell-C .suggest-guide { color: #123e73; }
+    .cell-name.sub-cell-D .suggest-guide { color: #594400; }
+
+    .cell-name.req-cell-B:not(.off-request-cell) { background-color: #dcf5ed; }
+
+    /* 소속 조 색상은 휴무와 대근에 동일하게 적용합니다. */
+    .has-data.person-team-A { color: #07559b; }
+    .has-data.person-team-B { color: #17713b; }
+    .has-data.person-team-C { color: #96520a; }
+    .has-data.person-team-D { color: #7139a6; }
+
+    .s-day {
+      color: #1e8449;
+      font-weight: bold;
+    }
+
+    .s-night {
+      color: #2980b9;
+      font-weight: bold;
+    }
+
+    .s-off {
+      color: #7f8c8d;
+    }
+
+    #mainScreen {
+      display: none;
+    }
+
+/* Personal and super-administrator views */
+.audit-icon{width:auto;min-width:40px;min-height:40px;padding:8px;background:transparent;color:#a77800;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center}
+.audit-icon:hover{background:#eef2f6}.audit-icon:focus-visible{outline:3px solid #ffb000;outline-offset:2px}
+.audit-dialog{border:0;border-radius:10px;padding:0;width:min(760px,calc(100% - 24px));max-height:88vh;color:#333;font-family:inherit;box-shadow:0 18px 60px #0004}
+.audit-dialog::backdrop{background:#18253c80}.audit-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px;border-bottom:1px solid #e2e8f0}.audit-head h2{font-size:18px;margin:0}.audit-body{padding:16px;max-height:calc(88vh - 80px);overflow:auto}.audit-tabs{display:flex;gap:8px;margin-bottom:16px}.audit-tabs button{background:#eef2f6;color:#475569}.audit-tabs .audit-active{background:#007bff;color:white}.audit-filters{display:flex;gap:10px;flex-wrap:wrap}.audit-filters label{font-size:13px;max-width:100%}.audit-filters input,.audit-filters select{width:auto;max-width:100%;padding:9px;font-size:14px;display:block;margin:4px 0}.audit-item{border:1px solid #dce3ec;border-radius:7px;padding:14px;margin-bottom:12px;font-size:14px}.audit-item p{line-height:1.6;margin:8px 0}.audit-between{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.audit-tag{background:#e6f2ff;color:#0061ba;padding:4px 8px;border-radius:16px;font-size:12px}.audit-muted{font-size:12px;color:#64748b;line-height:1.6}.audit-empty{text-align:center;background:#f8fafc;padding:24px;color:#64748b}.audit-secondary{background:#eef2f6;color:#34465c}.audit-diff{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.audit-diff div{background:#f1f5f9;padding:10px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}.audit-diff div:last-child{background:#eaf4ff}.audit-diff small{display:block;color:#64748b}.audit-selected{outline:3px solid #ffb000;outline-offset:-3px}.audit-dialog details summary{cursor:pointer;margin-top:12px}body:has(.audit-dialog[open]){overflow:hidden}
+@media(max-width:600px){.audit-diff{grid-template-columns:1fr}.audit-head,.audit-body{padding:12px}}
+
+  
+.app-topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:100;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:10px!important;margin-bottom:8px!important}
+.app-identity{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.app-identity h2{margin:0;font-size:16px}
+.app-identity .btn-small{font-size:12px;padding:6px 8px;white-space:nowrap}
+.app-month{display:flex;align-items:center;justify-content:center;gap:6px}
+.app-month button{width:auto;margin:0;background:#e9ecef;color:#222;padding:6px 8px}
+#currentMonthStr{background:transparent;font-size:18px;font-weight:bold;text-decoration:underline;text-underline-offset:4px;white-space:nowrap}
+.app-actions{display:flex;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+.app-actions button{font-size:0!important;width:34px;min-height:32px;padding:5px!important;margin:0}
+.app-actions button::before{content:attr(data-icon);font-size:16px}
+.app-guide{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px!important;margin-bottom:8px!important;font-size:12px;line-height:1.5}
+.app-guide>div+div{border-left:1px solid #ddd;padding-left:12px}
+.app-calendar{padding:8px!important}
+@media(max-width:700px){.app-topbar{grid-template-columns:1fr auto}.app-identity h2{font-size:14px}.app-month{grid-column:1 / -1;grid-row:2}.app-guide{font-size:11px;gap:8px}.app-guide>div+div{padding-left:8px}}
