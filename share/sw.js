@@ -1,4 +1,1 @@
-const CACHE='snnc-family-shell-v1';const ASSETS=['/share/','/share/manifest.json','/icons/icon-192.png','/icons/icon-512.png'];
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
-self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
-self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==self.location.origin||(!u.pathname.startsWith('/share/')&&!ASSETS.includes(u.pathname)))return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});
+const CACHE='snnc-family-shell-v2';const ASSETS=['/share/','/share/manifest.json','/icons/icon-192.png','/icons/icon-512.png'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==self.location.origin||(!u.pathname.startsWith('/share/')&&!ASSETS.includes(u.pathname)))return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});

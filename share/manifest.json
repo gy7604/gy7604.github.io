@@ -1,12 +1,12 @@
 {
   "id": "/share/",
-  "name": "가족 근무 확인",
-  "short_name": "근무 확인",
-  "description": "공유된 근무·휴무·대근 일정 열람",
+  "name": "교대근무 열람",
+  "short_name": "근무 열람",
+  "description": "교대근무 달력 · 열람 전용",
   "start_url": "/share/",
   "scope": "/share/",
   "display": "standalone",
-  "theme_color": "#183b56",
+  "theme_color": "#007bff",
   "background_color": "#f1f5f9",
   "icons": [
     {
