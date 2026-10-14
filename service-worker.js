@@ -1,13 +1,13 @@
-const CACHE_NAME = 'snnc-pwa-v20';
+const CACHE_NAME = 'snnc-pwa-v21';
 
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './vendor/supabase-2.95.0.js',
-  './assets/calendar.js?v=20261013.3',
-  './assets/calendar.css?v=20261013.3',
-  './assets/network.js?v=20261013.3',
+  './assets/calendar.js?v=20261014.1',
+  './assets/calendar.css?v=20261014.1',
+  './assets/network.js?v=20261014.1',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/notification-helmet-192.png',
@@ -182,4 +182,5 @@ self.addEventListener('notificationclick', event => {
     })
   );
 });
+
 

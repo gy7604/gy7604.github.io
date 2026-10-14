@@ -96,7 +96,11 @@ Deno.serve(async (request: Request) => {
     if(typeof body.date!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(body.date) || typeof body.memo!=="string" || Array.from(body.memo).length>500) return reply({success:false,message:"메모는 500자 이내로 입력해 주세요."},400);
     const memoDate=new Date(body.date+"T00:00:00Z");
     if(!Number.isFinite(memoDate.getTime()) || memoDate.toISOString().slice(0,10)!==body.date) return reply({success:false},400);
-    rpc="app_session_memo_write";args={p_token_hash:tokenHash,p_date:body.date,p_memo:body.memo};
+    if(body.entry_mode==="team"){
+     if(body.memo_id!==null && body.memo_id!==undefined && (typeof body.memo_id!=="string"||!/^\d{1,18}$/.test(body.memo_id)))return reply({success:false},400);
+     if(body.revision!==null && body.revision!==undefined && (!Number.isSafeInteger(body.revision)||body.revision<1))return reply({success:false},400);
+     rpc="app_session_team_memo_write";args={p_token_hash:tokenHash,p_date:body.date,p_memo:body.memo,p_memo_id:body.memo_id||null,p_revision:body.revision??null};
+    }else{rpc="app_session_memo_write";args={p_token_hash:tokenHash,p_date:body.date,p_memo:body.memo};}
    }else if(action==="request_delete"){
     if(typeof body.request_id!=="string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.request_id)) return reply({success:false,message:"신청 정보를 확인해 주세요."},400);
     rpc="app_session_request_delete";
@@ -142,8 +146,8 @@ Deno.serve(async (request: Request) => {
   if(data.status==="not_found") return reply({success:false,message:"해당 신청을 찾을 수 없습니다."},404);
   if(data.status==="disabled") return reply({success:false,message:"이 기기의 알림이 꺼져 있습니다. 알림 설정을 눌러 다시 켜 주세요."},409);
   if(data.status==="helper_busy") return reply({success:false,message:"이 대근자는 같은 날짜·같은 근무에 이미 등록되어 있습니다."},409);
-  if(data.status==="conflict") return reply({success:false,message:"대근 상태가 변경되었습니다. 달력을 새로 불러온 뒤 확인해 주세요."},409);
-  if(data.status==="forbidden") return reply({success:false,message:"이 기능에 접근할 권한이 없습니다."},403);
+  if(data.status==="conflict") return reply({success:false,message:action==="memo_write"?"메모가 변경되었습니다. 달력을 새로 불러온 뒤 다시 입력해 주세요.":"대근 상태가 변경되었습니다. 달력을 새로 불러온 뒤 확인해 주세요."},409);
+  if(data.status==="forbidden") return reply({success:false,message:action==="memo_write"?"메모를 작성한 조의 인원만 수정·삭제할 수 있습니다.":"이 기능에 접근할 권한이 없습니다."},403);
   if(data.status==="duplicate") return reply({success:false,message:action==="upgrade_short_code"?"이미 사용 중인 접속코드입니다. 다른 코드를 입력해 주세요.":"이 날짜에 이미 본인의 휴무 신청이 있습니다."},409);
   if(data.status==="bad_input") return reply({success:false,message:action==="upgrade_short_code"?"새 접속코드 입력을 확인해 주세요.":"입력 정보를 확인해 주세요."},400);
   if(data.status!=="ok") return reply({success:false,message:"접속 코드 또는 세션을 확인해 주세요."},401);

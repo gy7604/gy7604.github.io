@@ -1,3 +1,14 @@
+// Memo slots are shared by all seven dates in a week; each team owns its own slot.
+function memoSlotKey(m){return m.owner_team?'team:'+m.owner_team:'legacy:'+String(m.id);}
+function memoSlotsForWeek(date,data){
+  const start=weekStart(date),end=new Date(start);end.setDate(end.getDate()+7);
+  const from=localDateKey(start),until=localDateKey(end),slots=new Map();
+  for(const m of data.filter(m=>m.date>=from&&m.date<until).sort((a,b)=>String(a.id).padStart(24,'0').localeCompare(String(b.id).padStart(24,'0')))){
+    const key=memoSlotKey(m);if(!slots.has(key))slots.set(key,{key,team:m.owner_team||null});
+  }
+  return slots.size?[...slots.values()]:[{key:'empty',team:null}];
+}
+
   let HOLIDAYS = {
 
     "2026-01-01": "신정",
@@ -1039,59 +1050,20 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
        * ==================================
        */
 
-      const memoObj =
-        memosData.find(
-          m =>
-            m.date === dateStr
-        );
-
-
-      const memoText =
-        memoObj
-          ? memoObj.memo
-          : '';
-
-
-      dayHtml += `
-
-        <div class="team-row memo-row">
-
-          <div
-            class="cell-shift"
-            style="
-              color: #795548;
-              font-size: 10px;
-            "
-          >
-            메모
-          </div>
-
-          <div
-            class="cell-name clickable"
-            style="
-              justify-content: center;
-              text-align: center;
-              padding: 0 4px;
-              font-size: 11px;
-              font-weight: bold;
-              color: #333;
-            "
-            onclick="editMemo('${dateStr}')"
-          >
-            ${escapeRequestText(memoText)}
-          </div>
-
-        </div>
-
-      </div>
-
-      `;
-
+      const memoSlots=memoSlotsForWeek(dateObj,memosData);
+      for(const slot of memoSlots){
+        const entry=memosData.find(m=>m.date===dateStr && memoSlotKey(m)===slot.key);
+        const label=slot.team?slot.team+'조 메모':slot.key==='empty'?'메모':'기존 메모';
+        const entryId=entry?String(entry.id):'';
+        dayHtml+=`<div class="team-row memo-row" data-memo-week="${localDateKey(weekStart(dateObj))}" data-memo-slot="${escapeRequestText(slot.key)}"><div class="cell-shift" style="color:#795548;font-size:10px">${escapeRequestText(label)}</div><div class="cell-name clickable" style="justify-content:center;text-align:center;padding:0 4px;font-size:11px;font-weight:bold;color:#333" onclick="editMemo('${dateStr}','${entryId}','${slot.team||''}')" title="같은 조만 수정·삭제할 수 있습니다. 다른 조는 메모를 추가할 수 있습니다.">${escapeRequestText(entry?.memo||'')}</div></div>`;
+      }
+      dayHtml+='</div>';
 
       grid.innerHTML +=
         dayHtml;
 
     }
+    if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>synchronizeMemoRowHeights(grid));
 
   }
 
@@ -1125,3 +1097,14 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
       : request.requested_by;
   }
 
+
+
+// Keep multi-line memo heights aligned across the whole week, including after resize.
+function synchronizeMemoRowHeights(grid){
+ if(!grid?.querySelectorAll)return;
+ const rows=[...grid.querySelectorAll('[data-memo-week][data-memo-slot]')],heights=new Map();
+ rows.forEach(row=>row.style.minHeight='');
+ rows.forEach(row=>{const key=row.dataset.memoWeek+':'+row.dataset.memoSlot;heights.set(key,Math.max(heights.get(key)||35,Math.ceil(row.getBoundingClientRect().height)));});
+ rows.forEach(row=>{row.style.minHeight=heights.get(row.dataset.memoWeek+':'+row.dataset.memoSlot)+'px';});
+}
+if(typeof window!=='undefined')window.addEventListener('resize',()=>{if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>synchronizeMemoRowHeights(document.getElementById('calendarGrid')));});
