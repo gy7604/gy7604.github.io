@@ -1,4 +1,4 @@
-const CACHE_NAME = 'snnc-pwa-v25';
+const CACHE_NAME = 'snnc-pwa-v26';
 
 const FILES_TO_CACHE = [
   './',

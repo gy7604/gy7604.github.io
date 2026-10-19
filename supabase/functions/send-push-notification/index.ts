@@ -65,11 +65,16 @@ Deno.serve(async (req) => {
     }
 
     const notification = payload.record;
+    // Read the persisted audience snapshot; deleted requests need no live lookup.
+    const {data: audience,error:audienceError}=await supabase.from("notifications")
+      .select("supervisor_only").eq("id",notification.id).single();
+    if(audienceError)throw audienceError;
+    const supervisorOnly=audience.supervisor_only===true;
 
     // 알림에 지정된 조의 활성 사용자 모두에게 발송
     let usersQuery = supabase
       .from("app_users")
-      .select("id, name")
+      .select("id, name, team")
       .eq("is_active", true);
 
     if (notification.recipient_teams?.length) {
@@ -77,7 +82,9 @@ Deno.serve(async (req) => {
     }
     const { data: users, error: userError } = await usersQuery;
     if (userError) throw userError;
-    const userIds = (users ?? []).map((user) => user.id);
+    const supervisors: Record<string,string>={A:"임병철",B:"백승학",C:"김철종",D:"주영훈"};
+    const userIds = (users ?? []).filter(user=>!supervisorOnly ||
+      supervisors[user.team]===user.name).map((user) => user.id);
     if (userIds.length === 0) {
       return new Response(JSON.stringify({ success: true, sent: 0, message: "Target user not found" }), { status: 200, headers: { "Content-Type": "application/json" } });
     }
