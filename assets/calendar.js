@@ -1,3 +1,6 @@
+function calendarTodayKey(now=new Date()) {
+  return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+}
 // Memo slots are shared by all seven dates in a week; each team owns its own slot.
 function memoSlotKey(m){return m.owner_team?'team:'+m.owner_team:'legacy:'+String(m.id);}
 function memoSlotsForWeek(date,data){
@@ -731,7 +734,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
 
 
       let dayHtml = `
-        <div class="day-cell" id="calendar-day-${dateStr}">
+        <div class="day-cell${dateStr===calendarTodayKey()?' is-today':''}" id="calendar-day-${dateStr}" ${dateStr===calendarTodayKey()?'aria-current="date"':''}>
 
           <div class="day-header-bar">
 
