@@ -1,17 +1,17 @@
-const CACHE_NAME = 'snnc-pwa-v23';
+const CACHE_NAME = 'snnc-pwa-v24';
 
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './icons/shift-sun-moon-v2-180.png',
-  './icons/shift-sun-moon-v2-maskable-512.png',
+  './icons/shift-sun-moon-v3-180.png',
+  './icons/shift-sun-moon-v3-maskable-512.png',
   './vendor/supabase-2.95.0.js',
   './assets/calendar.js?v=20261014.1',
   './assets/calendar.css?v=20261014.1',
   './assets/network.js?v=20261014.1',
-  './icons/shift-sun-moon-v2-192.png',
-  './icons/shift-sun-moon-v2-512.png',
+  './icons/shift-sun-moon-v3-192.png',
+  './icons/shift-sun-moon-v3-512.png',
   './icons/notification-helmet-192.png',
   './icons/notification-helmet-badge-96.png'
 ];
