@@ -273,7 +273,9 @@
 .app-guide>div+div{border-left:1px solid #ddd;padding-left:12px}
 .app-calendar{padding:8px!important}
 @media(max-width:700px){.app-topbar{grid-template-columns:1fr auto}.app-identity h2{font-size:14px}.app-month{grid-column:1 / -1;grid-row:2}.app-guide{font-size:11px;gap:8px}.app-guide>div+div{padding-left:8px}}
-\n.memo-row .cell-name{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.35;padding-top:6px!important;padding-bottom:6px!important}\n
+
+.memo-row .cell-name{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.35;padding-top:6px!important;padding-bottom:6px!important}
+
 
 /* Inset border stays visible without changing calendar column widths. */
 .day-cell.is-today{position:relative;box-shadow:inset 0 0 0 3px #005fcc;scroll-margin-top:160px;}
