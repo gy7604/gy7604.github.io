@@ -11,26 +11,111 @@
 body.dark{color-scheme:dark;--bg:#0e1728;--panel:#182439;--ink:#e7eefb;--muted:#9eb0ca;--line:#2b3b55;--tint:#253c66;--shadow:0 9px 28px #0003}body.dark .tabs{background:#223047}body.dark .hero{background:linear-gradient(105deg,#182f60,#284b94)}body.dark .eventbtn{background:#202e46!important;border-color:#30425e!important}body.dark .daypick.current{background:#273c64!important}body.dark .info{background:#203354;color:#b1d0f5}body.dark .mline{background:#24334d}body.dark .weekday{background:#22314c}body.dark .statepill{background:#153d33;color:#80ebba}body.dark .mutepill{background:#273854;color:#bfd3ee}body.dark .bottom{background:#142035ed}body.dark .bottom button.active{background:#23375d!important;color:#c2d6ff!important}body.dark .monthscroll .monthlybtn{background:#25395e!important;color:#a6c8ff!important}
 @media(max-width:760px){.shell{padding:13px 12px 92px}.top{margin-bottom:14px}.brandicon{width:43px;height:43px;font-size:23px}.brand h1{font-size:19px}.toptools .profile{display:none}.hero{padding:19px 17px;grid-template-columns:1fr}.hero h2{font-size:23px}.hero .today-badge{width:max-content;padding:7px 11px;font-size:12px}.panel{padding:15px;border-radius:17px}.teams,.split{grid-template-columns:1fr}.teamhead{padding:12px 14px}.headrow h3{font-size:17px}.weekstrip{gap:4px}.daypick{padding:8px 2px!important;min-height:62px!important}.daypick strong{font-size:16px}.daypick span{font-size:11px}.tabs{display:none}.bottom{display:block}.monthnav .monthtext{min-width:104px}.footer{font-size:11px}.headrow{align-items:flex-start}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Design direction: monthly overview + four team cards. No weekly picker. */
+.monthpick{font-size:18px;font-weight:850;white-space:nowrap;letter-spacing:-.05em;padding:4px 7px;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:5px}
+.new-monthgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));min-width:0;border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-top:13px;background:var(--line);gap:1px}
+.new-monthgrid .weekday{padding:8px 2px;background:#edf3fb;font-size:12px;border:0;color:var(--muted);font-weight:850;text-align:center}
+.new-monthgrid .weekday:first-child{color:#dc6173}.new-monthgrid .weekday:nth-child(7){color:#3575c6}
+.new-monthgrid .month-day{border:0;border-radius:0;background:var(--panel)!important;box-shadow:none!important;min-width:0;min-height:102px!important;padding:7px 5px!important;color:var(--ink)!important;text-align:left;display:flex;flex-direction:column;gap:5px;transition:background .16s,box-shadow .16s,transform .16s}
+.new-monthgrid .month-day:hover{background:#f2f6fe!important}.new-monthgrid .month-day:active{transform:none!important}
+.new-monthgrid .month-day.other-month{background:#f7f9fc!important;color:#a6b3c7!important;min-height:102px}
+.new-monthgrid .month-day.today .date-number{background:#dceaff;color:#1959b9;border-radius:8px;padding:2px 6px}
+.new-monthgrid .month-day.active{position:relative;background:#eaf2ff!important;box-shadow:inset 0 0 0 2px var(--blue)!important;z-index:1}
+.new-monthgrid .month-day.active .date-number{background:var(--blue);color:#fff;border-radius:8px;padding:2px 6px}
+.new-monthgrid .date-top{display:flex;align-items:center;gap:4px;justify-content:space-between;min-height:21px}
+.new-monthgrid .date-number{font-size:13px;line-height:1.35;font-weight:850;padding:2px 6px;margin-left:-2px}
+.new-monthgrid .holiday-name{font-size:9px;font-weight:650;color:#be4057;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px}
+.new-monthgrid .mini-shifts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;width:100%}
+.new-monthgrid .mini{font-size:10px;font-weight:800;border-radius:5px;padding:2px 3px;white-space:nowrap;overflow:hidden;text-align:center}
+.new-monthgrid .mini b{font-weight:950}
+.new-monthgrid .mini[data-team=A]{background:#ebf2ff;color:#2b64c3}
+.new-monthgrid .mini[data-team=B]{background:#e3f8ef;color:#168257}
+.new-monthgrid .mini[data-team=C]{background:#fff2e1;color:#a9681d}
+.new-monthgrid .mini[data-team=D]{background:#f0eaff;color:#7f57b2}
+.new-monthgrid .month-day.other-month .mini{opacity:.4}
+.new-monthgrid .day-markers{display:flex;gap:3px;align-items:center;min-height:10px;flex-wrap:wrap}
+.new-monthgrid .day-markers .marker{font-size:9px;background:#fff1de;border-radius:5px;color:#9e661a;padding:0 3px;font-weight:800}
+.shift-legend{margin-top:14px}
+.monthhelper{margin:12px 0 0;line-height:1.55}
+.selected-head{margin-bottom:15px}
+.eyebrow-detail{font-size:11px;color:var(--blue);font-weight:900;letter-spacing:.06em}
+.day-detail h3{font-size:20px;margin:4px 0}
+.daystep{display:flex;gap:6px}
+.cards-new{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cards-new .team{border:1px solid var(--line);border-radius:17px;box-shadow:0 4px 12px rgba(33,59,102,.035);background:var(--panel)}
+.cards-new .teamhead{background:linear-gradient(100deg,var(--panel),var(--teamtint));border-bottom:1px solid var(--line)}
+.cards-new .teamname{font-size:18px;letter-spacing:-.035em}
+.cards-new .teamdot{width:11px;height:11px}
+.cards-new .teamfoot{padding:12px;gap:10px}
+.cards-new .eventbtn{min-height:69px!important}
+.cards-new .eventbtn b{display:block;max-width:100%;font-size:14px;margin-top:2px}
+.cards-new .shifttag{white-space:nowrap}
+.cards-new .cardmemo{margin:0 12px 12px;font-size:12px;padding:8px 10px;color:var(--muted);background:var(--bg);border-radius:9px;line-height:1.5}
+.cards-new .team.own-team{outline:1px solid #91b2ed}
+body.dark .new-monthgrid .weekday{background:#23354e}
+body.dark .new-monthgrid .month-day.other-month{background:#172237!important}
+body.dark .new-monthgrid .month-day:hover{background:#23385b!important}
+body.dark .new-monthgrid .month-day.active{background:#264673!important;box-shadow:inset 0 0 0 2px #76a7ff!important}
+body.dark .new-monthgrid .mini[data-team=A]{background:#243e6b;color:#b6d0ff}
+body.dark .new-monthgrid .mini[data-team=B]{background:#174b3d;color:#9debc9}
+body.dark .new-monthgrid .mini[data-team=C]{background:#513c24;color:#ffce91}
+body.dark .new-monthgrid .mini[data-team=D]{background:#42345f;color:#d7b8ff}
+body.dark .new-monthgrid .day-markers .marker{background:#584126;color:#ffcf99}
+body.dark .cards-new .teamhead{background:var(--panel)}
+@media(max-width:760px){
+ .new-monthgrid .month-day,.new-monthgrid .month-day.other-month{min-height:78px!important;padding:5px 2px!important;gap:4px}
+ .new-monthgrid .weekday{font-size:11px;padding:7px 2px}
+ .new-monthgrid .date-number{font-size:12px;padding:2px 4px}
+ .new-monthgrid .mini-shifts{gap:2px}
+ .new-monthgrid .mini{font-size:9px;padding:1px 0;border-radius:4px;letter-spacing:-.08em}
+ .new-monthgrid .holiday-name{font-size:8px;max-width:40px}
+ .new-monthgrid .day-markers .marker{font-size:8px}
+ .cards-new{grid-template-columns:1fr}
+ .cards-new .teamfoot{grid-template-columns:1fr 1fr}
+ .cards-new .eventbtn{min-height:72px!important}
+ .monthnav{gap:3px;flex-wrap:wrap}
+ .monthpick{font-size:16px;padding:3px}
+ .day-detail h3{font-size:18px}
+ .shift-legend{gap:6px 12px}
+ .monthhelper{font-size:11px}
+}
+@media(max-width:360px){.new-monthgrid .mini{font-size:8px}.new-monthgrid .month-day{padding:4px 1px!important}.cards-new .teamfoot{gap:6px}}
+
 </style>
 </head>
 <body>
-<div class="notice">🧪 UI/UX 테스트 전용 · <span>가상 근무 데이터</span> · Supabase 연결 및 실제 신청/알림 발송 없음</div>
+<div class="notice">🧪 월간 달력 + 조별 카드 시안 · <span>가상 근무 데이터</span> · Supabase 연결 및 실제 신청/알림 발송 없음</div>
 <div class="shell">
 <header class="top">
  <div class="brand"><div class="brandicon">☀︎☾</div><div><h1>교대근무</h1><p>4개 조 통합 근무관리</p></div></div>
- <div class="toptools"><span class="profile">👤 데모 사용자 · A조</span><button class="smallicon quiet" onclick="toggleTheme()" title="다크 모드 전환" aria-label="다크 모드 전환">◐</button><button class="smallicon quiet" onclick="showLogin()" title="로그인 디자인 보기" aria-label="로그인 화면 보기">⚙</button></div>
+ <div class="toptools"><span class="profile">👤 데모 사용자 · B조</span><button class="smallicon quiet" onclick="toggleTheme()" title="다크 모드 전환" aria-label="다크 모드 전환">◐</button><button class="smallicon quiet" onclick="showLogin()" title="로그인 디자인 보기" aria-label="로그인 화면 보기">⚙</button></div>
 </header>
 <div class="stack">
  <section class="hero" aria-label="오늘의 근무 정보"><div><span class="eyebrow">TODAY'S SHIFT</span><h2 id="heroTitle">오늘의 근무를 확인하세요</h2><p id="heroDesc">A·B·C·D조 근무 현황을 한눈에</p></div><span class="today-badge" id="heroBadge">📅 오늘 일정</span></section>
  <div class="tabs" role="tablist" aria-label="메인 메뉴"><button type="button" role="tab" aria-selected="true" data-tab="calendar" onclick="selectTab('calendar')">📅 근무표</button><button type="button" role="tab" aria-selected="false" data-tab="mine" onclick="selectTab('mine')">☷ 내 일정</button><button type="button" role="tab" aria-selected="false" data-tab="settings" onclick="selectTab('settings')">🔔 알림·설정</button></div>
  <main id="calendarView" class="stack">
   <section class="panel">
-   <div class="headrow"><div><h3>근무 달력</h3><p class="sub">날짜를 선택하면 4개 조의 근무를 확인할 수 있습니다.</p></div><div class="monthnav"><button class="smallicon quiet" onclick="changeMonth(-1)" aria-label="이전 달">‹</button><span class="monthtext" id="monthLabel">2026년 10월</span><button class="smallicon quiet" onclick="changeMonth(1)" aria-label="다음 달">›</button><button class="quiet" onclick="goToday()">오늘</button></div></div>
-   <div class="headrow" style="margin-top:16px"><div class="mode" aria-label="달력 보기 방식"><button aria-pressed="true" id="weekMode" onclick="setMode('week')">주간 보기</button><button aria-pressed="false" id="monthMode" onclick="setMode('month')">월간 표</button></div><span class="sub">실제 일정 아님 · 데모 모드</span></div>
-   <div id="weekly"><div class="weekstrip" id="weekstrip"></div><div class="sectionlabel" id="selectedLabel">선택한 날짜</div><div class="teams" id="teams"></div><div class="info">💡 휴무·대근 칸을 누르면 상세 화면 디자인을 시험할 수 있습니다. 실제 등록이나 수정은 수행하지 않습니다.</div></div>
-   <div id="monthly" hidden><div class="monthscroll" tabindex="0" aria-label="월간 달력: 가로로 스크롤하세요"><div class="monthgrid" id="monthgrid"></div></div><div class="info">↔ 기존의 7열 월간 달력을 유지했습니다. 모바일에서는 좌우로 움직여 4개 조의 일정을 확인합니다.</div></div>
+   <div class="headrow"><div><h3>월간 근무표</h3><p class="sub">한 달의 근무를 살펴보고 날짜를 선택해 주세요.</p></div>
+    <div class="monthnav"><button class="smallicon quiet" onclick="changeMonth(-1)" aria-label="이전 달">‹</button>
+     <button class="monthpick bare" id="monthLabel" onclick="openMonthPicker()" title="원하는 월로 이동" aria-label="월 선택">2026년 10월</button>
+     <button class="smallicon quiet" onclick="changeMonth(1)" aria-label="다음 달">›</button>
+     <button class="quiet todaybtn" onclick="goToday()">오늘</button></div>
+   </div>
+   <div class="legend shift-legend" aria-label="조별 구분"><span><b style="background:var(--a)"></b>A조</span><span><b style="background:var(--b)"></b>B조</span><span><b style="background:var(--c)"></b>C조</span><span><b style="background:var(--d)"></b>D조</span></div>
+   <div class="monthgrid new-monthgrid" id="monthgrid" role="group" aria-label="월간 날짜 선택 달력"></div>
+   <p class="sub monthhelper">날짜를 선택하면 아래에 A·B·C·D조별 근무와 휴무·대근 정보가 표시됩니다.</p>
   </section>
-  <section class="panel"><div class="headrow"><h3>근무 유형과 조별 색상</h3><span class="sub">기존 색 구분 의미 보존</span></div><div class="legend" style="margin-top:12px"><span><b style="background:var(--a)"></b>A조</span><span><b style="background:var(--b)"></b>B조</span><span><b style="background:var(--c)"></b>C조</span><span><b style="background:var(--d)"></b>D조</span><span>☀️ 주간</span><span>🌙 야간</span><span>🌿 휴무</span></div></section>
+  <section class="panel day-detail" id="dayDetail">
+   <div class="headrow selected-head"><div><span class="eyebrow-detail">선택한 날짜 · 4개 조 근무현황</span><h3 id="selectedLabel">오늘 · 근무 현황</h3><p class="sub" id="selectedHint">각 조의 휴무와 대근 정보를 개별 카드로 확인하세요.</p></div>
+     <div class="daystep"><button class="smallicon quiet" onclick="moveDate(-1)" aria-label="전날">‹</button><button class="smallicon quiet" onclick="moveDate(1)" aria-label="다음날">›</button></div></div>
+   <div class="teams cards-new" id="teams" aria-live="polite"></div>
+   <div class="info">🧪 현재는 디자인 테스트입니다. 휴무·대근 칸을 눌러 화면 동작을 시연할 수 있으며, 실제 서버 데이터는 변경되지 않습니다.</div>
+  </section>
+  <section class="panel">
+   <div class="headrow"><h3>표시 안내</h3><span class="sub">기존 조·근무 구분 방식</span></div>
+   <div class="legend shift-legend"><span><b style="background:var(--a)"></b>A조</span><span><b style="background:var(--b)"></b>B조</span><span><b style="background:var(--c)"></b>C조</span><span><b style="background:var(--d)"></b>D조</span><span>☀️ 주간</span><span>🌙 야간</span><span>🌿 휴무</span><span>🟠 시연 데이터</span></div>
+  </section>
  </main>
  <main id="mineView" hidden class="stack">
   <div class="split"><section class="panel"><div class="headrow"><div><h3>내 근무 일정</h3><p class="sub">데모 사용자 · A조</p></div><span class="statepill">조회 전용 예시</span></div><ul class="timeline" id="myTimeline"></ul></section><section class="panel"><h3>내 연차·대근 모아보기</h3><p class="sub" style="margin:6px 0 14px">실제 기록이 아닌 인터페이스 예시입니다.</p><div class="settingitem"><div><b>휴무 신청</b><p>선택한 기간의 휴무 정보</p></div><span class="statepill mutepill">예시 2건</span></div><div class="settingitem"><div><b>대근 배정</b><p>대근자가 확정되면 표시</p></div><span class="statepill mutepill">예시 1건</span></div><button style="margin-top:14px;width:100%" onclick="showDemo('내 연차·대근','실제 앱에서는 본인의 휴무·대근 신청 내역과 변경 기록을 확인할 수 있습니다.')">자세히 보기</button></section></div>
@@ -39,78 +124,84 @@ body.dark{color-scheme:dark;--bg:#0e1728;--panel:#182439;--ink:#e7eefb;--muted:#
   <div class="split"><section class="panel"><h3>알림 관리</h3><div class="settingitem"><div><b>교대근무 푸시 알림</b><p>휴무 및 대근 변경 알림</p></div><span class="statepill mutepill">테스트 서버 미연결</span></div><div class="settingitem"><div><b>근무배치표 알림</b><p>별도 앱 구독 유지 대상</p></div><span class="statepill mutepill">변경 없음</span></div><button class="quiet" onclick="showDemo('알림 설정','이 시안은 실제 알림 권한 요청, 구독 변경, 푸시 발송을 하지 않습니다.')">알림 설정 화면 살펴보기</button></section><section class="panel"><h3>앱 설정</h3><div class="settingitem"><div><b>지문·얼굴 인식</b><p>기존 생체인증 로직 보존 예정</p></div><button class="quiet" onclick="showLogin()">화면 보기</button></div><div class="settingitem"><div><b>기상 알람 연결</b><p>별도 연동 토큰 변경하지 않음</p></div><span class="statepill mutepill">데모</span></div><div class="settingitem"><div><b>업데이트 내역</b><p>실제 앱의 버전 내역 제공 기능</p></div><button class="quiet" onclick="showDemo('업데이트 내역','이 화면은 디자인 시안입니다. 운영 앱의 서비스 워커와 업데이트 기능은 전혀 변경하지 않았습니다.')">열어보기</button></div></section></div>
  </main>
 </div>
-<div class="footer">교대근무 UI 리디자인 미리보기 · GitHub 테스트 브랜치 · 가상 일정만 사용 · 운영 앱과 완전히 분리</div>
+<div class="footer">교대근무 월간 카드형 리디자인 미리보기 · GitHub 테스트 브랜치 · 가상 일정만 사용 · 운영 앱과 완전히 분리</div>
 </div>
 <div class="bottom"><nav aria-label="하단 탐색"><button class="active" data-bottom="calendar" onclick="selectTab('calendar')"><span>📅</span>근무표</button><button data-bottom="mine" onclick="selectTab('mine')"><span>☷</span>내 일정</button><button data-bottom="settings" onclick="selectTab('settings')"><span>🔔</span>알림·설정</button></nav></div>
 <dialog id="modal"><div class="modalhead"><h3 id="modalTitle"></h3><button class="bare" onclick="closeModal()" aria-label="닫기" style="font-size:23px">×</button></div><div class="modalbody" id="modalBody"></div><div class="modalfoot"><button class="primary" onclick="closeModal()">확인</button></div></dialog>
 <script>
+
 'use strict';
-const today = new Date();
-const day0 = new Date(today.getFullYear(),today.getMonth(),today.getDate());
-let selected = new Date(day0);
-let viewYear = selected.getFullYear(),viewMonth=selected.getMonth(),mode='week';
-const names=['일','월','화','수','목','금','토'],teams=['A','B','C','D'], colors=['var(--a)','var(--b)','var(--c)','var(--d)'];
+const TODAY=new Date(), today=new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+const kstNow=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const keyToDate=s=>new Date(Number(s.slice(0,4)),Number(s.slice(5,7))-1,Number(s.slice(8,10)));
+const day0=keyToDate(kstNow());
+let selected=new Date(day0),viewYear=selected.getFullYear(),viewMonth=selected.getMonth();
+const names=['일','월','화','수','목','금','토'],teams=['A','B','C','D'],colors=['var(--a)','var(--b)','var(--c)','var(--d)'];
 const pads=n=>String(n).padStart(2,'0');
 function key(d){return [d.getFullYear(),pads(d.getMonth()+1),pads(d.getDate())].join('-')}
 function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n)}
 function same(a,b){return key(a)===key(b)}
-function shift(d,i){const n=Math.floor((d-day0)/86400000)+i*2;return ['주간','주간','야간','야간','휴무','휴무','휴무','휴무'][((n%8)+8)%8]}
-function fakeEvents(d,i){let id=d.getDate()+i*11;return {off:id%5===0?'데모 직원':'—',cover:id%7===0?'대근자 미정':id%5===0?'예시 대근':'—'}}
+const offsets={A:0,B:6,C:2,D:4};
+function shift(d,i){const t=teams[i],base=Date.UTC(2026,8,30),v=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()),diff=Math.round((v-base)/86400000),offset=offsets[t];return ['주간','주간','휴무','휴무','야간','야간','휴무','휴무'][((diff+offset)%8+8)%8];}
+const mock=new Map();
+function fixture(d,team){
+ const id=d.getFullYear()*13+(d.getMonth()+1)*17+d.getDate()*3+teams.indexOf(team)*7;
+ const fallback={off:id%8===0?'김예시':'—',cover:id%8===0?(id%2===0?'대근자 미정':'정예시'):'—',note:id%19===0?'장비 점검 안내':'',reason:'연차'};
+ return mock.get(key(d)+'-'+team)||fallback;
+}
 function dateLabel(d){return (d.getMonth()+1)+'월 '+d.getDate()+'일 ('+names[d.getDay()]+')'}
 function descShift(type){return type==='주간'?['☀️ 주간','#eaf4ff','#245cba']:type==='야간'?['🌙 야간','#eeedff','#695bc0']:['🌿 휴무','#e8f8f1','#21825b']}
 function render(){
  document.getElementById('monthLabel').textContent=viewYear+'년 '+(viewMonth+1)+'월';
- document.getElementById('heroTitle').textContent='오늘은 '+(shift(day0,0)==='휴무'?'휴무일':'A조 '+shift(day0,0)+' 근무')+'입니다';
- document.getElementById('heroDesc').textContent='A·B·C·D조 근무 현황과 휴무·대근을 확인하세요';
+ document.getElementById('heroTitle').textContent='오늘은 '+(shift(day0,1)==='휴무'?'B조 휴무일':'B조 '+shift(day0,1)+' 근무')+'입니다';
+ document.getElementById('heroDesc').textContent='한 달의 근무표와 날짜별 4개 조를 한눈에 확인하세요';
  document.getElementById('heroBadge').textContent='📅 '+dateLabel(day0);
- document.getElementById('selectedLabel').textContent=dateLabel(selected)+' · 근무 현황';
- document.getElementById('weekMode').setAttribute('aria-pressed',mode==='week');
- document.getElementById('monthMode').setAttribute('aria-pressed',mode==='month');
- document.getElementById('weekly').hidden=mode!=='week';
- document.getElementById('monthly').hidden=mode!=='month';
- if(mode==='week')renderWeek();else renderMonth();
+ document.getElementById('selectedLabel').textContent=dateLabel(selected);
+ renderMonth();
+ renderCards();
  renderMine();
-}
-function renderWeek(){
- const start=addDays(selected,-selected.getDay());
- document.getElementById('weekstrip').innerHTML=Array.from({length:7},(_,i)=>{
-  const d=addDays(start,i),cl=same(d,selected)?' active':same(d,day0)?' current':'';
-  return '<button class="daypick'+cl+'" onclick="chooseDate('+d.getFullYear()+','+d.getMonth()+','+d.getDate()+')" aria-label="'+dateLabel(d)+'" aria-pressed="'+same(d,selected)+'"><span>'+names[d.getDay()]+'</span><strong>'+d.getDate()+'</strong></button>'
- }).join('');
- document.getElementById('teams').innerHTML=teams.map((t,i)=>{
-  const type=shift(selected,i),[label,bg,fg]=descShift(type),ev=fakeEvents(selected,i);
-  return '<article class="team" style="--team:'+colors[i]+';--shiftbg:'+bg+';--shiftfg:'+fg+'"><div class="teamhead"><div class="teamname"><span class="teamdot"></span>'+t+'조</div><span class="shifttag">'+label+'</span></div><div class="teamfoot"><button class="eventbtn" onclick="eventDetail('+i+',\'휴무\')"><span><small>휴무 신청</small><b>'+ev.off+'</b></span><span class="arr">›</span></button><button class="eventbtn" onclick="eventDetail('+i+',\'대근\')"><span><small>대근 정보</small><b>'+ev.cover+'</b></span><span class="arr">›</span></button></div></article>';
- }).join('');
 }
 function renderMonth(){
  const first=new Date(viewYear,viewMonth,1),count=new Date(viewYear,viewMonth+1,0).getDate(),n=Math.ceil((first.getDay()+count)/7)*7;
- let out=names.map(n=>'<div class="weekday">'+n+'</div>').join('');
+ let out=names.map((day,i)=>'<div class="weekday" aria-hidden="true">'+day+'</div>').join('');
  for(let i=0;i<n;i++){
-  const d=new Date(viewYear,viewMonth,i-first.getDay()+1),isMonth=d.getMonth()===viewMonth;
-  out+='<div class="mday'+(isMonth?'':' muted')+(same(d,day0)?' current':'')+'"><div class="mdate">'+d.getDate()+(same(d,day0)?'<em>오늘</em>':'')+'</div>'+teams.map((t,j)=>'<div class="mline '+t.toLowerCase()+'f"><span class="initial">'+t+'</span><span class="shift">'+shift(d,j)+'</span></div>').join('')+(isMonth?'<button class="monthlybtn" onclick="chooseDate('+d.getFullYear()+','+d.getMonth()+','+d.getDate()+');setMode(\'week\')">상세 보기</button>':'')+'</div>';
+  const d=new Date(viewYear,viewMonth,i-first.getDay()+1),isMonth=d.getMonth()===viewMonth,teamData=teams.map((t,j)=>({team:t,shift:shift(d,j),ev:fixture(d,t)}));
+  const marked=teamData.some(x=>x.ev.off!=='—'||x.ev.note);
+  const dateKey=key(d);
+  out+='<button type="button" class="month-day'+(isMonth?'':' other-month')+(same(d,day0)?' today':'')+(same(d,selected)?' active':'')+'" aria-pressed="'+same(d,selected)+'" aria-label="'+escapeHtml(dateLabel(d))+' '+teamData.map(x=>x.team+'조 '+x.shift).join(', ')+'" onclick="chooseDate('+d.getFullYear()+','+d.getMonth()+','+d.getDate()+')"><div class="date-top"><span class="date-number">'+d.getDate()+'</span>'+((d.getMonth()===9&&d.getDate()===9)?'<span class="holiday-name">한글날</span>':'')+'</div><div class="mini-shifts">'+teamData.map(x=>'<span class="mini" data-team="'+x.team+'"><b>'+x.team+'</b>'+({'주간':'주','야간':'야','휴무':'휴'}[x.shift])+'</span>').join('')+'</div><div class="day-markers">'+(marked?'<span class="marker">● 휴무/메모</span>':'')+'</div></button>';
  }
  document.getElementById('monthgrid').innerHTML=out;
 }
-function renderMine(){document.getElementById('myTimeline').innerHTML=Array.from({length:6},(_,i)=>{const d=addDays(day0,i);return '<li><span class="datepill">'+pads(d.getMonth()+1)+'.'+pads(d.getDate())+'</span><span><strong>'+descShift(shift(d,0))[0]+'</strong><small>'+names[d.getDay()]+'요일 · 데모 일정</small></span></li>'}).join('')}
-function chooseDate(y,m,d){selected=new Date(y,m,d);viewYear=y;viewMonth=m;render()}
-function changeMonth(n){const d=new Date(viewYear,viewMonth+n,1);viewYear=d.getFullYear();viewMonth=d.getMonth();selected=new Date(viewYear,viewMonth,Math.min(selected.getDate(),new Date(viewYear,viewMonth+1,0).getDate()));render()}
-function goToday(){selected=new Date(day0);viewYear=selected.getFullYear();viewMonth=selected.getMonth();render()}
-function setMode(m){mode=m;render()}
-function selectTab(tab){
- for(const v of ['calendar','mine','settings']){document.getElementById(v+'View').hidden=v!==tab}
- document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
- document.querySelectorAll('[data-bottom]').forEach(b=>b.classList.toggle('active',b.dataset.bottom===tab));
- window.scrollTo({top:0,behavior:'smooth'});
+function renderCards(){
+ document.getElementById('teams').innerHTML=teams.map((t,i)=>{
+  const type=shift(selected,i),[label,bg,fg]=descShift(type),ev=fixture(selected,t);
+  const teamTints=['#f2f6ff','#eefaf5','#fff8ee','#f7f2ff'];
+  return '<article class="team'+(t==='B'?' own-team':'')+'" style="--team:'+colors[i]+';--teamtint:'+teamTints[i]+';--shiftbg:'+bg+';--shiftfg:'+fg+'"><div class="teamhead"><div class="teamname"><span class="teamdot"></span>'+t+'조'+(t==='B'?'<span style="font-size:11px;color:#4773ad;font-weight:700">내 조</span>':'')+'</div><span class="shifttag">'+label+'</span></div><div class="teamfoot"><button class="eventbtn" onclick="eventDetail('+i+',\'휴무\')"><span><small>휴무·지원 신청</small><b>'+escapeHtml(ev.off)+'</b></span><span class="arr">›</span></button><button class="eventbtn" onclick="eventDetail('+i+',\'대근\')"><span><small>대근자</small><b>'+escapeHtml(ev.cover)+'</b></span><span class="arr">›</span></button></div>'+(ev.note?'<div class="cardmemo">📌 '+escapeHtml(ev.note)+'</div>':'')+'</article>';
+ }).join('');
 }
+function renderMine(){document.getElementById('myTimeline').innerHTML=Array.from({length:6},(_,i)=>{const d=addDays(day0,i);return '<li><span class="datepill">'+pads(d.getMonth()+1)+'.'+pads(d.getDate())+'</span><span><strong>'+descShift(shift(d,1))[0]+'</strong><small>'+names[d.getDay()]+'요일 · 데모 일정</small></span></li>'}).join('')}
+function chooseDate(y,m,d){selected=new Date(y,m,d);viewYear=y;viewMonth=m;render();if(window.innerWidth<=760)document.getElementById('dayDetail').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}
+function changeMonth(n){const d=new Date(viewYear,viewMonth+n,1);viewYear=d.getFullYear();viewMonth=d.getMonth();selected=new Date(viewYear,viewMonth,Math.min(selected.getDate(),new Date(viewYear,viewMonth+1,0).getDate()));render()}
+function moveDate(n){const d=addDays(selected,n);selected=d;viewYear=d.getFullYear();viewMonth=d.getMonth();render()}
+function goToday(){selected=new Date(day0);viewYear=selected.getFullYear();viewMonth=selected.getMonth();render()}
+function openMonthPicker(){document.getElementById('monthValue').value=viewYear+'-'+pads(viewMonth+1);document.getElementById('monthDialog').showModal()}
+function applyMonthPicker(e){e.preventDefault();const m=document.getElementById('monthValue').value.match(/^(\d{4})-(0[1-9]|1[0-2])$/);if(m){viewYear=Number(m[1]);viewMonth=Number(m[2])-1;selected=new Date(viewYear,viewMonth,1);render()}document.getElementById('monthDialog').close()}
+function selectTab(tab){for(const v of ['calendar','mine','settings'])document.getElementById(v+'View').hidden=v!==tab;document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));document.querySelectorAll('[data-bottom]').forEach(b=>b.classList.toggle('active',b.dataset.bottom===tab));window.scrollTo({top:0,behavior:'smooth'})}
 function toggleTheme(){document.body.classList.toggle('dark')}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function showModal(title,body){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=body;document.getElementById('modal').showModal()}
 function closeModal(){document.getElementById('modal').close()}
-function showDemo(title,text){showModal(title,'<p>'+escapeHtml(text)+'</p><div class="info">🧪 테스트 버전은 변경 내용을 서버로 전송하지 않습니다.</div>')}
-function eventDetail(i,type){const v=fakeEvents(selected,i),val=type==='휴무'?v.off:v.cover;showModal(teams[i]+'조 · '+type+' 정보','<p>'+escapeHtml(dateLabel(selected))+' · '+type+' 상세</p><div class="fakeinput">'+escapeHtml(val)+'</div><p style="margin-top:15px">실제 앱에서는 신청·대근 상세와 권한에 따른 등록·수정 동작을 유지할 예정입니다.</p><div class="info">실제 데이터 변경 없음 · 디자인 미리보기</div>')}
-function showLogin(){showModal('로그인 화면 미리보기','<p>기존 접속코드 로그인과 지문·얼굴 인식 로그인은 유지하면서 화면의 여백과 버튼을 정리하는 방향입니다.</p><div class="fakeinput">•••••• &nbsp; 접속코드 입력 예시</div><div style="display:grid;gap:9px;margin-top:13px"><button class="primary" type="button" onclick="showDemo(\'로그인 테스트\',\'실제 인증 서버와 연결되지 않은 미리보기입니다.\')">로그인 디자인</button><button type="button" onclick="showDemo(\'생체인증 테스트\',\'실제 생체인증 요청을 수행하지 않습니다.\')">🔐 지문·얼굴 인식</button></div>')}
+function showDemo(title,text){showModal(title,'<p>'+escapeHtml(text)+'</p><div class="info">🧪 이 테스트 페이지는 정식 서버에 저장하지 않습니다.</div>')}
+function eventDetail(i,type){
+ const team=teams[i],ev=fixture(selected,team),val=type==='휴무'?ev.off:ev.cover;
+ showModal(team+'조 · '+type+' 시연','<p>'+escapeHtml(dateLabel(selected))+' · '+team+'조 '+type+'</p><div class="fakeinput">'+escapeHtml(val)+'</div><label for="demoEditValue" style="display:block;margin-top:14px;font-weight:750">표시할 이름 (화면 시연)</label><input id="demoEditValue" maxlength="40" placeholder="미정 또는 이름" value="'+escapeHtml(val==='—'?'':val)+'" style="margin:8px 0;width:100%;padding:12px;border:1px solid #c9d7eb;border-radius:10px"><button class="primary" onclick="saveDemo('+i+',\''+type+'\')" style="width:100%">화면에서만 적용</button><div class="info">실제 근무 자료 및 구독에 영향을 주지 않습니다.</div>');
+}
+function saveDemo(i,type){const team=teams[i],dateKey=key(selected),value=document.getElementById('demoEditValue').value.trim()||'—',v={...fixture(selected,team)};if(type==='휴무')v.off=value;else v.cover=value;mock.set(dateKey+'-'+team,v);closeModal();render();}
+function showLogin(){showDemo('로그인 화면 미리보기','실제 로그인 서버와 연결되지 않은 디자인 시안입니다.')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('modal').open)closeModal()});
 render();
+
 </script>
+<dialog id="monthDialog"><div class="modalhead"><h3>조회할 월 선택</h3><button class="bare" onclick="document.getElementById('monthDialog').close()" aria-label="닫기" style="font-size:24px">×</button></div><form class="modalbody" onsubmit="applyMonthPicker(event)"><label for="monthValue" style="display:block;margin-bottom:8px">연·월</label><input id="monthValue" type="month" min="2024-01" max="2035-12" required style="width:100%;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:10px"><button class="primary" type="submit" style="width:100%;margin-top:12px">해당 월로 이동</button></form></dialog>
 </body>
 </html>
