@@ -618,9 +618,9 @@ function renderCalendar(){
   for(let team of groups){
    const shift=shiftFor(date,team),event=eventFixture(date,team),rows=wkHeights[w][team];
    for(let i=0;i<rows;i++){
-    const present=(i===0&&event)||(d>=20&&d<=26&&i>0&&((d+i+groups.indexOf(team))%3===0)),off=shift==='휴무'?' off-request-cell':'';
-    const reqName=present?'<div class="has-data req-data person-team-'+team+'"><span>'+esc(i===0&&event?event.request:['홍예시','김예시','박예시'][i%3])+'</span><span class="reason-text">('+esc(i===0&&event?event.reason:'연차')+')</span></div>':'';
-    const helper=present?(event.helper?'<div class="has-data sub-data person-team-'+event.helper+'">'+esc(event.fill)+'</div>':'<span class="suggest-guide">대근자 미정</span>'):shift!=='휴무'?'<span class="suggest-guide">'+(team==='D'?'A':String.fromCharCode(team.charCodeAt(0)+1))+'조</span>':'';
+    const eventForRow=i===0?event:((d>=20&&d<=26&&((d+i+groups.indexOf(team))%3===0))?{request:['홍예시','김예시','박예시'][i%3],reason:'연차',fill:'',helper:''}:null),present=!!eventForRow,off=shift==='휴무'?' off-request-cell':'';
+    const reqName=present?'<div class="has-data req-data person-team-'+team+'"><span>'+esc(eventForRow.request)+'</span><span class="reason-text">('+esc(eventForRow.reason)+')</span></div>':'';
+    const helper=present?(eventForRow.helper?'<div class="has-data sub-data person-team-'+eventForRow.helper+'">'+esc(eventForRow.fill)+'</div>':'<span class="suggest-guide">대근자 미정</span>'):shift!=='휴무'?'<span class="suggest-guide">'+(team==='D'?'A':String.fromCharCode(team.charCodeAt(0)+1))+'조</span>':'';
     html+='<div class="team-row'+(team==='B'?' my-team-row':'')+'"><div class="cell-shift '+shiftClass(shift)+'">'+team+shorthand(shift)+'</div><div tabindex="0" role="button" aria-label="'+team+'조 휴무 상세" class="cell-name req-cell-'+team+off+' clickable" data-date="'+k+'" data-team="'+team+'" data-kind="휴무">'+reqName+'</div><div tabindex="0" role="button" aria-label="'+team+'조 대근 상세" class="cell-name sub-cell-'+team+' clickable" data-date="'+k+'" data-team="'+team+'" data-kind="대근">'+helper+'</div></div>';
    }
   }
