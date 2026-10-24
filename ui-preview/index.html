@@ -1,207 +1,683 @@
-<!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f4f7fc">
-<title>교대근무 · UI/UX 테스트</title>
-<style>
-:root{color-scheme:light;--bg:#f3f6fc;--panel:#fff;--ink:#14233b;--muted:#697b94;--line:#e2e9f3;--blue:#3269dd;--tint:#e9f0ff;--shadow:0 9px 28px rgba(28,50,91,.065);--a:#3c71df;--b:#159669;--c:#d28a30;--d:#8a65c8}
-*{box-sizing:border-box}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg)}button{font:inherit;cursor:pointer}button:focus-visible,[tabindex]:focus-visible{outline:3px solid #7ab2ff;outline-offset:3px}button:disabled{cursor:not-allowed;opacity:.5}button,input{touch-action:manipulation}button:not(.bare){border:1px solid transparent;border-radius:12px;padding:10px 14px;font-weight:750;background:var(--tint);color:#2454a7;min-height:43px;transition:transform .16s,background .16s,box-shadow .16s}button:not(.bare):active{transform:scale(.97)}button.primary{background:#315fce;color:white;box-shadow:0 7px 15px rgba(49,95,206,.2)}button.quiet{background:transparent;border-color:var(--line);color:var(--ink)}button.smallicon{min-width:43px;padding:8px!important;font-size:18px}button.selected{background:#315fce;color:white}button.bare{background:none;border:0;color:inherit}.shell{max-width:1200px;margin:0 auto;padding:18px 18px 90px}.notice{background:#172d54;color:#f0f5ff;text-align:center;padding:9px 15px;font-weight:650;font-size:12px;letter-spacing:.01em}.notice span{color:#a3cdfb}.top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:23px}.brand{display:flex;align-items:center;gap:11px}.brandicon{width:48px;height:48px;border-radius:15px;background:linear-gradient(155deg,#243d77,#4278dc);display:grid;place-items:center;color:white;font-size:26px;box-shadow:0 7px 20px #315dc33d}.brand h1{margin:0;font-size:22px;letter-spacing:-.07em}.brand p{margin:0;color:var(--muted);font-size:12px}.toptools{display:flex;align-items:center;gap:8px}.profile{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:9px 13px;font-size:12px;font-weight:700}.panel{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow)}.stack{display:grid;gap:16px}.hero{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;background:linear-gradient(105deg,#203a78,#375eb0 75%,#5679cf);color:white;border-radius:24px;padding:23px 25px;overflow:hidden;position:relative}.hero:after{content:"";position:absolute;width:260px;height:260px;border:35px solid #ffffff0a;border-radius:50%;top:-170px;right:-110px;pointer-events:none}.hero .eyebrow{font-size:12px;font-weight:800;color:#bdd7ff;letter-spacing:.1em}.hero h2{margin:5px 0;font-size:27px;letter-spacing:-.055em}.hero p{margin:0;color:#d8e5fc}.hero .today-badge{display:flex;gap:8px;align-items:center;background:#ffffff1c;border:1px solid #ffffff3b;padding:12px 15px;border-radius:15px;white-space:nowrap;font-weight:700}.tabs{display:flex;gap:8px;padding:5px;border-radius:17px;background:#e8edf6;width:max-content;max-width:100%;overflow:auto}.tabs button{white-space:nowrap;min-height:40px;background:transparent!important;color:#63738a!important}.tabs button[aria-selected=true]{background:var(--panel)!important;color:#244e9e!important;box-shadow:0 3px 10px #173d7520}.headrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.headrow h3{font-size:18px;letter-spacing:-.045em;margin:0}.sub{font-size:12px;color:var(--muted);margin:2px 0 0}.monthnav{display:flex;align-items:center;gap:8px}.monthnav .monthtext{font-size:18px;font-weight:850;min-width:114px;text-align:center;letter-spacing:-.055em}.mode{display:flex;gap:5px;background:var(--bg);padding:4px;border-radius:14px}.mode button{padding:8px 12px!important;min-height:38px!important;background:transparent!important;color:var(--muted)!important}.mode button[aria-pressed=true]{background:var(--panel)!important;color:var(--blue)!important;box-shadow:0 2px 9px #0000000d}.weekstrip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:18px}.daypick{border:1px solid var(--line)!important;background:var(--panel)!important;padding:10px 4px!important;border-radius:13px!important;min-height:66px!important;color:var(--ink)!important}.daypick strong{display:block;font-size:18px}.daypick span{font-size:12px;color:var(--muted)}.daypick.current{border-color:#5f88ec!important;box-shadow:inset 0 0 0 1px #5f88ec;background:#f4f7ff!important}.daypick.active{background:#315fce!important;color:white!important;border-color:#315fce!important}.daypick.active span{color:#e1eaff}.daypick .dot{width:4px;height:4px;background:#efad53;border-radius:50%;display:inline-block;margin-left:4px}.sectionlabel{font-size:12px;color:var(--muted);font-weight:800;margin:4px 0 10px}.teams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.team{border:1px solid var(--line);background:var(--panel);border-radius:17px;overflow:hidden;transition:transform .16s,box-shadow .16s}.team:hover{transform:translateY(-1px);box-shadow:var(--shadow)}.teamhead{padding:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}.teamname{display:flex;gap:9px;align-items:center;font-size:16px;font-weight:850}.teamdot{width:10px;height:10px;border-radius:50%;background:var(--team)}.shifttag{font-size:12px;font-weight:850;padding:5px 10px;border-radius:9px;background:var(--shiftbg);color:var(--shiftfg)}.teamfoot{border-top:1px solid var(--line);padding:10px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.eventbtn{display:flex;justify-content:space-between;align-items:center;text-align:left;font-size:12px;min-width:0;gap:6px;background:#f7f9fd!important;border:1px solid #edf1f7!important;padding:9px 11px!important;border-radius:10px!important;color:var(--ink)!important}.eventbtn span{display:block}.eventbtn b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.eventbtn small{font-size:11px;color:var(--muted)}.eventbtn .arr{color:var(--muted);font-weight:900}.info{padding:11px 13px;border-radius:12px;color:#4d6789;background:#eef4fe;font-size:12px;margin-top:14px}.legend{display:flex;flex-wrap:wrap;gap:11px 17px;font-size:12px;color:var(--muted)}.legend b{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}.monthscroll{overflow:auto;max-width:100%;border-radius:15px;border:1px solid var(--line);margin-top:16px}.monthgrid{display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));min-width:910px}.weekday{padding:10px;text-align:center;background:#eef3fa;border-right:1px solid var(--line);font-weight:800;color:#5c7290}.mday{border-right:1px solid var(--line);border-top:1px solid var(--line);min-height:128px;padding:8px;background:var(--panel)}.mday.muted{background:var(--bg)}.mday.current{outline:3px solid #3478f4;outline-offset:-3px;position:relative}.mdate{font-weight:850;font-size:13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}.mdate em{color:var(--blue);font-size:10px;font-style:normal}.mline{display:flex;justify-content:space-between;gap:4px;padding:3px 5px;margin:3px 0;border-radius:6px;background:#f4f6fb;font-size:11px}.mline .initial{font-weight:900}.mline .shift{color:var(--muted)}.mline.af{border-left:3px solid var(--a)}.mline.bf{border-left:3px solid var(--b)}.mline.cf{border-left:3px solid var(--c)}.mline.df{border-left:3px solid var(--d)}.monthlybtn{width:100%;margin-top:7px;font-size:10px!important;min-height:22px!important;padding:1px 3px!important;background:#eef3ff!important;color:#3058aa!important}.split{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.timeline{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:10px}.timeline li{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px}.datepill{font-weight:850;color:var(--blue);background:var(--tint);padding:8px 11px;border-radius:9px;min-width:60px;text-align:center}.timeline strong{display:block}.timeline small{color:var(--muted)}.settingitem{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}.settingitem:last-child{border:0}.settingitem p{margin:2px 0 0;font-size:12px;color:var(--muted)}.statepill{color:#087e56;background:#e6f8ee;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:850;white-space:nowrap}.mutepill{color:#516582;background:#edf1f8}.bottom{position:fixed;bottom:0;left:0;right:0;padding:10px max(12px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom));display:none;background:#ffffffed;backdrop-filter:blur(14px);border-top:1px solid var(--line);z-index:10}.bottom nav{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.bottom button{background:transparent!important;color:#74849a!important;border:0!important;font-size:11px;min-height:50px!important;padding:5px!important}.bottom button span{display:block;font-size:19px}.bottom button.active{color:#315fce!important;background:#eff4ff!important}.footer{font-size:12px;text-align:center;color:var(--muted);margin-top:25px}dialog{border:0;border-radius:20px;background:var(--panel);color:var(--ink);padding:0;width:min(430px,calc(100% - 30px));box-shadow:0 24px 70px #1526464d}dialog::backdrop{background:#0b1934a1;backdrop-filter:blur(3px)}.modalhead{padding:19px 20px 10px;display:flex;justify-content:space-between;align-items:center;gap:10px}.modalhead h3{margin:0;font-size:18px}.modalbody{padding:10px 20px 20px;line-height:1.7}.modalbody p{margin:5px 0 14px;color:var(--muted)}.modalfoot{padding:0 20px 20px}.modalfoot button{width:100%}.fakeinput{padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--muted)}[hidden]{display:none!important}
-body.dark{color-scheme:dark;--bg:#0e1728;--panel:#182439;--ink:#e7eefb;--muted:#9eb0ca;--line:#2b3b55;--tint:#253c66;--shadow:0 9px 28px #0003}body.dark .tabs{background:#223047}body.dark .hero{background:linear-gradient(105deg,#182f60,#284b94)}body.dark .eventbtn{background:#202e46!important;border-color:#30425e!important}body.dark .daypick.current{background:#273c64!important}body.dark .info{background:#203354;color:#b1d0f5}body.dark .mline{background:#24334d}body.dark .weekday{background:#22314c}body.dark .statepill{background:#153d33;color:#80ebba}body.dark .mutepill{background:#273854;color:#bfd3ee}body.dark .bottom{background:#142035ed}body.dark .bottom button.active{background:#23375d!important;color:#c2d6ff!important}body.dark .monthscroll .monthlybtn{background:#25395e!important;color:#a6c8ff!important}
-@media(max-width:760px){.shell{padding:13px 12px 92px}.top{margin-bottom:14px}.brandicon{width:43px;height:43px;font-size:23px}.brand h1{font-size:19px}.toptools .profile{display:none}.hero{padding:19px 17px;grid-template-columns:1fr}.hero h2{font-size:23px}.hero .today-badge{width:max-content;padding:7px 11px;font-size:12px}.panel{padding:15px;border-radius:17px}.teams,.split{grid-template-columns:1fr}.teamhead{padding:12px 14px}.headrow h3{font-size:17px}.weekstrip{gap:4px}.daypick{padding:8px 2px!important;min-height:62px!important}.daypick strong{font-size:16px}.daypick span{font-size:11px}.tabs{display:none}.bottom{display:block}.monthnav .monthtext{min-width:104px}.footer{font-size:11px}.headrow{align-items:flex-start}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#edf2f8"><title>교대근무 · 기존 달력 조별 가로 카드 테스트</title><style>
 
-/* Design direction: monthly overview + four team cards. No weekly picker. */
-.monthpick{font-size:18px;font-weight:850;white-space:nowrap;letter-spacing:-.05em;padding:4px 7px;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:5px}
-.new-monthgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));min-width:0;border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-top:13px;background:var(--line);gap:1px}
-.new-monthgrid .weekday{padding:8px 2px;background:#edf3fb;font-size:12px;border:0;color:var(--muted);font-weight:850;text-align:center}
-.new-monthgrid .weekday:first-child{color:#dc6173}.new-monthgrid .weekday:nth-child(7){color:#3575c6}
-.new-monthgrid .month-day{border:0;border-radius:0;background:var(--panel)!important;box-shadow:none!important;min-width:0;min-height:102px!important;padding:7px 5px!important;color:var(--ink)!important;text-align:left;display:flex;flex-direction:column;gap:5px;transition:background .16s,box-shadow .16s,transform .16s}
-.new-monthgrid .month-day:hover{background:#f2f6fe!important}.new-monthgrid .month-day:active{transform:none!important}
-.new-monthgrid .month-day.other-month{background:#f7f9fc!important;color:#a6b3c7!important;min-height:102px}
-.new-monthgrid .month-day.today .date-number{background:#dceaff;color:#1959b9;border-radius:8px;padding:2px 6px}
-.new-monthgrid .month-day.active{position:relative;background:#eaf2ff!important;box-shadow:inset 0 0 0 2px var(--blue)!important;z-index:1}
-.new-monthgrid .month-day.active .date-number{background:var(--blue);color:#fff;border-radius:8px;padding:2px 6px}
-.new-monthgrid .date-top{display:flex;align-items:center;gap:4px;justify-content:space-between;min-height:21px}
-.new-monthgrid .date-number{font-size:13px;line-height:1.35;font-weight:850;padding:2px 6px;margin-left:-2px}
-.new-monthgrid .holiday-name{font-size:9px;font-weight:650;color:#be4057;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px}
-.new-monthgrid .mini-shifts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;width:100%}
-.new-monthgrid .mini{font-size:10px;font-weight:800;border-radius:5px;padding:2px 3px;white-space:nowrap;overflow:hidden;text-align:center}
-.new-monthgrid .mini b{font-weight:950}
-.new-monthgrid .mini[data-team=A]{background:#ebf2ff;color:#2b64c3}
-.new-monthgrid .mini[data-team=B]{background:#e3f8ef;color:#168257}
-.new-monthgrid .mini[data-team=C]{background:#fff2e1;color:#a9681d}
-.new-monthgrid .mini[data-team=D]{background:#f0eaff;color:#7f57b2}
-.new-monthgrid .month-day.other-month .mini{opacity:.4}
-.new-monthgrid .day-markers{display:flex;gap:3px;align-items:center;min-height:10px;flex-wrap:wrap}
-.new-monthgrid .day-markers .marker{font-size:9px;background:#fff1de;border-radius:5px;color:#9e661a;padding:0 3px;font-weight:800}
-.shift-legend{margin-top:14px}
-.monthhelper{margin:12px 0 0;line-height:1.55}
-.selected-head{margin-bottom:15px}
-.eyebrow-detail{font-size:11px;color:var(--blue);font-weight:900;letter-spacing:.06em}
-.day-detail h3{font-size:20px;margin:4px 0}
-.daystep{display:flex;gap:6px}
-.cards-new{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.cards-new .team{border:1px solid var(--line);border-radius:17px;box-shadow:0 4px 12px rgba(33,59,102,.035);background:var(--panel)}
-.cards-new .teamhead{background:linear-gradient(100deg,var(--panel),var(--teamtint));border-bottom:1px solid var(--line)}
-.cards-new .teamname{font-size:18px;letter-spacing:-.035em}
-.cards-new .teamdot{width:11px;height:11px}
-.cards-new .teamfoot{padding:12px;gap:10px}
-.cards-new .eventbtn{min-height:69px!important}
-.cards-new .eventbtn b{display:block;max-width:100%;font-size:14px;margin-top:2px}
-.cards-new .shifttag{white-space:nowrap}
-.cards-new .cardmemo{margin:0 12px 12px;font-size:12px;padding:8px 10px;color:var(--muted);background:var(--bg);border-radius:9px;line-height:1.5}
-.cards-new .team.own-team{outline:1px solid #91b2ed}
-body.dark .new-monthgrid .weekday{background:#23354e}
-body.dark .new-monthgrid .month-day.other-month{background:#172237!important}
-body.dark .new-monthgrid .month-day:hover{background:#23385b!important}
-body.dark .new-monthgrid .month-day.active{background:#264673!important;box-shadow:inset 0 0 0 2px #76a7ff!important}
-body.dark .new-monthgrid .mini[data-team=A]{background:#243e6b;color:#b6d0ff}
-body.dark .new-monthgrid .mini[data-team=B]{background:#174b3d;color:#9debc9}
-body.dark .new-monthgrid .mini[data-team=C]{background:#513c24;color:#ffce91}
-body.dark .new-monthgrid .mini[data-team=D]{background:#42345f;color:#d7b8ff}
-body.dark .new-monthgrid .day-markers .marker{background:#584126;color:#ffcf99}
-body.dark .cards-new .teamhead{background:var(--panel)}
-@media(max-width:760px){
- .new-monthgrid .month-day,.new-monthgrid .month-day.other-month{min-height:78px!important;padding:5px 2px!important;gap:4px}
- .new-monthgrid .weekday{font-size:11px;padding:7px 2px}
- .new-monthgrid .date-number{font-size:12px;padding:2px 4px}
- .new-monthgrid .mini-shifts{gap:2px}
- .new-monthgrid .mini{font-size:9px;padding:1px 0;border-radius:4px;letter-spacing:-.08em}
- .new-monthgrid .holiday-name{font-size:8px;max-width:40px}
- .new-monthgrid .day-markers .marker{font-size:8px}
- .cards-new{grid-template-columns:1fr}
- .cards-new .teamfoot{grid-template-columns:1fr 1fr}
- .cards-new .eventbtn{min-height:72px!important}
- .monthnav{gap:3px;flex-wrap:wrap}
- .monthpick{font-size:16px;padding:3px}
- .day-detail h3{font-size:18px}
- .shift-legend{gap:6px 12px}
- .monthhelper{font-size:11px}
+    body {
+      font-family: 'Malgun Gothic', sans-serif;
+      padding: 10px;
+      background-color: #e9ecef;
+      margin: 0;
+      color: #333;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0 15px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn-small {
+      width: auto;
+      padding: 6px 12px;
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .cal-wrapper {
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      min-width: 950px;
+      border-top: 2px solid #555;
+      border-left: 1px solid #ccc;
+      background: #fff;
+    }
+
+    .cal-header-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      min-width: 950px;
+      text-align: center;
+      font-weight: bold;
+      background: #f8f9fa;
+      border-left: 1px solid #ccc;
+    }
+
+    .cal-header-cell {
+      padding: 8px 0;
+      border-right: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .day-cell {
+      border-right: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .day-header-bar {
+      display: grid;
+      grid-template-columns: calc(50% + 22.5px) calc(50% - 22.5px);
+      background: #f1f3f5;
+      border-bottom: 1px solid #ddd;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    /*
+     * 아래 실제 행 구조는
+     * [조/근무 45px] + [휴무 입력] + [대근 입력]
+     * 이므로 헤더도 동일한 열 비율을 사용합니다.
+     */
+    .day-date-part {
+      width: 100%;
+      padding: 4px;
+      border-right: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .day-sub-title {
+      width: 100%;
+      padding: 4px;
+      color: #0056b3;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .holiday-name {
+      font-size: 11px;
+      font-weight: normal;
+      margin-left: 3px;
+      letter-spacing: -0.5px;
+    }
+
+    .team-row {
+      display: flex;
+      min-height: 35px;
+      border-bottom: 1px solid #eee;
+      font-size: 12px;
+    }
+
+    .memo-row {
+      border-top: 1px solid #ccc;
+      background-color: #fff9c4;
+      border-bottom: none;
+    }
+
+    .my-team-row {
+      background-color: #e6f2ff;
+    }
+
+    .cell-shift {
+      width: 45px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      border-right: 1px solid #eee;
+    }
+
+    .cell-name {
+      flex: 1 1 0;
+      min-width: 0;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-right: 1px solid #eee;
+      color: #495057;
+      position: relative;
+    }
+
+    .cell-name:last-child {
+      border-right: none;
+    }
+
+    .off-request-cell {
+      background-color: #ffffff !important;
+    }
+
+    .clickable {
+      cursor: pointer;
+    }
+
+    .clickable:hover {
+      background-color: #f1f3f5;
+    }
+
+    .has-data {
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.2;
+    }
+
+    .req-data {
+      color: #1e8449;
+    }
+
+    .sub-data {
+      color: #495057;
+      background-color: transparent;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      display: flex;
+      align-items: center;
+    }
+
+    .reason-text {
+      font-size: 10px;
+      color: #888;
+      font-weight: normal;
+    }
+
+    .suggest-guide {
+      color: inherit;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    /* 대근칸 바탕은 신청 조, 이름 색은 대근자의 소속 조를 따릅니다. */
+    .cell-name.sub-cell-A { background-color: #ffd29a; color: #663300; }
+    .cell-name.sub-cell-B { background-color: #dff2df; color: #14532d; }
+    .cell-name.sub-cell-C { background-color: #deecff; color: #123e73; }
+    .cell-name.sub-cell-D { background-color: #fff2b8; color: #594400; }
+    .cell-name.sub-cell-A .suggest-guide { color: #663300; }
+    .cell-name.sub-cell-B .suggest-guide { color: #14532d; }
+    .cell-name.sub-cell-C .suggest-guide { color: #123e73; }
+    .cell-name.sub-cell-D .suggest-guide { color: #594400; }
+
+    .cell-name.req-cell-B:not(.off-request-cell) { background-color: #dcf5ed; }
+
+    /* 소속 조 색상은 휴무와 대근에 동일하게 적용합니다. */
+    .has-data.person-team-A { color: #07559b; }
+    .has-data.person-team-B { color: #17713b; }
+    .has-data.person-team-C { color: #96520a; }
+    .has-data.person-team-D { color: #7139a6; }
+
+    .s-day {
+      color: #1e8449;
+      font-weight: bold;
+    }
+
+    .s-night {
+      color: #2980b9;
+      font-weight: bold;
+    }
+
+    .s-off {
+      color: #7f8c8d;
+    }
+
+    #mainScreen {
+      display: none;
+    }
+
+/* Personal and super-administrator views */
+.audit-icon{width:auto;min-width:40px;min-height:40px;padding:8px;background:transparent;color:#a77800;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center}
+.audit-icon:hover{background:#eef2f6}.audit-icon:focus-visible{outline:3px solid #ffb000;outline-offset:2px}
+.audit-dialog{border:0;border-radius:10px;padding:0;width:min(760px,calc(100% - 24px));max-height:88vh;color:#333;font-family:inherit;box-shadow:0 18px 60px #0004}
+.audit-dialog::backdrop{background:#18253c80}.audit-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px;border-bottom:1px solid #e2e8f0}.audit-head h2{font-size:18px;margin:0}.audit-body{padding:16px;max-height:calc(88vh - 80px);overflow:auto}.audit-tabs{display:flex;gap:8px;margin-bottom:16px}.audit-tabs button{background:#eef2f6;color:#475569}.audit-tabs .audit-active{background:#007bff;color:white}.audit-filters{display:flex;gap:10px;flex-wrap:wrap}.audit-filters label{font-size:13px;max-width:100%}.audit-filters input,.audit-filters select{width:auto;max-width:100%;padding:9px;font-size:14px;display:block;margin:4px 0}.audit-item{border:1px solid #dce3ec;border-radius:7px;padding:14px;margin-bottom:12px;font-size:14px}.audit-item p{line-height:1.6;margin:8px 0}.audit-between{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.audit-tag{background:#e6f2ff;color:#0061ba;padding:4px 8px;border-radius:16px;font-size:12px}.audit-muted{font-size:12px;color:#64748b;line-height:1.6}.audit-empty{text-align:center;background:#f8fafc;padding:24px;color:#64748b}.audit-secondary{background:#eef2f6;color:#34465c}.audit-diff{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.audit-diff div{background:#f1f5f9;padding:10px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}.audit-diff div:last-child{background:#eaf4ff}.audit-diff small{display:block;color:#64748b}.audit-selected{outline:3px solid #ffb000;outline-offset:-3px}.audit-dialog details summary{cursor:pointer;margin-top:12px}body:has(.audit-dialog[open]){overflow:hidden}
+@media(max-width:600px){.audit-diff{grid-template-columns:1fr}.audit-head,.audit-body{padding:12px}}
+
+  
+.app-topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:100;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:10px!important;margin-bottom:8px!important}
+.app-identity{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.app-identity h2{margin:0;font-size:16px}
+.app-identity .btn-small{font-size:12px;padding:6px 8px;white-space:nowrap}
+.app-month{display:flex;align-items:center;justify-content:center;gap:6px}
+.app-month button{width:auto;margin:0;background:#e9ecef;color:#222;padding:6px 8px}
+#currentMonthStr{background:transparent;font-size:18px;font-weight:bold;text-decoration:underline;text-underline-offset:4px;white-space:nowrap}
+.app-actions{display:flex;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+.app-actions button{font-size:0!important;width:34px;min-height:32px;padding:5px!important;margin:0}
+.app-actions button::before{content:attr(data-icon);font-size:16px}
+.app-guide{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px!important;margin-bottom:8px!important;font-size:12px;line-height:1.5}
+.app-guide>div+div{border-left:1px solid #ddd;padding-left:12px}
+.app-calendar{padding:8px!important}
+@media(max-width:700px){.app-topbar{grid-template-columns:1fr auto}.app-identity h2{font-size:14px}.app-month{grid-column:1 / -1;grid-row:2}.app-guide{font-size:11px;gap:8px}.app-guide>div+div{padding-left:8px}}
+
+.memo-row .cell-name{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.35;padding-top:6px!important;padding-bottom:6px!important}
+
+
+/* Inset border stays visible without changing calendar column widths. */
+.day-cell.is-today{position:relative;box-shadow:inset 0 0 0 3px #005fcc;scroll-margin-top:160px;}
+.day-cell.is-today::after{content:"";position:absolute;inset:0;border:3px solid #005fcc;pointer-events:none;z-index:2;}
+.day-cell.is-today .day-header-bar{background:#deedff;}
+
+
+/* October 2026 subtle classic UI refinement. Purely visual; no layout redesign. */
+#mainScreen{display:block}
+:root{--ui-surface:#fff;--ui-slate:#edf2f8;--ui-border:#dce5f1;--ui-text:#203147;--ui-blue:#2268ce;--ui-ring:#2569ce}
+*{box-sizing:border-box}
+body{background:#edf2f8;color:var(--ui-text);font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;padding:12px}
+button,input,select{font-family:inherit}
+button{transition:background-color .16s ease,filter .16s ease,transform .16s ease,box-shadow .16s ease}
+button:active{transform:scale(.965)}
+button:focus-visible,input:focus-visible{outline:3px solid #73a2eb;outline-offset:2px}
+.card{border-radius:15px;border:1px solid var(--ui-border);box-shadow:0 5px 18px rgba(28,58,96,.055);margin-bottom:10px}
+#mainScreen{display:block;max-width:1480px;margin:0 auto}
+.app-topbar{background:linear-gradient(135deg,#fff,#f8fbff);border:1px solid #cdddf0;box-shadow:0 7px 21px rgba(37,87,160,.10);border-radius:15px;top:10px;gap:9px;padding:12px 14px!important}
+.app-identity h2{font-weight:850;color:#1b3456;letter-spacing:-.025em}
+.app-identity #personalTools .btn-small{background:#edf4ff;color:#2557a0;border:1px solid #cadcf5;border-radius:9px;font-weight:750}
+.app-month{background:#f1f6fd;border:1px solid #dde9fa;border-radius:12px;padding:4px 5px}
+.app-month button{border-radius:9px;background:#fff;color:#245aaf;font-size:15px;font-weight:800}
+#currentMonthStr{background:transparent;color:#1e3f78;font-size:18px;text-decoration:none}
+.app-actions button{width:37px;min-height:37px;border-radius:10px;border:1px solid #ffffff26;box-shadow:0 2px 5px rgba(22,37,65,.08)}
+.app-actions button:hover{filter:brightness(1.07);box-shadow:0 4px 11px rgba(32,67,126,.18)}
+.app-actions button::before{font-size:17px}
+.app-calendar{background:var(--ui-surface);padding:10px!important;border-radius:14px}
+.cal-wrapper{border-radius:11px;scrollbar-color:#b5c8e4 transparent;scrollbar-width:thin;overscroll-behavior-x:contain}
+.cal-grid{border-top:2px solid #6687b8;border-left-color:#d5dfec;background:#fff}
+.cal-header-row{background:#eef4fb;border-left-color:#d5dfec}
+.cal-header-cell{background:linear-gradient(#f7faff,#eaf1fa);color:#364e70;border-right:1px solid #d7e2ef;border-bottom:1px solid #d7e2ef;font-size:13px;letter-spacing:-.02em;line-height:1.65}
+.day-cell{border-color:#d9e1ed}
+.day-header-bar{background:#eef3f9;color:#2a4565;border-bottom-color:#d8e3f0}
+.day-date-part{font-weight:850}
+.day-sub-title{background:#e5eefc;color:#2d5fa7;font-weight:800}
+.team-row{min-height:37px;border-bottom-color:#e7edf4}
+.cell-shift{font-weight:850;border-right-color:#dce6f2}
+.cell-name{border-right-color:#e3eaf4}
+.my-team-row{background:#eaf3ff}
+.cell-name.sub-cell-A{background:#ffd7a7}
+.cell-name.sub-cell-B{background:#dff2df}
+.cell-name.sub-cell-C{background:#deecff}
+.cell-name.sub-cell-D{background:#fff2b8}
+.day-cell.is-today{box-shadow:inset 0 0 0 3px var(--ui-ring);scroll-margin-top:148px}
+.day-cell.is-today::after{border:3px solid var(--ui-ring);border-radius:2px}
+.day-cell.is-today .day-header-bar{background:#daeafa;color:#153b80}
+.day-cell.is-today .day-date-part{background:#d7e8ff}
+.memo-row{background:#fff8d7}
+.cell-name.clickable{transition:background-color .13s ease,box-shadow .13s ease}
+.cell-name.clickable:hover{background-color:#e4efff!important;box-shadow:inset 0 0 0 1px #9dc0f2}
+.cell-name.clickable:active{background-color:#d2e5ff!important}
+.audit-dialog,dialog{border-radius:17px;box-shadow:0 25px 70px #2036583e}
+.audit-head{background:#f4f7fc}
+.preview-ribbon{display:flex;justify-content:space-between;align-items:center;gap:10px;max-width:1480px;margin:0 auto 10px;background:#18325a;color:#fff;border-radius:12px;padding:9px 13px;font-size:12px;font-weight:700}
+.preview-ribbon strong{color:#b7d7ff}
+.preview-ribbon button{width:auto;min-height:31px;padding:5px 10px;border-radius:8px;color:#214c8a;background:#f6faff;font-size:12px}
+.preview-note{max-width:1480px;margin:8px auto;padding:11px 14px;border:1px solid #d1e2f8;border-radius:12px;background:#f8fbff;color:#37587c;font-size:12px;line-height:1.6}
+.preview-fade .app-calendar{animation:subtleReveal .22s ease both}
+@keyframes subtleReveal{from{opacity:.75;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media(max-width:700px){
+ body{padding:8px}
+ .app-topbar{top:5px;padding:9px!important;gap:8px}
+ .app-identity h2{font-size:14px}
+ .app-actions{gap:4px}
+ .app-actions button{width:34px;min-height:34px;padding:5px!important}
+ .app-month{padding:3px 5px}
+ #currentMonthStr{font-size:17px}
+ .app-calendar{padding:5px!important}
+ .preview-ribbon{font-size:11px;padding:8px 9px}
+ .preview-ribbon button{padding:4px 7px;font-size:11px}
 }
-@media(max-width:360px){.new-monthgrid .mini{font-size:8px}.new-monthgrid .month-day{padding:4px 1px!important}.cards-new .teamfoot{gap:6px}}
+@media(prefers-reduced-motion:reduce){*,*::after,*::before{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
-</style>
-</head>
-<body>
-<div class="notice">🧪 월간 달력 + 조별 카드 시안 · <span>가상 근무 데이터</span> · Supabase 연결 및 실제 신청/알림 발송 없음</div>
-<div class="shell">
-<header class="top">
- <div class="brand"><div class="brandicon">☀︎☾</div><div><h1>교대근무</h1><p>4개 조 통합 근무관리</p></div></div>
- <div class="toptools"><span class="profile">👤 데모 사용자 · B조</span><button class="smallicon quiet" onclick="toggleTheme()" title="다크 모드 전환" aria-label="다크 모드 전환">◐</button><button class="smallicon quiet" onclick="showLogin()" title="로그인 디자인 보기" aria-label="로그인 화면 보기">⚙</button></div>
-</header>
-<div class="stack">
- <section class="hero" aria-label="오늘의 근무 정보"><div><span class="eyebrow">TODAY'S SHIFT</span><h2 id="heroTitle">오늘의 근무를 확인하세요</h2><p id="heroDesc">A·B·C·D조 근무 현황을 한눈에</p></div><span class="today-badge" id="heroBadge">📅 오늘 일정</span></section>
- <div class="tabs" role="tablist" aria-label="메인 메뉴"><button type="button" role="tab" aria-selected="true" data-tab="calendar" onclick="selectTab('calendar')">📅 근무표</button><button type="button" role="tab" aria-selected="false" data-tab="mine" onclick="selectTab('mine')">☷ 내 일정</button><button type="button" role="tab" aria-selected="false" data-tab="settings" onclick="selectTab('settings')">🔔 알림·설정</button></div>
- <main id="calendarView" class="stack">
-  <section class="panel">
-   <div class="headrow"><div><h3>월간 근무표</h3><p class="sub">한 달의 근무를 살펴보고 날짜를 선택해 주세요.</p></div>
-    <div class="monthnav"><button class="smallicon quiet" onclick="changeMonth(-1)" aria-label="이전 달">‹</button>
-     <button class="monthpick bare" id="monthLabel" onclick="openMonthPicker()" title="원하는 월로 이동" aria-label="월 선택">2026년 10월</button>
-     <button class="smallicon quiet" onclick="changeMonth(1)" aria-label="다음 달">›</button>
-     <button class="quiet todaybtn" onclick="goToday()">오늘</button></div>
-   </div>
-   <div class="legend shift-legend" aria-label="조별 구분"><span><b style="background:var(--a)"></b>A조</span><span><b style="background:var(--b)"></b>B조</span><span><b style="background:var(--c)"></b>C조</span><span><b style="background:var(--d)"></b>D조</span></div>
-   <div class="monthgrid new-monthgrid" id="monthgrid" role="group" aria-label="월간 날짜 선택 달력"></div>
-   <p class="sub monthhelper">날짜를 선택하면 아래에 A·B·C·D조별 근무와 휴무·대근 정보가 표시됩니다.</p>
-  </section>
-  <section class="panel day-detail" id="dayDetail">
-   <div class="headrow selected-head"><div><span class="eyebrow-detail">선택한 날짜 · 4개 조 근무현황</span><h3 id="selectedLabel">오늘 · 근무 현황</h3><p class="sub" id="selectedHint">각 조의 휴무와 대근 정보를 개별 카드로 확인하세요.</p></div>
-     <div class="daystep"><button class="smallicon quiet" onclick="moveDate(-1)" aria-label="전날">‹</button><button class="smallicon quiet" onclick="moveDate(1)" aria-label="다음날">›</button></div></div>
-   <div class="teams cards-new" id="teams" aria-live="polite"></div>
-   <div class="info">🧪 현재는 디자인 테스트입니다. 휴무·대근 칸을 눌러 화면 동작을 시연할 수 있으며, 실제 서버 데이터는 변경되지 않습니다.</div>
-  </section>
-  <section class="panel">
-   <div class="headrow"><h3>표시 안내</h3><span class="sub">기존 조·근무 구분 방식</span></div>
-   <div class="legend shift-legend"><span><b style="background:var(--a)"></b>A조</span><span><b style="background:var(--b)"></b>B조</span><span><b style="background:var(--c)"></b>C조</span><span><b style="background:var(--d)"></b>D조</span><span>☀️ 주간</span><span>🌙 야간</span><span>🌿 휴무</span><span>🟠 시연 데이터</span></div>
-  </section>
- </main>
- <main id="mineView" hidden class="stack">
-  <div class="split"><section class="panel"><div class="headrow"><div><h3>내 근무 일정</h3><p class="sub">데모 사용자 · A조</p></div><span class="statepill">조회 전용 예시</span></div><ul class="timeline" id="myTimeline"></ul></section><section class="panel"><h3>내 연차·대근 모아보기</h3><p class="sub" style="margin:6px 0 14px">실제 기록이 아닌 인터페이스 예시입니다.</p><div class="settingitem"><div><b>휴무 신청</b><p>선택한 기간의 휴무 정보</p></div><span class="statepill mutepill">예시 2건</span></div><div class="settingitem"><div><b>대근 배정</b><p>대근자가 확정되면 표시</p></div><span class="statepill mutepill">예시 1건</span></div><button style="margin-top:14px;width:100%" onclick="showDemo('내 연차·대근','실제 앱에서는 본인의 휴무·대근 신청 내역과 변경 기록을 확인할 수 있습니다.')">자세히 보기</button></section></div>
- </main>
- <main id="settingsView" hidden class="stack">
-  <div class="split"><section class="panel"><h3>알림 관리</h3><div class="settingitem"><div><b>교대근무 푸시 알림</b><p>휴무 및 대근 변경 알림</p></div><span class="statepill mutepill">테스트 서버 미연결</span></div><div class="settingitem"><div><b>근무배치표 알림</b><p>별도 앱 구독 유지 대상</p></div><span class="statepill mutepill">변경 없음</span></div><button class="quiet" onclick="showDemo('알림 설정','이 시안은 실제 알림 권한 요청, 구독 변경, 푸시 발송을 하지 않습니다.')">알림 설정 화면 살펴보기</button></section><section class="panel"><h3>앱 설정</h3><div class="settingitem"><div><b>지문·얼굴 인식</b><p>기존 생체인증 로직 보존 예정</p></div><button class="quiet" onclick="showLogin()">화면 보기</button></div><div class="settingitem"><div><b>기상 알람 연결</b><p>별도 연동 토큰 변경하지 않음</p></div><span class="statepill mutepill">데모</span></div><div class="settingitem"><div><b>업데이트 내역</b><p>실제 앱의 버전 내역 제공 기능</p></div><button class="quiet" onclick="showDemo('업데이트 내역','이 화면은 디자인 시안입니다. 운영 앱의 서비스 워커와 업데이트 기능은 전혀 변경하지 않았습니다.')">열어보기</button></div></section></div>
- </main>
+/* Version 3: Visually group existing calendar rows by team.
+   No date-selection, new UI view, action changes or layout transformation. */
+.cal-grid{background:#f8fafc;border-top-color:#5674a5}
+.day-cell{background:#f7f9fd;overflow:hidden}
+.day-header-bar{background:#e9f1fc}
+.day-cell .team-row.shift-card-row{
+  --accent:#4b7ddd;--tint:#edf4ff;
+  margin-left:4px;
+  margin-right:4px;
+  position:relative;
+  background:#fff;
+  border:1px solid #dfe7f0;
+  border-top:0;
+  border-bottom:0;
+  border-radius:0;
+  font-size:12px;
+  min-height:36px;
+  box-sizing:border-box;
+}
+.day-cell .team-row.shift-card-A{--accent:#3c74d9;--tint:#edf4ff}
+.day-cell .team-row.shift-card-B{--accent:#21986d;--tint:#e9f9f1}
+.day-cell .team-row.shift-card-C{--accent:#d7902c;--tint:#fff4e4}
+.day-cell .team-row.shift-card-D{--accent:#8660c4;--tint:#f3efff}
+.day-cell .team-row.shift-card-first{
+  margin-top:7px;
+  border-top:1px solid #dde6f0;
+  border-radius:10px 10px 0 0;
+}
+.day-cell .team-row.shift-card-last{
+  margin-bottom:5px;
+  border-bottom:1px solid #dde6f0;
+  border-radius:0 0 10px 10px;
+}
+.day-cell .team-row.shift-card-first.shift-card-last{
+  border-radius:10px;
+}
+.day-cell .team-row.shift-card-row.shift-card-first{
+  box-shadow:0 -1px 5px rgba(37,62,98,.025);
+}
+.day-cell .team-row.shift-card-row.shift-card-last{
+  box-shadow:0 3px 8px rgba(24,45,81,.08);
+}
+.day-cell .team-row.shift-card-row:not(.shift-card-last){
+  border-bottom:1px solid #e9eef5;
+}
+.day-cell .team-row.shift-card-row .cell-shift{
+  width:42px;flex:0 0 42px;
+  color:#1d466e;
+  background:var(--tint);
+  border-left:4px solid var(--accent);
+  border-right:1px solid #e5eaf3;
+  padding:0 1px;
+  font-weight:850;
+}
+.day-cell .team-row.shift-card-row .cell-shift.s-day{color:#187f58}
+.day-cell .team-row.shift-card-row .cell-shift.s-night{color:#2873b2}
+.day-cell .team-row.shift-card-row .cell-shift.s-off{color:#758699}
+.day-cell .team-row.shift-card-row.shift-card-first .cell-shift{
+  border-top-left-radius:9px;
+}
+.day-cell .team-row.shift-card-row.shift-card-last .cell-shift{
+  border-bottom-left-radius:9px;
+}
+.day-cell .team-row.shift-card-row .cell-name{
+  overflow-wrap:anywhere;
+  padding:4px 2px;
+  min-height:35px;
+}
+.day-cell .team-row.shift-card-row.my-team-row{
+  box-shadow:inset 0 0 0 1px #99bef8;
+}
+.day-cell .team-row.shift-card-row .has-data{min-width:0;width:100%}
+.day-cell .team-row.shift-card-row .has-data span{
+  max-width:100%;
+  text-align:center;
+  overflow-wrap:anywhere;
+}
+.day-cell .team-row.shift-card-row .reason-text{
+  font-size:10px;line-height:1.3;
+}
+.day-cell .team-row.shift-card-row .cell-name.clickable:hover{
+  outline:1px solid #74a9ff;outline-offset:-1px;
+  background:#e9f3ff!important;
+}
+.day-cell .memo-row{
+  margin-top:5px;
+  background:#fff9e7;
+  border-top:1px solid #eadfb9;
+}
+.day-cell .memo-row .cell-name{
+  overflow-wrap:anywhere;
+}
+.day-cell.is-today .day-header-bar{
+  background:#deebff;
+}
+.preview-team-card-notice{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin:0 auto 11px;
+  max-width:1480px;
+  background:#fff;
+  color:#355173;
+  border:1px solid #cfdef0;
+  padding:10px 13px;
+  border-radius:10px;
+  font-size:12px;
+  line-height:1.5;
+}
+@media(max-width:700px){
+  .day-cell .team-row.shift-card-row{margin-left:3px;margin-right:3px}
+  .day-cell .team-row.shift-card-row .cell-shift{width:40px;flex-basis:40px}
+}
+@media(prefers-reduced-motion:reduce){.day-cell .team-row.shift-card-row .cell-name{transition:none}}
+
+</style></head><body>
+<div class="preview-ribbon"><div>🧪 <strong>기존 달력 유지 · 조별 행 카드 디자인</strong> · 가상 일정 / 서버 미연결</div><div><button type="button" onclick="goToday()">오늘로</button></div></div>
+  <div class="preview-team-card-notice">🎨 <strong>각 날짜의 A·B·C·D조를 서로 떨어진 가로형 카드로 구분했습니다.</strong> 이름·대근 칸·메모의 위치는 유지됩니다.</div>
+<div id="mainScreen">
+
+<div class="card app-topbar">
+ <div class="app-identity"><h2 id="welcomeMsg">환영합니다!</h2><div id="personalTools" hidden><button class="btn-small" onclick="openPersonalView()" title="내 연차·대근 모아보기">☷ 내 연차·대근 모아보기</button></div></div>
+ <div class="app-month"><button class="btn-small" onclick="changeMonth(-1)" aria-label="이전 달">◀</button><button id="currentMonthStr" onclick="goToMonth()" title="원하는 년월로 이동">2026년 10월</button><button class="btn-small" onclick="changeMonth(1)" aria-label="다음 달">▶</button></div>
+ <div class="app-actions"><button id="scheduleShareButton" hidden type="button" data-icon="🔗" class="btn-small" style="display:none;background:#355a78" onclick="openScheduleShare()" title="배우자용 열람 공유">배우자용 열람 공유</button><button id="wakeAlarmPilotButton" hidden type="button" data-icon="⏰" title="기상 알람 연결" onclick="openWakeAlarmDialog()" class="btn-small" style="background:#355a78;display:none;">기상 알람 연결</button><button id="passkeyRegisterButton" type="button" hidden data-icon="🔐" title="지문·얼굴 인식 등록" onclick="registerPasskey()" class="btn-small" style="background:#355a78;">지문·얼굴 인식 등록</button><button
+            id="androidInstallButton" data-icon="📱" title="Android 앱 설치"
+            onclick="installAndroidApp()"
+            class="btn-small"
+            style="background-color: #007bff; display: none;"
+          >
+            📱 Android 앱 설치
+          </button>
+
+          <button
+            id="iphoneInstallButton" data-icon="🍎" title="iPhone 설치 방법"
+            onclick="showIphoneInstallGuide()"
+            class="btn-small"
+            style="background-color: #6f42c1;"
+          >
+            🍎 iPhone 설치 방법
+          </button>
+
+          <button
+            id="notificationButton" data-icon="🔔" title="알림 설정"
+            onclick="enableNotifications()"
+            class="btn-small"
+            style="background-color: #28a745;"
+          >
+            🔔 알림 설정
+          </button>
+
+          <button id="disableNotificationButton" type="button" hidden data-icon="🔕" title="이 기기 알림 끄기" aria-label="이 기기 알림 끄기" class="btn-small" style="background-color:#b42332;" onclick="disableNotifications()">이 기기 알림 끄기</button>
+
+          <button
+            data-icon="🔑" title="접속 코드 변경" onclick="changePersonalCode()"
+            class="btn-small"
+            style="background-color: #17a2b8;"
+          >
+            접속 코드 변경
+          </button>
+
+          <button
+            data-icon="🚪" title="로그아웃" onclick="logout()"
+            class="btn-small"
+            style="background-color: #6c757d;"
+          >
+            로그아웃
+          </button>
+        </div>
 </div>
-<div class="footer">교대근무 월간 카드형 리디자인 미리보기 · GitHub 테스트 브랜치 · 가상 일정만 사용 · 운영 앱과 완전히 분리</div>
+<div class="card" style="padding:10px 14px;">
+  <button type="button" class="btn-small" style="width:auto;" onclick="document.getElementById('appGuideDialog').showModal()">📖 이용 가이드</button>
 </div>
-<div class="bottom"><nav aria-label="하단 탐색"><button class="active" data-bottom="calendar" onclick="selectTab('calendar')"><span>📅</span>근무표</button><button data-bottom="mine" onclick="selectTab('mine')"><span>☷</span>내 일정</button><button data-bottom="settings" onclick="selectTab('settings')"><span>🔔</span>알림·설정</button></nav></div>
-<dialog id="modal"><div class="modalhead"><h3 id="modalTitle"></h3><button class="bare" onclick="closeModal()" aria-label="닫기" style="font-size:23px">×</button></div><div class="modalbody" id="modalBody"></div><div class="modalfoot"><button class="primary" onclick="closeModal()">확인</button></div></dialog>
+<dialog id="appGuideDialog" aria-labelledby="appGuideTitle" style="width:min(90vw,600px);box-sizing:border-box;max-height:85vh;overflow:auto;border:0;border-radius:14px;padding:20px;">
+  <h2 id="appGuideTitle" style="margin:0 0 14px;font-size:20px;">이용 가이드</h2>
+  <div class="app-guide"><div><strong>휴무·추가 지원 신청 안내</strong><br>
+      사유에 <strong>정수</strong>가 포함되면 이름 대신 <strong>정수 지원</strong>으로 표시됩니다.<br>
+      <strong>정수</strong> 없이 <strong>지원</strong>이 포함되면 <strong>지원</strong>으로 표시됩니다.<br>
+      예: 정수, 정수지원, 정수 지원 → 정수 지원 · 지원 → 지원<br>
+      해당 신청은 추가 지원으로 등록되며, 일반 휴무는 기존처럼 이름과 사유가 표시됩니다.
+    </div><div>  🔔 <strong>휴무 등록 알림:</strong>
+  휴무를 등록하면 <strong>휴무 신청 조와 해당 날짜의 대근조</strong> 직원에게 알림이 발송됩니다.<br>
+
+  🔔 <strong>대근 등록 알림:</strong>
+  대근이 등록되면 <strong>휴무 신청 조와 대근조</strong> 직원에게 알림이 발송됩니다.<br>
+
+  📌 <strong>예시:</strong>
+  B조 홍길동님이 10월 18일 주간 휴무 신청 →
+  <strong>B조 + 대근조(A조)</strong>에 알림 발송,
+  C조·D조에는 알림이 발송되지 않습니다.<br>
+
+  🔔 <strong>주임 근태 알림:</strong> 임병철(A조)·백승학(B조)·김철종(C조)·주영훈(D조)의 근태 관련 알림은 일반 반원에게 발송되지 않습니다. 주임의 기존 수신 범위는 유지됩니다.<br><br>
+  💡 <strong>달력 이동:</strong>
+  가운데 표시된 <strong>년·월을 클릭</strong>하면 원하는 년·월로 바로 이동할 수 있습니다.
+
+      </div></div>
+
+  <form method="dialog"><button type="submit" autofocus style="margin-top:16px;">닫기</button></form>
+</dialog>
+<div id="calendarConnectionNotice" class="card" hidden role="status"><span id="calendarConnectionText"></span> <button class="btn-small" onclick="loadData()">다시 시도</button></div>
+<div class="card app-calendar">
+      <div class="cal-wrapper">
+
+        <div class="cal-header-row">
+
+          <div class="cal-header-cell"
+               style="color: red;">
+            일
+          </div>
+
+          <div class="cal-header-cell">월</div>
+          <div class="cal-header-cell">화</div>
+          <div class="cal-header-cell">수</div>
+          <div class="cal-header-cell">목</div>
+          <div class="cal-header-cell">금</div>
+
+          <div class="cal-header-cell"
+               style="color: blue;">
+            토
+          </div>
+
+        </div>
+
+        <div id="calendarGrid"
+             class="cal-grid"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+<div class="preview-note">🔒 이 페이지는 <b>기존 월간 근무표와 클릭 위치 그대로</b> 디자인만 개선한 시안입니다. 모든 근무·휴무·대근 정보는 예시이며, 눌러도 실제 신청·삭제·알림 발송이 발생하지 않습니다. 월 이동은 동작합니다. 모바일에서는 기존처럼 달력을 좌우로 스크롤하세요.</div>
+<dialog id="monthPickerDialog" style="padding:20px;max-width:380px;width:calc(100% - 32px)"><h2 style="font-size:18px;margin:0 0 10px">년·월 이동</h2><input type="month" id="monthChoice" style="width:100%" min="2024-01" max="2035-12"><div style="display:flex;gap:10px"><button class="btn-small" onclick="applyMonth()">이동</button><button class="btn-small" style="background:#64748b" onclick="document.getElementById('monthPickerDialog').close()">취소</button></div></dialog>
+<dialog id="demoActionDialog" style="padding:22px;max-width:400px;width:calc(100% - 32px)"><h2 id="demoActionTitle" style="font-size:18px;margin:0 0 12px"></h2><p style="font-size:13px;line-height:1.65;color:#526477">기존 기능의 버튼 위치와 디자인만 확인하는 테스트입니다. 실제 서버에 연결하거나 데이터를 변경하지 않습니다.</p><button onclick="document.getElementById('demoActionDialog').close()">확인</button></dialog>
 <script>
-
 'use strict';
-const TODAY=new Date(), today=new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
-const kstNow=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-const keyToDate=s=>new Date(Number(s.slice(0,4)),Number(s.slice(5,7))-1,Number(s.slice(8,10)));
-const day0=keyToDate(kstNow());
-let selected=new Date(day0),viewYear=selected.getFullYear(),viewMonth=selected.getMonth();
-const names=['일','월','화','수','목','금','토'],teams=['A','B','C','D'],colors=['var(--a)','var(--b)','var(--c)','var(--d)'];
-const pads=n=>String(n).padStart(2,'0');
-function key(d){return [d.getFullYear(),pads(d.getMonth()+1),pads(d.getDate())].join('-')}
-function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n)}
-function same(a,b){return key(a)===key(b)}
-const offsets={A:0,B:6,C:2,D:4};
-function shift(d,i){const t=teams[i],base=Date.UTC(2026,8,30),v=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()),diff=Math.round((v-base)/86400000),offset=offsets[t];return ['주간','주간','휴무','휴무','야간','야간','휴무','휴무'][((diff+offset)%8+8)%8];}
-const mock=new Map();
-function fixture(d,team){
- const id=d.getFullYear()*13+(d.getMonth()+1)*17+d.getDate()*3+teams.indexOf(team)*7;
- const fallback={off:id%8===0?'김예시':'—',cover:id%8===0?(id%2===0?'대근자 미정':'정예시'):'—',note:id%19===0?'장비 점검 안내':'',reason:'연차'};
- return mock.get(key(d)+'-'+team)||fallback;
+/* Static visual fixture: no Supabase SDK, service worker, network, local storage, or push calls. */
+const mockAnchor=new Date(), demoToday=new Date(mockAnchor.getFullYear(),mockAnchor.getMonth(),mockAnchor.getDate());
+let currentYear=demoToday.getFullYear(),currentMonth=demoToday.getMonth();
+const groups=['A','B','C','D'];
+function two(n){return String(n).padStart(2,'0')}
+function dayKey(d){return d.getFullYear()+'-'+two(d.getMonth()+1)+'-'+two(d.getDate())}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const holidayFixture={'2026-10-03':'개천절','2026-10-09':'한글날','2026-12-25':'성탄절'};
+function shiftFor(date,team){const diff=Math.round((Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(2026,9,24))/86400000);
+ const i=groups.indexOf(team);return ['주간','주간','야간','야간','휴무','휴무','휴무','휴무'][(((diff+i*2)%8)+8)%8];
 }
-function dateLabel(d){return (d.getMonth()+1)+'월 '+d.getDate()+'일 ('+names[d.getDay()]+')'}
-function descShift(type){return type==='주간'?['☀️ 주간','#eaf4ff','#245cba']:type==='야간'?['🌙 야간','#eeedff','#695bc0']:['🌿 휴무','#e8f8f1','#21825b']}
-function render(){
- document.getElementById('monthLabel').textContent=viewYear+'년 '+(viewMonth+1)+'월';
- document.getElementById('heroTitle').textContent='오늘은 '+(shift(day0,1)==='휴무'?'B조 휴무일':'B조 '+shift(day0,1)+' 근무')+'입니다';
- document.getElementById('heroDesc').textContent='한 달의 근무표와 날짜별 4개 조를 한눈에 확인하세요';
- document.getElementById('heroBadge').textContent='📅 '+dateLabel(day0);
- document.getElementById('selectedLabel').textContent=dateLabel(selected);
- renderMonth();
- renderCards();
- renderMine();
+function shorthand(s){return s==='주간'?'주':s==='야간'?'야':'휴'}
+function shiftClass(s){return s==='주간'?'s-day':s==='야간'?'s-night':'s-off'}
+function eventFixture(d,team){
+ const v=d.getDate()+groups.indexOf(team)*3+d.getMonth();
+ return v%13===0?{request:'홍길동',reason:'연차',fill:'대근자 미정',helper:''}:
+ v%11===0?{request:'김예시',reason:'개인',fill:'박예시',helper:'B'}:null;
 }
-function renderMonth(){
- const first=new Date(viewYear,viewMonth,1),count=new Date(viewYear,viewMonth+1,0).getDate(),n=Math.ceil((first.getDay()+count)/7)*7;
- let out=names.map((day,i)=>'<div class="weekday" aria-hidden="true">'+day+'</div>').join('');
- for(let i=0;i<n;i++){
-  const d=new Date(viewYear,viewMonth,i-first.getDay()+1),isMonth=d.getMonth()===viewMonth,teamData=teams.map((t,j)=>({team:t,shift:shift(d,j),ev:fixture(d,t)}));
-  const marked=teamData.some(x=>x.ev.off!=='—'||x.ev.note);
-  const dateKey=key(d);
-  out+='<button type="button" class="month-day'+(isMonth?'':' other-month')+(same(d,day0)?' today':'')+(same(d,selected)?' active':'')+'" aria-pressed="'+same(d,selected)+'" aria-label="'+escapeHtml(dateLabel(d))+' '+teamData.map(x=>x.team+'조 '+x.shift).join(', ')+'" onclick="chooseDate('+d.getFullYear()+','+d.getMonth()+','+d.getDate()+')"><div class="date-top"><span class="date-number">'+d.getDate()+'</span>'+((d.getMonth()===9&&d.getDate()===9)?'<span class="holiday-name">한글날</span>':'')+'</div><div class="mini-shifts">'+teamData.map(x=>'<span class="mini" data-team="'+x.team+'"><b>'+x.team+'</b>'+({'주간':'주','야간':'야','휴무':'휴'}[x.shift])+'</span>').join('')+'</div><div class="day-markers">'+(marked?'<span class="marker">● 휴무/메모</span>':'')+'</div></button>';
+function weekKey(d){const sunday=new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay());return dayKey(sunday)}
+function renderCalendar(){
+ const grid=document.getElementById('calendarGrid');document.getElementById('currentMonthStr').textContent=currentYear+'년 '+(currentMonth+1)+'월';
+ const first=new Date(currentYear,currentMonth,1),days=new Date(currentYear,currentMonth+1,0).getDate(),wkHeights={};
+ for(let d=1;d<=days;d++){let date=new Date(currentYear,currentMonth,d);let w=weekKey(date);wkHeights[w]??={};for(let team of groups){const ev=eventFixture(date,team);wkHeights[w][team]=Math.max(wkHeights[w][team]||1,(date.getDate()>=20&&date.getDate()<=26)?({A:4,B:3,C:3,D:2}[team]):(ev?2:1))}}
+ let html='<div></div>'.repeat(first.getDay());
+ for(let d=1;d<=days;d++){
+  const date=new Date(currentYear,currentMonth,d),k=dayKey(date),w=weekKey(date),today=k===dayKey(demoToday);
+  const holiday=holidayFixture[k]||'',isSun=date.getDay()===0||Boolean(holiday),isSat=date.getDay()===6;
+  const color=isSun?'#e74c3c':isSat?'#007bff':'';
+  html+='<div class="day-cell'+(today?' is-today':'')+'" id="calendar-day-'+k+'"'+(today?' aria-current="date"':'')+'><div class="day-header-bar"><div class="day-date-part" style="color:'+color+'">'+two(currentMonth+1)+'/'+two(d)+(holiday?' <span class="holiday-name">('+esc(holiday)+')</span>':'')+'</div><div class="day-sub-title">대근</div></div>';
+  for(let team of groups){
+   const shift=shiftFor(date,team),event=eventFixture(date,team),rows=wkHeights[w][team];
+   for(let i=0;i<rows;i++){
+    const eventForRow=i===0?event:((d>=20&&d<=26&&((d+i+groups.indexOf(team))%3===0))?{request:['홍예시','김예시','박예시'][i%3],reason:'연차',fill:'',helper:''}:null),present=!!eventForRow,off=shift==='휴무'?' off-request-cell':'';
+    const reqName=present?'<div class="has-data req-data person-team-'+team+'"><span>'+esc(eventForRow.request)+'</span><span class="reason-text">('+esc(eventForRow.reason)+')</span></div>':'';
+    const helper=present?(eventForRow.helper?'<div class="has-data sub-data person-team-'+eventForRow.helper+'">'+esc(eventForRow.fill)+'</div>':'<span class="suggest-guide">대근자 미정</span>'):shift!=='휴무'?'<span class="suggest-guide">'+(team==='D'?'A':String.fromCharCode(team.charCodeAt(0)+1))+'조</span>':'';
+    html+='<div class="team-row'+(team==='B'?' my-team-row':'')+'"><div class="cell-shift '+shiftClass(shift)+'">'+team+shorthand(shift)+'</div><div tabindex="0" role="button" aria-label="'+team+'조 휴무 상세" class="cell-name req-cell-'+team+off+' clickable" data-date="'+k+'" data-team="'+team+'" data-kind="휴무">'+reqName+'</div><div tabindex="0" role="button" aria-label="'+team+'조 대근 상세" class="cell-name sub-cell-'+team+' clickable" data-date="'+k+'" data-team="'+team+'" data-kind="대근">'+helper+'</div></div>';
+   }
+  }
+  html+='<div class="team-row memo-row"><div class="cell-shift" style="color:#795548;font-size:10px">메모</div><div class="cell-name clickable" style="justify-content:center;text-align:center;padding:0 4px;font-size:11px;font-weight:bold;color:#333" data-date="'+k+'" data-kind="메모" tabindex="0" role="button"></div></div></div>';
  }
- document.getElementById('monthgrid').innerHTML=out;
+ grid.innerHTML=html;
+ decorateTeamCardRows(grid);
 }
-function renderCards(){
- document.getElementById('teams').innerHTML=teams.map((t,i)=>{
-  const type=shift(selected,i),[label,bg,fg]=descShift(type),ev=fixture(selected,t);
-  const teamTints=['#f2f6ff','#eefaf5','#fff8ee','#f7f2ff'];
-  return '<article class="team'+(t==='B'?' own-team':'')+'" style="--team:'+colors[i]+';--teamtint:'+teamTints[i]+';--shiftbg:'+bg+';--shiftfg:'+fg+'"><div class="teamhead"><div class="teamname"><span class="teamdot"></span>'+t+'조'+(t==='B'?'<span style="font-size:11px;color:#4773ad;font-weight:700">내 조</span>':'')+'</div><span class="shifttag">'+label+'</span></div><div class="teamfoot"><button class="eventbtn" onclick="eventDetail('+i+',\'휴무\')"><span><small>휴무·지원 신청</small><b>'+escapeHtml(ev.off)+'</b></span><span class="arr">›</span></button><button class="eventbtn" onclick="eventDetail('+i+',\'대근\')"><span><small>대근자</small><b>'+escapeHtml(ev.cover)+'</b></span><span class="arr">›</span></button></div>'+(ev.note?'<div class="cardmemo">📌 '+escapeHtml(ev.note)+'</div>':'')+'</article>';
- }).join('');
-}
-function renderMine(){document.getElementById('myTimeline').innerHTML=Array.from({length:6},(_,i)=>{const d=addDays(day0,i);return '<li><span class="datepill">'+pads(d.getMonth()+1)+'.'+pads(d.getDate())+'</span><span><strong>'+descShift(shift(d,1))[0]+'</strong><small>'+names[d.getDay()]+'요일 · 데모 일정</small></span></li>'}).join('')}
-function chooseDate(y,m,d){selected=new Date(y,m,d);viewYear=y;viewMonth=m;render();if(window.innerWidth<=760)document.getElementById('dayDetail').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}
-function changeMonth(n){const d=new Date(viewYear,viewMonth+n,1);viewYear=d.getFullYear();viewMonth=d.getMonth();selected=new Date(viewYear,viewMonth,Math.min(selected.getDate(),new Date(viewYear,viewMonth+1,0).getDate()));render()}
-function moveDate(n){const d=addDays(selected,n);selected=d;viewYear=d.getFullYear();viewMonth=d.getMonth();render()}
-function goToday(){selected=new Date(day0);viewYear=selected.getFullYear();viewMonth=selected.getMonth();render()}
-function openMonthPicker(){document.getElementById('monthValue').value=viewYear+'-'+pads(viewMonth+1);document.getElementById('monthDialog').showModal()}
-function applyMonthPicker(e){e.preventDefault();const m=document.getElementById('monthValue').value.match(/^(\d{4})-(0[1-9]|1[0-2])$/);if(m){viewYear=Number(m[1]);viewMonth=Number(m[2])-1;selected=new Date(viewYear,viewMonth,1);render()}document.getElementById('monthDialog').close()}
-function selectTab(tab){for(const v of ['calendar','mine','settings'])document.getElementById(v+'View').hidden=v!==tab;document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));document.querySelectorAll('[data-bottom]').forEach(b=>b.classList.toggle('active',b.dataset.bottom===tab));window.scrollTo({top:0,behavior:'smooth'})}
-function toggleTheme(){document.body.classList.toggle('dark')}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function showModal(title,body){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=body;document.getElementById('modal').showModal()}
-function closeModal(){document.getElementById('modal').close()}
-function showDemo(title,text){showModal(title,'<p>'+escapeHtml(text)+'</p><div class="info">🧪 이 테스트 페이지는 정식 서버에 저장하지 않습니다.</div>')}
-function eventDetail(i,type){
- const team=teams[i],ev=fixture(selected,team),val=type==='휴무'?ev.off:ev.cover;
- showModal(team+'조 · '+type+' 시연','<p>'+escapeHtml(dateLabel(selected))+' · '+team+'조 '+type+'</p><div class="fakeinput">'+escapeHtml(val)+'</div><label for="demoEditValue" style="display:block;margin-top:14px;font-weight:750">표시할 이름 (화면 시연)</label><input id="demoEditValue" maxlength="40" placeholder="미정 또는 이름" value="'+escapeHtml(val==='—'?'':val)+'" style="margin:8px 0;width:100%;padding:12px;border:1px solid #c9d7eb;border-radius:10px"><button class="primary" onclick="saveDemo('+i+',\''+type+'\')" style="width:100%">화면에서만 적용</button><div class="info">실제 근무 자료 및 구독에 영향을 주지 않습니다.</div>');
-}
-function saveDemo(i,type){const team=teams[i],dateKey=key(selected),value=document.getElementById('demoEditValue').value.trim()||'—',v={...fixture(selected,team)};if(type==='휴무')v.off=value;else v.cover=value;mock.set(dateKey+'-'+team,v);closeModal();render();}
-function showLogin(){showDemo('로그인 화면 미리보기','실제 로그인 서버와 연결되지 않은 디자인 시안입니다.')}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('modal').open)closeModal()});
-render();
+function changeMonth(offset){const d=new Date(currentYear,currentMonth+offset,1);currentYear=d.getFullYear();currentMonth=d.getMonth();renderCalendar();scrollToToday(false)}
+function goToMonth(){document.getElementById('monthChoice').value=currentYear+'-'+two(currentMonth+1);document.getElementById('monthPickerDialog').showModal()}
+function applyMonth(){const v=document.getElementById('monthChoice').value;if(/^\d{4}-\d{2}$/.test(v)){const [y,m]=v.split('-').map(Number);currentYear=y;currentMonth=m-1;renderCalendar()}document.getElementById('monthPickerDialog').close()}
+function goToday(){currentYear=demoToday.getFullYear();currentMonth=demoToday.getMonth();renderCalendar();scrollToToday(true)}
+function scrollToToday(smooth){const box=document.getElementById('calendar-day-'+dayKey(demoToday));if(box)box.scrollIntoView({behavior:smooth?'smooth':'auto',block:'center',inline:'nearest'})}
+function demoAction(name){const label=document.getElementById('demoActionTitle');label.textContent=name;document.getElementById('demoActionDialog').showModal()}
+function openPersonalView(){demoAction('내 연차·대근 모아보기')}
+function openScheduleShare(){demoAction('배우자용 열람 공유')}
+function openWakeAlarmDialog(){demoAction('기상 알람 연결')}
+function registerPasskey(){demoAction('지문·얼굴 인식 등록')}
+function installAndroidApp(){demoAction('Android 앱 설치')}
+function showIphoneInstallGuide(){demoAction('iPhone 설치 방법')}
+function enableNotifications(){demoAction('알림 설정')}
+function disableNotifications(){demoAction('이 기기 알림 끄기')}
+function changePersonalCode(){demoAction('접속 코드 변경')}
+function logout(){demoAction('로그아웃')}
+function loadData(){renderCalendar()}
+function login(){demoAction('로그인')}
+document.getElementById('calendarGrid').addEventListener('click',e=>{
+ const target=e.target.closest('.cell-name[role="button"]');if(target)demoAction((target.dataset.date||'')+' · '+(target.dataset.team?target.dataset.team+'조 ':'')+target.dataset.kind);
+});
+document.getElementById('calendarGrid').addEventListener('keydown',e=>{
+ if(e.key==='Enter'||e.key===' '){const target=e.target.closest('.cell-name[role="button"]');if(target){e.preventDefault();target.click()}}
+});
+document.getElementById('welcomeMsg').textContent='데모 사용자님 (B조)';
+document.getElementById('personalTools').hidden=false;
+document.getElementById('wakeAlarmPilotButton').hidden=false;
+document.getElementById('wakeAlarmPilotButton').style.display='';
+document.getElementById('scheduleShareButton').hidden=false;
+document.getElementById('scheduleShareButton').style.display='';
 
-</script>
-<dialog id="monthDialog"><div class="modalhead"><h3>조회할 월 선택</h3><button class="bare" onclick="document.getElementById('monthDialog').close()" aria-label="닫기" style="font-size:24px">×</button></div><form class="modalbody" onsubmit="applyMonthPicker(event)"><label for="monthValue" style="display:block;margin-bottom:8px">연·월</label><input id="monthValue" type="month" min="2024-01" max="2035-12" required style="width:100%;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:10px"><button class="primary" type="submit" style="width:100%;margin-top:12px">해당 월로 이동</button></form></dialog>
-</body>
-</html>
+function decorateTeamCardRows(grid=document.getElementById('calendarGrid')){
+  if(!grid)return;
+  for(const day of grid.querySelectorAll('.day-cell')){
+    const rows=[...day.querySelectorAll('.team-row:not(.memo-row)')];
+    const teamCode=row=>{
+      const label=row.querySelector('.cell-shift')?.textContent?.trim()||'';
+      return /^[ABCD]/.test(label)?label[0]:null;
+    };
+    const names=rows.map(teamCode);
+    rows.forEach((row,i)=>{
+      const team=names[i];
+      if(!team)return;
+      row.classList.add('shift-card-row','shift-card-'+team);
+      if(i===0||names[i-1]!==team)row.classList.add('shift-card-first');
+      if(i===rows.length-1||names[i+1]!==team)row.classList.add('shift-card-last');
+    });
+  }
+}
+
+renderCalendar();
+</script></body></html>
