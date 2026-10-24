@@ -1,33 +1,33 @@
-# 교대근무 UI/UX 테스트 시안 (2026-10-24)
+# 교대근무 UI/UX 월간 카드형 디자인 미리보기
 
-이 디렉터리는 운영 서비스와 완전히 분리된 **디자인 테스트 전용** 페이지입니다.
+2026-10-24 버전. 운영 앱은 변경하지 않았습니다.
 
-- 메인 서비스: https://gy7604.github.io/index.html (이 브랜치 변경사항 미반영)
-- **기본 테스트(기존 화면 유지):** https://raw.githack.com/gy7604/gy7604.github.io/shift-ui-preview-20261024/ui-preview/classic.html
-- 다른 구성의 초기 카드형 시안(비추천): https://raw.githack.com/gy7604/gy7604.github.io/shift-ui-preview-20261024/ui-preview/index.html
-- 우선 검토 소스: `ui-preview/classic.html`
-- GitHub 브랜치: `shift-ui-preview-20261024`
+## 지금 볼 테스트 페이지
+https://raw.githack.com/gy7604/gy7604.github.io/shift-ui-preview-20261024/ui-preview/month-cards.html
 
-## 기존 화면 유지 시안 확인사항
+- 월간 달력(7열)에서 날짜 선택 -> A/B/C/D조 개별 카드 4개 표시
+- 주간 전용 달력·주간 보기 전환 제거
+- 조별 색·근무 유형(주간/야간/휴무)·휴무 신청·대근 정보
+- 모바일 1열 / PC 2열 카드 배치
+- 이전/다음 달, 오늘, 월 선택, 이전/다음 날
+- 휴무·대근 화면 시연 변경은 브라우저 메모리에만 존재
+- 로그인, Supabase, 푸시, 기상알람에 접근하지 않는 **가상 데이터 디자인 판**
+- `ui-preview/index.html`도 같은 카드형 디자인으로 갱신
 
-- 현재 운영판의 메인 헤더 DOM, 이용가이드 모달, 7열 근무 달력 DOM을 그대로 재사용
-- A/B/C/D 근무 행 순서, 휴무/대근 2개 입력칸, 메모 행 위치, 달력 너비 950px 유지
-- 색·테두리·카드 그림자·오늘 날짜 표시·터치 피드백만 가볍게 변경
-- 현재 월/이전달/다음달/오늘로/이용가이드 동작을 가상 데이터로 시험 가능
-- 나머지 원래 앱 버튼은 모양 확인용 팝업만 열며 실제 인증/신청/알림 API를 호출하지 않음
+## 실제 서버 조회용 별도 시연 코드
 
-## 중요: 샘플 데이터
+`feature/shift-live-readonly-preview-20261024` 브랜치의 `ui-preview/live-cards.html` 파일을 준비했습니다.
 
-이 페이지에 표시되는 모든 근무·휴무·대근은 **가상 예시**입니다.
-실제 사용자 로그인, Supabase 접속, 등록·수정·삭제, PWA 설치, 푸시 구독, 알람 앱 연동은 동작하지 않습니다.
-개별 구독/근무 데이터를 읽거나 수정하지 않으며 비밀 키도 포함하지 않습니다.
+- 진짜 근무/휴무/대근/메모 자료는 **본인 로그인 후** 기존 `app-session`의 `calendar_read` API로 조회
+- 서버에서 쓰기 요청을 하지 않는 화이트리스트(`login`, `calendar_read`, `personal_read`)
+- 휴무·대근·메모의 시연 변경은 해당 브라우저 메모리에서만 수행
+- 로그인 토큰은 메모리에만 보관
+- 타 도메인에서의 로그인 차단: `https://gy7604.github.io/ui-preview/live-cards.html` 주소에서만 작동
+- **현재는 브랜치에만 저장**. `main` 배포 없이 위 주소가 열리지 않음. 추가 파일 하나의 GitHub Pages 게시에 대한 별도 승인 필요
+- 실제 로그인/원격 API 종단 간 검증은 미실시
 
-## 다음 통합 단계 (운영 승인 전)
+## 보존
 
-- 실제 기존 `index.html` / `assets/calendar.js` 이벤트와 결합
-- 달력의 기존 주간 공백행 정렬, 작성조 메모 권한, 팀별 색상, 월간 표 기능 보존
-- 태블릿/모바일 회귀 테스트 및 접근성 점검
-- 로그인, 휴무/대근 수정, 개인 모아보기, 푸시 유지, 생체 인증, 기상알람 앱 연동 및 서비스 워커 테스트
-- 테스트 페이지 사용자 승인 후에만 main 반영 및 운영 배포 검토
+정식 `index.html`, `assets/calendar.js`, `assets/calendar.css`, `service-worker.js`와 기존 Supabase 데이터·구독은 수정하지 않았습니다.
 
-참고: 이 디자인 미리보기는 별도 호스팅 업체 raw.githack.com의 개발용 프록시 URL에 의존하므로 서버 가용성을 보증할 수 없습니다.
+이전 구조 유지형 테스트: `ui-preview/classic.html` (참고용이며 권장하지 않음).
