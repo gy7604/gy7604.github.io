@@ -3,20 +3,18 @@
 이 디렉터리는 운영 서비스와 완전히 분리된 **디자인 테스트 전용** 페이지입니다.
 
 - 메인 서비스: https://gy7604.github.io/index.html (이 브랜치 변경사항 미반영)
-- 디자인 시험: https://raw.githack.com/gy7604/gy7604.github.io/shift-ui-preview-20261024/ui-preview/index.html
-- 소스 경로: `ui-preview/index.html`
+- **기본 테스트(기존 화면 유지):** https://raw.githack.com/gy7604/gy7604.github.io/shift-ui-preview-20261024/ui-preview/classic.html
+- 다른 구성의 초기 카드형 시안(비추천): https://raw.githack.com/gy7604/gy7604.github.io/shift-ui-preview-20261024/ui-preview/index.html
+- 우선 검토 소스: `ui-preview/classic.html`
 - GitHub 브랜치: `shift-ui-preview-20261024`
 
-## 테스트 가능한 인터랙션
+## 기존 화면 유지 시안 확인사항
 
-1. 주간 보기: 날짜 및 A/B/C/D조 근무 카드
-2. 월간 보기: 기존의 7열 달력 개념을 보존한 가로 스크롤 표
-3. 월 이동 / 오늘 버튼
-4. 내 일정 / 알림 및 설정 탭
-5. 상세 보기 팝업
-6. 라이트/다크 모드
-7. 모바일 전용 하단 내비게이션
-8. 로그인 인터페이스 미리보기
+- 현재 운영판의 메인 헤더 DOM, 이용가이드 모달, 7열 근무 달력 DOM을 그대로 재사용
+- A/B/C/D 근무 행 순서, 휴무/대근 2개 입력칸, 메모 행 위치, 달력 너비 950px 유지
+- 색·테두리·카드 그림자·오늘 날짜 표시·터치 피드백만 가볍게 변경
+- 현재 월/이전달/다음달/오늘로/이용가이드 동작을 가상 데이터로 시험 가능
+- 나머지 원래 앱 버튼은 모양 확인용 팝업만 열며 실제 인증/신청/알림 API를 호출하지 않음
 
 ## 중요: 샘플 데이터
 
