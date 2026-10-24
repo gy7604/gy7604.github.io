@@ -1016,7 +1016,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
 
           dayHtml += `
 
-            <div class="team-row ${isMyTeam}">
+            <div class="team-row shift-card-row shift-card-${team} ${rowIndex === rowsForThisTeam[0] ? 'shift-card-first' : ''} ${rowIndex === rowsForThisTeam[rowsForThisTeam.length - 1] ? 'shift-card-last' : ''} ${isMyTeam}">
 
               <div class="cell-shift ${getShiftClass(shift)}">
                 ${team}${getShortShift(shift)}
