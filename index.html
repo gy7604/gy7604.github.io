@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.22.2">
+  <meta name="app-version" content="2026.10.24.1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -51,7 +51,7 @@ document.addEventListener('pointerdown', event => {
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="apple-touch-icon" href="/icons/shift-sun-moon-v3-180.png">
 
-  <link rel="stylesheet" href="./assets/calendar.css?v=20261019.5">
+  <link rel="stylesheet" href="./assets/calendar.css?v=20261024.1">
 <link rel="icon" type="image/png" href="/icons/shift-sun-moon-v3-192.png">
 </head>
 
@@ -344,7 +344,7 @@ document.addEventListener('pointerdown', event => {
 <dialog id="credentialDialog" class="audit-dialog" aria-labelledby="credentialTitle"><div class="audit-head"><h2 id="credentialTitle">개인코드 변경 현황</h2><button class="btn-small audit-secondary" data-audit-close="credentialDialog" aria-label="개인코드 변경 현황 닫기">닫기</button></div><div class="audit-body"><p class="audit-muted">슈퍼관리자 전용 · 본인 변경과 관리자 초기화를 구분합니다. 과거 기록이 없으면 변경 여부와 시각을 추측하지 않습니다.</p><div class="audit-filters"><label>이름 검색 <input id="credentialSearch" type="search" maxlength="100" placeholder="사용자 이름"></label><label>본인 변경 여부 <select id="credentialStatus"><option value="all">전체</option><option value="changed">변경 기록 있음</option><option value="unknown">과거 변경 여부 확인 불가</option></select></label></div><p id="credentialSummary" class="audit-muted" aria-live="polite"></p><div id="credentialResults"></div></div></dialog>
 
 <dialog id="monthJumpDialog"><form onsubmit="event.preventDefault();applyMonthJump()"><h3>이동할 년월 선택</h3><input id="monthJumpValue" type="month" min="1900-01" max="2200-12" required aria-label="이동할 년월"><div style="display:flex;gap:8px;margin-top:12px"><button type="button" onclick="document.getElementById('monthJumpDialog').close()">취소</button><button type="submit">이동</button></div></form></dialog>
-  <script src="./vendor/supabase-2.95.0.js"></script><script src="./assets/calendar.js?v=20261019.5"></script>
+  <script src="./vendor/supabase-2.95.0.js"></script><script src="./assets/calendar.js?v=20261024.1"></script>
 <script>
 
   /*
