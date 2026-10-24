@@ -281,3 +281,101 @@
 .day-cell.is-today{position:relative;box-shadow:inset 0 0 0 3px #005fcc;scroll-margin-top:160px;}
 .day-cell.is-today::after{content:"";position:absolute;inset:0;border:3px solid #005fcc;pointer-events:none;z-index:2;}
 .day-cell.is-today .day-header-bar{background:#deedff;}
+
+
+/* Production team group cards (2026-10-24).
+   Existing seven-column calendar, click handlers, row counts and memo sizing remain unchanged. */
+.cal-grid{background:#f8fafc;border-top-color:#5674a5}
+.day-cell{background:#f7f9fd;overflow:hidden}
+.day-header-bar{background:#e9f1fc}
+.day-cell .team-row.shift-card-row{
+  --accent:#4b7ddd;--tint:#edf4ff;
+  margin-left:4px;
+  margin-right:4px;
+  position:relative;
+  background:#fff;
+  border:1px solid #dfe7f0;
+  border-top:0;
+  border-bottom:0;
+  border-radius:0;
+  font-size:12px;
+  min-height:36px;
+  box-sizing:border-box;
+}
+.day-cell .team-row.shift-card-A{--accent:#3c74d9;--tint:#edf4ff}
+.day-cell .team-row.shift-card-B{--accent:#21986d;--tint:#e9f9f1}
+.day-cell .team-row.shift-card-C{--accent:#d7902c;--tint:#fff4e4}
+.day-cell .team-row.shift-card-D{--accent:#8660c4;--tint:#f3efff}
+.day-cell .team-row.shift-card-first{
+  margin-top:7px;
+  border-top:1px solid #dde6f0;
+  border-radius:10px 10px 0 0;
+}
+.day-cell .team-row.shift-card-last{
+  margin-bottom:5px;
+  border-bottom:1px solid #dde6f0;
+  border-radius:0 0 10px 10px;
+}
+.day-cell .team-row.shift-card-first.shift-card-last{
+  border-radius:10px;
+}
+.day-cell .team-row.shift-card-row.shift-card-first{
+  box-shadow:0 -1px 5px rgba(37,62,98,.025);
+}
+.day-cell .team-row.shift-card-row.shift-card-last{
+  box-shadow:0 3px 8px rgba(24,45,81,.08);
+}
+.day-cell .team-row.shift-card-row:not(.shift-card-last){
+  border-bottom:1px solid #e9eef5;
+}
+.day-cell .team-row.shift-card-row .cell-shift{
+  width:45px;flex:0 0 45px;
+  color:#1d466e;
+  background:var(--tint);
+  border-left:4px solid var(--accent);
+  border-right:1px solid #e5eaf3;
+  padding:0 1px;
+  font-weight:850;
+}
+.day-cell .team-row.shift-card-row .cell-shift.s-day{color:#187f58}
+.day-cell .team-row.shift-card-row .cell-shift.s-night{color:#2873b2}
+.day-cell .team-row.shift-card-row .cell-shift.s-off{color:#758699}
+.day-cell .team-row.shift-card-row.shift-card-first .cell-shift{
+  border-top-left-radius:9px;
+}
+.day-cell .team-row.shift-card-row.shift-card-last .cell-shift{
+  border-bottom-left-radius:9px;
+}
+.day-cell .team-row.shift-card-row .cell-name{
+  overflow-wrap:anywhere;
+  padding:4px 2px;
+  min-height:35px;
+}
+.day-cell .team-row.shift-card-row.my-team-row{
+  background:#f2f7ff;
+  box-shadow:inset 0 0 0 1px #99bef8;
+}
+.day-cell .team-row.shift-card-row .has-data{min-width:0;width:100%}
+.day-cell .team-row.shift-card-row .has-data span{
+  max-width:100%;
+  text-align:center;
+  overflow-wrap:anywhere;
+}
+.day-cell .team-row.shift-card-row .reason-text{
+  font-size:10px;line-height:1.3;
+}
+.day-cell .team-row.shift-card-row .cell-name.clickable:hover{
+  outline:1px solid #74a9ff;outline-offset:-1px;
+  background:#e9f3ff!important;
+}
+.day-cell .memo-row{
+  margin-top:5px;
+  background:#fff9e7;
+  border-top:1px solid #eadfb9;
+}
+.day-cell .memo-row .cell-name{
+  overflow-wrap:anywhere;
+}
+.day-cell.is-today .day-header-bar{
+  background:#deebff;
+}
