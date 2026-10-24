@@ -1,0 +1,544 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#edf2f8"><title>교대근무 · 기존 화면 유지 디자인 테스트</title><style>
+
+    body {
+      font-family: 'Malgun Gothic', sans-serif;
+      padding: 10px;
+      background-color: #e9ecef;
+      margin: 0;
+      color: #333;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0 15px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn-small {
+      width: auto;
+      padding: 6px 12px;
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .cal-wrapper {
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      min-width: 950px;
+      border-top: 2px solid #555;
+      border-left: 1px solid #ccc;
+      background: #fff;
+    }
+
+    .cal-header-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      min-width: 950px;
+      text-align: center;
+      font-weight: bold;
+      background: #f8f9fa;
+      border-left: 1px solid #ccc;
+    }
+
+    .cal-header-cell {
+      padding: 8px 0;
+      border-right: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .day-cell {
+      border-right: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .day-header-bar {
+      display: grid;
+      grid-template-columns: calc(50% + 22.5px) calc(50% - 22.5px);
+      background: #f1f3f5;
+      border-bottom: 1px solid #ddd;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    /*
+     * 아래 실제 행 구조는
+     * [조/근무 45px] + [휴무 입력] + [대근 입력]
+     * 이므로 헤더도 동일한 열 비율을 사용합니다.
+     */
+    .day-date-part {
+      width: 100%;
+      padding: 4px;
+      border-right: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .day-sub-title {
+      width: 100%;
+      padding: 4px;
+      color: #0056b3;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .holiday-name {
+      font-size: 11px;
+      font-weight: normal;
+      margin-left: 3px;
+      letter-spacing: -0.5px;
+    }
+
+    .team-row {
+      display: flex;
+      min-height: 35px;
+      border-bottom: 1px solid #eee;
+      font-size: 12px;
+    }
+
+    .memo-row {
+      border-top: 1px solid #ccc;
+      background-color: #fff9c4;
+      border-bottom: none;
+    }
+
+    .my-team-row {
+      background-color: #e6f2ff;
+    }
+
+    .cell-shift {
+      width: 45px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      border-right: 1px solid #eee;
+    }
+
+    .cell-name {
+      flex: 1 1 0;
+      min-width: 0;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-right: 1px solid #eee;
+      color: #495057;
+      position: relative;
+    }
+
+    .cell-name:last-child {
+      border-right: none;
+    }
+
+    .off-request-cell {
+      background-color: #ffffff !important;
+    }
+
+    .clickable {
+      cursor: pointer;
+    }
+
+    .clickable:hover {
+      background-color: #f1f3f5;
+    }
+
+    .has-data {
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.2;
+    }
+
+    .req-data {
+      color: #1e8449;
+    }
+
+    .sub-data {
+      color: #495057;
+      background-color: transparent;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      display: flex;
+      align-items: center;
+    }
+
+    .reason-text {
+      font-size: 10px;
+      color: #888;
+      font-weight: normal;
+    }
+
+    .suggest-guide {
+      color: inherit;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    /* 대근칸 바탕은 신청 조, 이름 색은 대근자의 소속 조를 따릅니다. */
+    .cell-name.sub-cell-A { background-color: #ffd29a; color: #663300; }
+    .cell-name.sub-cell-B { background-color: #dff2df; color: #14532d; }
+    .cell-name.sub-cell-C { background-color: #deecff; color: #123e73; }
+    .cell-name.sub-cell-D { background-color: #fff2b8; color: #594400; }
+    .cell-name.sub-cell-A .suggest-guide { color: #663300; }
+    .cell-name.sub-cell-B .suggest-guide { color: #14532d; }
+    .cell-name.sub-cell-C .suggest-guide { color: #123e73; }
+    .cell-name.sub-cell-D .suggest-guide { color: #594400; }
+
+    .cell-name.req-cell-B:not(.off-request-cell) { background-color: #dcf5ed; }
+
+    /* 소속 조 색상은 휴무와 대근에 동일하게 적용합니다. */
+    .has-data.person-team-A { color: #07559b; }
+    .has-data.person-team-B { color: #17713b; }
+    .has-data.person-team-C { color: #96520a; }
+    .has-data.person-team-D { color: #7139a6; }
+
+    .s-day {
+      color: #1e8449;
+      font-weight: bold;
+    }
+
+    .s-night {
+      color: #2980b9;
+      font-weight: bold;
+    }
+
+    .s-off {
+      color: #7f8c8d;
+    }
+
+    #mainScreen {
+      display: none;
+    }
+
+/* Personal and super-administrator views */
+.audit-icon{width:auto;min-width:40px;min-height:40px;padding:8px;background:transparent;color:#a77800;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center}
+.audit-icon:hover{background:#eef2f6}.audit-icon:focus-visible{outline:3px solid #ffb000;outline-offset:2px}
+.audit-dialog{border:0;border-radius:10px;padding:0;width:min(760px,calc(100% - 24px));max-height:88vh;color:#333;font-family:inherit;box-shadow:0 18px 60px #0004}
+.audit-dialog::backdrop{background:#18253c80}.audit-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px;border-bottom:1px solid #e2e8f0}.audit-head h2{font-size:18px;margin:0}.audit-body{padding:16px;max-height:calc(88vh - 80px);overflow:auto}.audit-tabs{display:flex;gap:8px;margin-bottom:16px}.audit-tabs button{background:#eef2f6;color:#475569}.audit-tabs .audit-active{background:#007bff;color:white}.audit-filters{display:flex;gap:10px;flex-wrap:wrap}.audit-filters label{font-size:13px;max-width:100%}.audit-filters input,.audit-filters select{width:auto;max-width:100%;padding:9px;font-size:14px;display:block;margin:4px 0}.audit-item{border:1px solid #dce3ec;border-radius:7px;padding:14px;margin-bottom:12px;font-size:14px}.audit-item p{line-height:1.6;margin:8px 0}.audit-between{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.audit-tag{background:#e6f2ff;color:#0061ba;padding:4px 8px;border-radius:16px;font-size:12px}.audit-muted{font-size:12px;color:#64748b;line-height:1.6}.audit-empty{text-align:center;background:#f8fafc;padding:24px;color:#64748b}.audit-secondary{background:#eef2f6;color:#34465c}.audit-diff{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.audit-diff div{background:#f1f5f9;padding:10px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}.audit-diff div:last-child{background:#eaf4ff}.audit-diff small{display:block;color:#64748b}.audit-selected{outline:3px solid #ffb000;outline-offset:-3px}.audit-dialog details summary{cursor:pointer;margin-top:12px}body:has(.audit-dialog[open]){overflow:hidden}
+@media(max-width:600px){.audit-diff{grid-template-columns:1fr}.audit-head,.audit-body{padding:12px}}
+
+  
+.app-topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:100;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:10px!important;margin-bottom:8px!important}
+.app-identity{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.app-identity h2{margin:0;font-size:16px}
+.app-identity .btn-small{font-size:12px;padding:6px 8px;white-space:nowrap}
+.app-month{display:flex;align-items:center;justify-content:center;gap:6px}
+.app-month button{width:auto;margin:0;background:#e9ecef;color:#222;padding:6px 8px}
+#currentMonthStr{background:transparent;font-size:18px;font-weight:bold;text-decoration:underline;text-underline-offset:4px;white-space:nowrap}
+.app-actions{display:flex;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+.app-actions button{font-size:0!important;width:34px;min-height:32px;padding:5px!important;margin:0}
+.app-actions button::before{content:attr(data-icon);font-size:16px}
+.app-guide{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px!important;margin-bottom:8px!important;font-size:12px;line-height:1.5}
+.app-guide>div+div{border-left:1px solid #ddd;padding-left:12px}
+.app-calendar{padding:8px!important}
+@media(max-width:700px){.app-topbar{grid-template-columns:1fr auto}.app-identity h2{font-size:14px}.app-month{grid-column:1 / -1;grid-row:2}.app-guide{font-size:11px;gap:8px}.app-guide>div+div{padding-left:8px}}
+
+.memo-row .cell-name{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.35;padding-top:6px!important;padding-bottom:6px!important}
+
+
+/* Inset border stays visible without changing calendar column widths. */
+.day-cell.is-today{position:relative;box-shadow:inset 0 0 0 3px #005fcc;scroll-margin-top:160px;}
+.day-cell.is-today::after{content:"";position:absolute;inset:0;border:3px solid #005fcc;pointer-events:none;z-index:2;}
+.day-cell.is-today .day-header-bar{background:#deedff;}
+
+
+/* October 2026 subtle classic UI refinement. Purely visual; no layout redesign. */
+:root{--ui-surface:#fff;--ui-slate:#edf2f8;--ui-border:#dce5f1;--ui-text:#203147;--ui-blue:#2268ce;--ui-ring:#2569ce}
+*{box-sizing:border-box}
+body{background:#edf2f8;color:var(--ui-text);font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;padding:12px}
+button,input,select{font-family:inherit}
+button{transition:background-color .16s ease,filter .16s ease,transform .16s ease,box-shadow .16s ease}
+button:active{transform:scale(.965)}
+button:focus-visible,input:focus-visible{outline:3px solid #73a2eb;outline-offset:2px}
+.card{border-radius:15px;border:1px solid var(--ui-border);box-shadow:0 5px 18px rgba(28,58,96,.055);margin-bottom:10px}
+#mainScreen{display:block;max-width:1480px;margin:0 auto}
+.app-topbar{background:linear-gradient(135deg,#fff,#f8fbff);border:1px solid #cdddf0;box-shadow:0 7px 21px rgba(37,87,160,.10);border-radius:15px;top:10px;gap:9px;padding:12px 14px!important}
+.app-identity h2{font-weight:850;color:#1b3456;letter-spacing:-.025em}
+.app-identity #personalTools .btn-small{background:#edf4ff;color:#2557a0;border:1px solid #cadcf5;border-radius:9px;font-weight:750}
+.app-month{background:#f1f6fd;border:1px solid #dde9fa;border-radius:12px;padding:4px 5px}
+.app-month button{border-radius:9px;background:#fff;color:#245aaf;font-size:15px;font-weight:800}
+#currentMonthStr{background:transparent;color:#1e3f78;font-size:18px;text-decoration:none}
+.app-actions button{width:37px;min-height:37px;border-radius:10px;border:1px solid #ffffff26;box-shadow:0 2px 5px rgba(22,37,65,.08)}
+.app-actions button:hover{filter:brightness(1.07);box-shadow:0 4px 11px rgba(32,67,126,.18)}
+.app-actions button::before{font-size:17px}
+.app-calendar{background:var(--ui-surface);padding:10px!important;border-radius:14px}
+.cal-wrapper{border-radius:11px;scrollbar-color:#b5c8e4 transparent;scrollbar-width:thin;overscroll-behavior-x:contain}
+.cal-grid{border-top:2px solid #6687b8;border-left-color:#d5dfec;background:#fff}
+.cal-header-row{background:#eef4fb;border-left-color:#d5dfec}
+.cal-header-cell{background:linear-gradient(#f7faff,#eaf1fa);color:#364e70;border-right:1px solid #d7e2ef;border-bottom:1px solid #d7e2ef;font-size:13px;letter-spacing:-.02em;line-height:1.65}
+.day-cell{border-color:#d9e1ed}
+.day-header-bar{background:#eef3f9;color:#2a4565;border-bottom-color:#d8e3f0}
+.day-date-part{font-weight:850}
+.day-sub-title{background:#e5eefc;color:#2d5fa7;font-weight:800}
+.team-row{min-height:37px;border-bottom-color:#e7edf4}
+.cell-shift{font-weight:850;border-right-color:#dce6f2}
+.cell-name{border-right-color:#e3eaf4}
+.my-team-row{background:#eaf3ff}
+.cell-name.sub-cell-A{background:#ffd7a7}
+.cell-name.sub-cell-B{background:#dff2df}
+.cell-name.sub-cell-C{background:#deecff}
+.cell-name.sub-cell-D{background:#fff2b8}
+.day-cell.is-today{box-shadow:inset 0 0 0 3px var(--ui-ring);scroll-margin-top:148px}
+.day-cell.is-today::after{border:3px solid var(--ui-ring);border-radius:2px}
+.day-cell.is-today .day-header-bar{background:#daeafa;color:#153b80}
+.day-cell.is-today .day-date-part{background:#d7e8ff}
+.memo-row{background:#fff8d7}
+.cell-name.clickable{transition:background-color .13s ease,box-shadow .13s ease}
+.cell-name.clickable:hover{background-color:#e4efff!important;box-shadow:inset 0 0 0 1px #9dc0f2}
+.cell-name.clickable:active{background-color:#d2e5ff!important}
+.audit-dialog,dialog{border-radius:17px;box-shadow:0 25px 70px #2036583e}
+.audit-head{background:#f4f7fc}
+.preview-ribbon{display:flex;justify-content:space-between;align-items:center;gap:10px;max-width:1480px;margin:0 auto 10px;background:#18325a;color:#fff;border-radius:12px;padding:9px 13px;font-size:12px;font-weight:700}
+.preview-ribbon strong{color:#b7d7ff}
+.preview-ribbon button{width:auto;min-height:31px;padding:5px 10px;border-radius:8px;color:#214c8a;background:#f6faff;font-size:12px}
+.preview-note{max-width:1480px;margin:8px auto;padding:11px 14px;border:1px solid #d1e2f8;border-radius:12px;background:#f8fbff;color:#37587c;font-size:12px;line-height:1.6}
+.preview-fade .app-calendar{animation:subtleReveal .22s ease both}
+@keyframes subtleReveal{from{opacity:.75;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media(max-width:700px){
+ body{padding:8px}
+ .app-topbar{top:5px;padding:9px!important;gap:8px}
+ .app-identity h2{font-size:14px}
+ .app-actions{gap:4px}
+ .app-actions button{width:34px;min-height:34px;padding:5px!important}
+ .app-month{padding:3px 5px}
+ #currentMonthStr{font-size:17px}
+ .app-calendar{padding:5px!important}
+ .preview-ribbon{font-size:11px;padding:8px 9px}
+ .preview-ribbon button{padding:4px 7px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){*,*::after,*::before{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style></head><body>
+<div class="preview-ribbon"><div>🧪 <strong>기존 화면 유지 · 디자인 수정안</strong> · 가상 일정 / 서버 미연결</div><div><button type="button" onclick="goToday()">오늘로</button></div></div>
+  <div id="mainScreen">
+
+<div class="card app-topbar">
+ <div class="app-identity"><h2 id="welcomeMsg">환영합니다!</h2><div id="personalTools" hidden><button class="btn-small" onclick="openPersonalView()" title="내 연차·대근 모아보기">☷ 내 연차·대근 모아보기</button></div></div>
+ <div class="app-month"><button class="btn-small" onclick="changeMonth(-1)" aria-label="이전 달">◀</button><button id="currentMonthStr" onclick="goToMonth()" title="원하는 년월로 이동">2026년 10월</button><button class="btn-small" onclick="changeMonth(1)" aria-label="다음 달">▶</button></div>
+ <div class="app-actions"><button id="scheduleShareButton" hidden type="button" data-icon="🔗" class="btn-small" style="display:none;background:#355a78" onclick="openScheduleShare()" title="배우자용 열람 공유">배우자용 열람 공유</button><button id="wakeAlarmPilotButton" hidden type="button" data-icon="⏰" title="기상 알람 연결" onclick="openWakeAlarmDialog()" class="btn-small" style="background:#355a78;display:none;">기상 알람 연결</button><button id="passkeyRegisterButton" type="button" hidden data-icon="🔐" title="지문·얼굴 인식 등록" onclick="registerPasskey()" class="btn-small" style="background:#355a78;">지문·얼굴 인식 등록</button><button
+            id="androidInstallButton" data-icon="📱" title="Android 앱 설치"
+            onclick="installAndroidApp()"
+            class="btn-small"
+            style="background-color: #007bff; display: none;"
+          >
+            📱 Android 앱 설치
+          </button>
+
+          <button
+            id="iphoneInstallButton" data-icon="🍎" title="iPhone 설치 방법"
+            onclick="showIphoneInstallGuide()"
+            class="btn-small"
+            style="background-color: #6f42c1;"
+          >
+            🍎 iPhone 설치 방법
+          </button>
+
+          <button
+            id="notificationButton" data-icon="🔔" title="알림 설정"
+            onclick="enableNotifications()"
+            class="btn-small"
+            style="background-color: #28a745;"
+          >
+            🔔 알림 설정
+          </button>
+
+          <button id="disableNotificationButton" type="button" hidden data-icon="🔕" title="이 기기 알림 끄기" aria-label="이 기기 알림 끄기" class="btn-small" style="background-color:#b42332;" onclick="disableNotifications()">이 기기 알림 끄기</button>
+
+          <button
+            data-icon="🔑" title="접속 코드 변경" onclick="changePersonalCode()"
+            class="btn-small"
+            style="background-color: #17a2b8;"
+          >
+            접속 코드 변경
+          </button>
+
+          <button
+            data-icon="🚪" title="로그아웃" onclick="logout()"
+            class="btn-small"
+            style="background-color: #6c757d;"
+          >
+            로그아웃
+          </button>
+        </div>
+</div>
+<div class="card" style="padding:10px 14px;">
+  <button type="button" class="btn-small" style="width:auto;" onclick="document.getElementById('appGuideDialog').showModal()">📖 이용 가이드</button>
+</div>
+<dialog id="appGuideDialog" aria-labelledby="appGuideTitle" style="width:min(90vw,600px);box-sizing:border-box;max-height:85vh;overflow:auto;border:0;border-radius:14px;padding:20px;">
+  <h2 id="appGuideTitle" style="margin:0 0 14px;font-size:20px;">이용 가이드</h2>
+  <div class="app-guide"><div><strong>휴무·추가 지원 신청 안내</strong><br>
+      사유에 <strong>정수</strong>가 포함되면 이름 대신 <strong>정수 지원</strong>으로 표시됩니다.<br>
+      <strong>정수</strong> 없이 <strong>지원</strong>이 포함되면 <strong>지원</strong>으로 표시됩니다.<br>
+      예: 정수, 정수지원, 정수 지원 → 정수 지원 · 지원 → 지원<br>
+      해당 신청은 추가 지원으로 등록되며, 일반 휴무는 기존처럼 이름과 사유가 표시됩니다.
+    </div><div>  🔔 <strong>휴무 등록 알림:</strong>
+  휴무를 등록하면 <strong>휴무 신청 조와 해당 날짜의 대근조</strong> 직원에게 알림이 발송됩니다.<br>
+
+  🔔 <strong>대근 등록 알림:</strong>
+  대근이 등록되면 <strong>휴무 신청 조와 대근조</strong> 직원에게 알림이 발송됩니다.<br>
+
+  📌 <strong>예시:</strong>
+  B조 홍길동님이 10월 18일 주간 휴무 신청 →
+  <strong>B조 + 대근조(A조)</strong>에 알림 발송,
+  C조·D조에는 알림이 발송되지 않습니다.<br>
+
+  🔔 <strong>주임 근태 알림:</strong> 임병철(A조)·백승학(B조)·김철종(C조)·주영훈(D조)의 근태 관련 알림은 일반 반원에게 발송되지 않습니다. 주임의 기존 수신 범위는 유지됩니다.<br><br>
+  💡 <strong>달력 이동:</strong>
+  가운데 표시된 <strong>년·월을 클릭</strong>하면 원하는 년·월로 바로 이동할 수 있습니다.
+
+      </div></div>
+
+  <form method="dialog"><button type="submit" autofocus style="margin-top:16px;">닫기</button></form>
+</dialog>
+<div id="calendarConnectionNotice" class="card" hidden role="status"><span id="calendarConnectionText"></span> <button class="btn-small" onclick="loadData()">다시 시도</button></div>
+<div class="card app-calendar">
+      <div class="cal-wrapper">
+
+        <div class="cal-header-row">
+
+          <div class="cal-header-cell"
+               style="color: red;">
+            일
+          </div>
+
+          <div class="cal-header-cell">월</div>
+          <div class="cal-header-cell">화</div>
+          <div class="cal-header-cell">수</div>
+          <div class="cal-header-cell">목</div>
+          <div class="cal-header-cell">금</div>
+
+          <div class="cal-header-cell"
+               style="color: blue;">
+            토
+          </div>
+
+        </div>
+
+        <div id="calendarGrid"
+             class="cal-grid"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+<div class="preview-note">🔒 이 페이지는 <b>기존 월간 근무표 화면 배치 그대로</b> 디자인만 개선한 시안입니다. 모든 근무·휴무·대근 정보는 예시이며, 눌러도 실제 신청·삭제·알림 발송이 발생하지 않습니다. 월 이동은 동작합니다. 모바일에서는 기존처럼 달력을 좌우로 스크롤하세요.</div>
+<dialog id="monthPickerDialog" style="padding:20px;max-width:380px;width:calc(100% - 32px)"><h2 style="font-size:18px;margin:0 0 10px">년·월 이동</h2><input type="month" id="monthChoice" style="width:100%" min="2024-01" max="2035-12"><div style="display:flex;gap:10px"><button class="btn-small" onclick="applyMonth()">이동</button><button class="btn-small" style="background:#64748b" onclick="document.getElementById('monthPickerDialog').close()">취소</button></div></dialog>
+<dialog id="demoActionDialog" style="padding:22px;max-width:400px;width:calc(100% - 32px)"><h2 id="demoActionTitle" style="font-size:18px;margin:0 0 12px"></h2><p style="font-size:13px;line-height:1.65;color:#526477">기존 기능의 버튼 위치와 디자인만 확인하는 테스트입니다. 실제 서버에 연결하거나 데이터를 변경하지 않습니다.</p><button onclick="document.getElementById('demoActionDialog').close()">확인</button></dialog>
+<script>
+'use strict';
+/* Static visual fixture: no Supabase SDK, service worker, network, local storage, or push calls. */
+const mockAnchor=new Date(), demoToday=new Date(mockAnchor.getFullYear(),mockAnchor.getMonth(),mockAnchor.getDate());
+let currentYear=demoToday.getFullYear(),currentMonth=demoToday.getMonth();
+const groups=['A','B','C','D'];
+function two(n){return String(n).padStart(2,'0')}
+function dayKey(d){return d.getFullYear()+'-'+two(d.getMonth()+1)+'-'+two(d.getDate())}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const holidayFixture={'2026-10-03':'개천절','2026-10-09':'한글날','2026-12-25':'성탄절'};
+function shiftFor(date,team){const diff=Math.round((Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(2026,9,24))/86400000);
+ const i=groups.indexOf(team);return ['주간','주간','야간','야간','휴무','휴무','휴무','휴무'][(((diff+i*2)%8)+8)%8];
+}
+function shorthand(s){return s==='주간'?'주':s==='야간'?'야':'휴'}
+function shiftClass(s){return s==='주간'?'s-day':s==='야간'?'s-night':'s-off'}
+function eventFixture(d,team){
+ const v=d.getDate()+groups.indexOf(team)*3+d.getMonth();
+ return v%13===0?{request:'홍길동',reason:'연차',fill:'대근자 미정',helper:''}:
+ v%11===0?{request:'김예시',reason:'개인',fill:'박예시',helper:'B'}:null;
+}
+function weekKey(d){const sunday=new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay());return dayKey(sunday)}
+function renderCalendar(){
+ const grid=document.getElementById('calendarGrid');document.getElementById('currentMonthStr').textContent=currentYear+'년 '+(currentMonth+1)+'월';
+ const first=new Date(currentYear,currentMonth,1),days=new Date(currentYear,currentMonth+1,0).getDate(),wkHeights={};
+ for(let d=1;d<=days;d++){let date=new Date(currentYear,currentMonth,d);let w=weekKey(date);wkHeights[w]??={};for(let team of groups){const ev=eventFixture(date,team);wkHeights[w][team]=Math.max(wkHeights[w][team]||1,ev?2:1)}}
+ let html='<div></div>'.repeat(first.getDay());
+ for(let d=1;d<=days;d++){
+  const date=new Date(currentYear,currentMonth,d),k=dayKey(date),w=weekKey(date),today=k===dayKey(demoToday);
+  const holiday=holidayFixture[k]||'',isSun=date.getDay()===0||Boolean(holiday),isSat=date.getDay()===6;
+  const color=isSun?'#e74c3c':isSat?'#007bff':'';
+  html+='<div class="day-cell'+(today?' is-today':'')+'" id="calendar-day-'+k+'"'+(today?' aria-current="date"':'')+'><div class="day-header-bar"><div class="day-date-part" style="color:'+color+'">'+two(currentMonth+1)+'/'+two(d)+(holiday?' <span class="holiday-name">('+esc(holiday)+')</span>':'')+'</div><div class="day-sub-title">대근</div></div>';
+  for(let team of groups){
+   const shift=shiftFor(date,team),event=eventFixture(date,team),rows=wkHeights[w][team];
+   for(let i=0;i<rows;i++){
+    const present=i===0&&event,off=shift==='휴무'?' off-request-cell':'';
+    const reqName=present?'<div class="has-data req-data person-team-'+team+'"><span>'+esc(event.request)+'</span><span class="reason-text">('+esc(event.reason)+')</span></div>':'';
+    const helper=present?(event.helper?'<div class="has-data sub-data person-team-'+event.helper+'">'+esc(event.fill)+'</div>':'<span class="suggest-guide">대근자 미정</span>'):shift!=='휴무'?'<span class="suggest-guide">'+(team==='D'?'A':String.fromCharCode(team.charCodeAt(0)+1))+'조</span>':'';
+    html+='<div class="team-row'+(team==='B'?' my-team-row':'')+'"><div class="cell-shift '+shiftClass(shift)+'">'+team+shorthand(shift)+'</div><div tabindex="0" role="button" aria-label="'+team+'조 휴무 상세" class="cell-name req-cell-'+team+off+' clickable" data-date="'+k+'" data-team="'+team+'" data-kind="휴무">'+reqName+'</div><div tabindex="0" role="button" aria-label="'+team+'조 대근 상세" class="cell-name sub-cell-'+team+' clickable" data-date="'+k+'" data-team="'+team+'" data-kind="대근">'+helper+'</div></div>';
+   }
+  }
+  html+='<div class="team-row memo-row"><div class="cell-shift" style="color:#795548;font-size:10px">메모</div><div class="cell-name clickable" style="justify-content:center;text-align:center;padding:0 4px;font-size:11px;font-weight:bold;color:#333" data-date="'+k+'" data-kind="메모" tabindex="0" role="button"></div></div></div>';
+ }
+ grid.innerHTML=html;
+}
+function changeMonth(offset){const d=new Date(currentYear,currentMonth+offset,1);currentYear=d.getFullYear();currentMonth=d.getMonth();renderCalendar();scrollToToday(false)}
+function goToMonth(){document.getElementById('monthChoice').value=currentYear+'-'+two(currentMonth+1);document.getElementById('monthPickerDialog').showModal()}
+function applyMonth(){const v=document.getElementById('monthChoice').value;if(/^\d{4}-\d{2}$/.test(v)){const [y,m]=v.split('-').map(Number);currentYear=y;currentMonth=m-1;renderCalendar()}document.getElementById('monthPickerDialog').close()}
+function goToday(){currentYear=demoToday.getFullYear();currentMonth=demoToday.getMonth();renderCalendar();scrollToToday(true)}
+function scrollToToday(smooth){const box=document.getElementById('calendar-day-'+dayKey(demoToday));if(box)box.scrollIntoView({behavior:smooth?'smooth':'auto',block:'center',inline:'nearest'})}
+function demoAction(name){const label=document.getElementById('demoActionTitle');label.textContent=name;document.getElementById('demoActionDialog').showModal()}
+function openPersonalView(){demoAction('내 연차·대근 모아보기')}
+function openScheduleShare(){demoAction('배우자용 열람 공유')}
+function openWakeAlarmDialog(){demoAction('기상 알람 연결')}
+function registerPasskey(){demoAction('지문·얼굴 인식 등록')}
+function installAndroidApp(){demoAction('Android 앱 설치')}
+function showIphoneInstallGuide(){demoAction('iPhone 설치 방법')}
+function enableNotifications(){demoAction('알림 설정')}
+function disableNotifications(){demoAction('이 기기 알림 끄기')}
+function changePersonalCode(){demoAction('접속 코드 변경')}
+function logout(){demoAction('로그아웃')}
+function loadData(){renderCalendar()}
+function login(){demoAction('로그인')}
+document.getElementById('calendarGrid').addEventListener('click',e=>{
+ const target=e.target.closest('.cell-name[role="button"]');if(target)demoAction((target.dataset.date||'')+' · '+(target.dataset.team?target.dataset.team+'조 ':'')+target.dataset.kind);
+});
+document.getElementById('calendarGrid').addEventListener('keydown',e=>{
+ if(e.key==='Enter'||e.key===' '){const target=e.target.closest('.cell-name[role="button"]');if(target){e.preventDefault();target.click()}}
+});
+document.getElementById('welcomeMsg').textContent='데모 사용자님 (B조)';
+document.getElementById('personalTools').hidden=false;
+document.getElementById('wakeAlarmPilotButton').hidden=false;
+document.getElementById('wakeAlarmPilotButton').style.display='';
+document.getElementById('scheduleShareButton').hidden=false;
+document.getElementById('scheduleShareButton').style.display='';
+renderCalendar();
+</script></body></html>
