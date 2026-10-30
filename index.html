@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.10.24.1">
+  <meta name="app-version" content="2026.10.30.1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -387,6 +387,40 @@ document.addEventListener('pointerdown', event => {
   let observedTodayKey=calendarTodayKey();
   let currentYear=Number(observedTodayKey.slice(0,4));
   let currentMonth=Number(observedTodayKey.slice(5,7))-1;
+
+  // Only the viewed year/month is saved on this device, scoped to the logged-in user.
+  // No PIN, session, subscription or calendar records enter browser storage.
+  const LAST_VIEWED_MONTH_PREFIX='snnc-calendar-view-month-v1:';
+  function lastViewedMonthKey(){
+    const id=String(currentUser?.id??'');
+    return /^[0-9]{1,20}$/.test(id)?LAST_VIEWED_MONTH_PREFIX+id:'';
+  }
+  function rememberViewedCalendarMonth(){
+    const key=lastViewedMonthKey();
+    if(!key||currentYear<1900||currentYear>2200||currentMonth<0||currentMonth>11)return;
+    try{
+      localStorage.setItem(key,currentYear+'-'+String(currentMonth+1).padStart(2,'0'));
+    }catch{} // Private storage can be unavailable; the in-memory month still works.
+  }
+  function restoreViewedCalendarMonth(){
+    const key=lastViewedMonthKey();
+    if(!key)return false;
+    let value='';
+    try{value=localStorage.getItem(key)||'';}catch{return false;}
+    const match=/^([0-9]{4})-(0[1-9]|1[0-2])$/.exec(value);
+    if(!match)return false;
+    const year=Number(match[1]);
+    if(year<1900||year>2200)return false;
+    currentYear=year;currentMonth=Number(match[2])-1;
+    focusTodayAfterLoad=false;
+    ++todayScrollGeneration;
+    return true;
+  }
+  function cancelTodayAutoScroll(){
+    focusTodayAfterLoad=false;
+    ++todayScrollGeneration;
+  }
+
   let focusTodayAfterLoad=false;
   let todayScrollGeneration=0;
   function focusTodayCell(){
@@ -418,13 +452,13 @@ document.addEventListener('pointerdown', event => {
   function refreshCalendarToday(){
     const key=calendarTodayKey();
     if(key===observedTodayKey)return;
-    const wasTodayMonth=currentYear===Number(observedTodayKey.slice(0,4)) && currentMonth===Number(observedTodayKey.slice(5,7))-1;
     observedTodayKey=key;
-    if(!currentUser)return;
-    if(wasTodayMonth){goToToday();}
-    else if(typeof renderCalendar==='function')renderCalendar();
+    // Change the 'today' highlight when the date rolls over, not the viewed month.
+    if(currentUser && typeof renderCalendar==='function')renderCalendar();
   }
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(currentUser)goToToday();else refreshCalendarToday();}});
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible')refreshCalendarToday();
+  });
   setInterval(()=>{if(document.visibilityState==='visible')refreshCalendarToday();},30000);
 
   let requestsData = [];
@@ -790,7 +824,9 @@ document.addEventListener('pointerdown', event => {
 
     refreshAccountTools();
     updatePasskeyUI();
-    goToToday();
+    // Fresh accounts start on today. Returning users keep the last viewed month.
+    if(restoreViewedCalendarMonth())loadData();
+    else goToToday();
 
     // 로그인 후 현재 기기의 서버 알림 구독 등록 여부를 버튼에 반영
     updateNotificationButton();
@@ -1336,6 +1372,7 @@ document.addEventListener('pointerdown', event => {
    */
 
   function changeMonth(delta) {
+    cancelTodayAutoScroll();
 
     currentMonth += delta;
 
@@ -1375,6 +1412,7 @@ document.addEventListener('pointerdown', event => {
     const value=document.getElementById('monthJumpValue').value;
     const match=/^(\d{4})-(\d{2})$/.exec(value);
     if(!match || +match[1]<1900 || +match[1]>2200 || +match[2]<1 || +match[2]>12) { alert('1900년부터 2200년 사이의 년월을 선택해 주세요.'); return; }
+    cancelTodayAutoScroll();
     currentYear=+match[1];currentMonth=+match[2]-1;
     document.getElementById('monthJumpDialog').close();loadData();
   }
@@ -1405,6 +1443,7 @@ document.addEventListener('pointerdown', event => {
   async function loadData(){
     const version=++calendarLoadVersion,token=currentSessionToken;
     if(!currentUser||!token)return;
+    rememberViewedCalendarMonth();
     const year=currentYear,month=currentMonth,key=year+'-'+month;
     calendarConnection('일정을 불러오는 중입니다…',true);
     if(displayedCalendarMonth!==key){document.getElementById('calendarGrid').innerHTML='';document.getElementById('currentMonthStr').innerText=year+'년 '+(month+1)+'월';}
@@ -2797,6 +2836,7 @@ function renderCredentialAudit(){
 async function jumpAuditDate(date){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
  for(const id of ['personalDialog','historyDialog','credentialDialog'])if(auditEl(id).open)auditEl(id).close();
+ cancelTodayAutoScroll();
  const [year,month]=date.split('-').map(Number);currentYear=year;currentMonth=month-1;await loadData();
  if(!currentUser)return;const target=document.getElementById('calendar-day-'+date);
  if(target){target.classList.add('audit-selected');target.tabIndex=-1;target.scrollIntoView({block:'center',inline:'center',behavior:'smooth'});target.focus({preventScroll:true});}
