@@ -1077,8 +1077,12 @@ document.addEventListener('pointerdown', event => {
     button.textContent=label;
     button.setAttribute('aria-label',label);
     button.title=detail||label;
+    const accountId=String(currentUser?.id??'');
+    // A pending refresh must not erase the previous verified state.
+    if(button.dataset.notificationUserId!==accountId)button.dataset.notificationLastEnabled='false';
+    if(ready)button.dataset.notificationLastEnabled=String(enabled);
     button.dataset.notificationState=ready?(enabled?'on':'off'):'checking';
-    button.dataset.notificationUserId=String(currentUser?.id??'');
+    button.dataset.notificationUserId=accountId;
     button.style.backgroundColor=enabled?'#b42332':'#28a745';
     button.disabled=!ready||notificationMutationInProgress;
   }
@@ -1095,7 +1099,7 @@ document.addEventListener('pointerdown', event => {
     button.hidden=false;
     const userId=currentUser?.id;
     const lastKnownOn=button.dataset.notificationUserId===String(userId) &&
-      button.dataset.notificationState==='on';
+      button.dataset.notificationLastEnabled==='true';
     displayNotificationToggle(lastKnownOn,false,'알림 등록 상태를 확인 중입니다.');
     if(!('Notification' in window)||!('serviceWorker' in navigator)){
       displayNotificationToggle(false,false,'현재 브라우저에서 알림을 지원하지 않습니다.');
