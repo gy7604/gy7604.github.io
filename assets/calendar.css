@@ -452,3 +452,18 @@ dialog::backdrop{background:#1f334f66}
 .cell-name.sub-cell-B,.cell-name.sub-cell-B .suggest-guide,
 .has-data.person-team-B{color:#263445}
 
+
+
+/* Date-header forecast badge; existing calendar columns and data remain intact. */
+.day-date-part{gap:3px;flex-wrap:wrap}
+.day-date-part .weather-badge{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:26px;min-height:26px;margin:0;padding:1px;background:transparent;color:inherit;border:0;border-radius:6px;font-size:18px;line-height:1.2;vertical-align:middle;cursor:pointer}
+.day-date-part .weather-badge:hover{background:#d9e6f6}
+.day-date-part .weather-badge:focus-visible{outline:2px solid #345e91;outline-offset:1px}
+.weather-stale{opacity:.65}
+.weather-credit{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;padding:0 6px 16px;color:#65758b;font-size:11px;line-height:1.6}
+.weather-credit a{color:#526b8b}.weather-credit button{width:auto;background:#e8eef6;color:#354e6c;padding:5px 8px;font-size:11px}
+.weather-dialog{box-sizing:border-box;width:min(380px,calc(100vw - 32px));padding:22px;border:1px solid #dce4ed;border-radius:16px;color:#26354a;box-shadow:0 18px 60px #18324f30}
+.weather-dialog::backdrop{background:#1f334f66}.weather-dialog h2{font-size:23px;margin:0 0 8px}
+.weather-dialog p{font-size:14px;line-height:1.6;margin:10px 0}.weather-dialog .weather-location,.weather-dialog .weather-updated,.weather-dialog .weather-note{font-size:12px;color:#65758b}
+.weather-dialog button{margin-top:8px;min-height:42px;background:#203d60}
+
