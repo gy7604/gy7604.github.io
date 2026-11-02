@@ -32,7 +32,7 @@ Deno.serve(async (request: Request) => {
   let body; try {body=JSON.parse(raw);} catch {return reply({success:false},400);}
   if(!body || typeof body!=="object") return reply({success:false},400);
   const action=body.action;
-  if(!["login","upgrade_short_code","verify","logout","code_change_status","push_upsert","push_enable","push_delete","push_status","request_create","vacancy_create","sub_register","sub_cancel","request_delete","memo_write","helper_lookup","calendar_read","personal_read","history_read","credential_audit"].includes(action)) return reply({success:false},400);
+  if(!["login","upgrade_short_code","verify","logout","code_change_status","push_upsert","push_enable","push_delete","push_status","request_create","vacancy_create","sub_register","sub_cancel","request_delete","memo_write","helper_lookup","calendar_read","personal_read","history_read","credential_audit","leave_read","leave_settings","leave_classify"].includes(action)) return reply({success:false},400);
   const url=Deno.env.get("SUPABASE_URL"),key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if(!url || !key) return reply({success:false,message:"서버 설정을 확인해 주세요."},500);
   let rpc: string, args: Record<string,unknown>, token: string | undefined;
@@ -60,7 +60,16 @@ Deno.serve(async (request: Request) => {
    const supplied=request.headers.get("x-app-session") || "";
    if(!/^[0-9a-f]{64}$/.test(supplied)) return reply({success:false,message:"다시 로그인해 주세요."},401);
    const tokenHash=await digest(supplied);
-   if(action==="credential_audit"){
+   if(["leave_read","leave_settings","leave_classify"].includes(action)){
+    if(action!=="leave_classify" && (!Number.isInteger(body.year)||body.year<1901||body.year>2199))return reply({success:false,message:"기준 연도를 확인해 주세요."},400);
+    if(action==="leave_classify"){
+     if(typeof body.request_id!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.request_id)||!["annual","reward"].includes(body.leave_kind))return reply({success:false},400);
+     rpc="app_session_leave_classify";args={p_token_hash:tokenHash,p_request_id:body.request_id,p_kind:body.leave_kind};
+    }else if(action==="leave_settings"){
+     if(typeof body.reset!=="string"||!/^\d{2}-\d{2}$/.test(body.reset)||!Number.isInteger(body.total)||body.total<0||body.total>366)return reply({success:false,message:"설정값을 확인해 주세요."},400);
+     rpc="app_session_leave_settings";args={p_token_hash:tokenHash,p_year:body.year,p_reset:body.reset,p_total:body.total};
+    }else{rpc="app_session_leave_read";args={p_token_hash:tokenHash,p_year:body.year};}
+   }else if(action==="credential_audit"){
     rpc="app_session_credential_audit";args={p_token_hash:tokenHash};
    }else if(action==="personal_read" || action==="history_read"){
     const scope=body.scope,month=body.month,offset=body.offset===undefined?0:body.offset;
@@ -119,7 +128,17 @@ Deno.serve(async (request: Request) => {
     if(!Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0,10)!==body.date) return reply({success:false},400);
     rpc="app_session_request_create";
     args={p_token_hash:tokenHash,p_action:action,p_team:body.team,p_date:body.date,p_reason:body.reason||"",p_filled_by:body.filled_by||null};
+    if(body.leave_kind!==undefined){
+     if(action!=="request_create" || !["annual","reward"].includes(body.leave_kind))return reply({success:false},400);
+     rpc="app_session_leave_create";args.p_kind=body.leave_kind;
+    }
    }else if(action==="push_upsert" || action==="push_enable" || action==="push_delete" || action==="push_status"){
+    if(action==="push_upsert" || action==="push_enable"){
+     const ua=request.headers.get("user-agent")||"";
+     const mobile=/Android|iPhone|iPad|iPod/i.test(ua) ||
+       (/Macintosh/i.test(ua) && body.device_type==="mobile");
+     if(!mobile)return reply({success:false,message:"알림은 휴대폰에서만 설정할 수 있습니다."},403);
+    }
     rpc="app_session_push_v2";
     args={p_token_hash:tokenHash,p_action:action==="push_enable"?"push_upsert":action,p_explicit_enable:action==="push_enable"};
     if(action==="push_upsert" || action==="push_enable") {
@@ -151,7 +170,7 @@ Deno.serve(async (request: Request) => {
   if(data.status==="duplicate") return reply({success:false,message:action==="upgrade_short_code"?"이미 사용 중인 접속코드입니다. 다른 코드를 입력해 주세요.":"이 날짜에 이미 본인의 휴무 신청이 있습니다."},409);
   if(data.status==="bad_input") return reply({success:false,message:action==="upgrade_short_code"?"새 접속코드 입력을 확인해 주세요.":"입력 정보를 확인해 주세요."},400);
   if(data.status!=="ok") return reply({success:false,message:"접속 코드 또는 세션을 확인해 주세요."},401);
-  return reply({success:true,...(["personal_read","history_read"].includes(action)?{rows:(data.rows||[]).slice(0,100),has_more:data.has_more===true}:{}),...(action==="credential_audit"?{users:data.users||[]}:{}),...(action==="code_change_status"?{used:data.used,remaining:data.remaining,limit:data.limit,month:data.month}:{}),...(action==="push_status"?{registered:data.registered===true,disabled:data.disabled===true}:{}),...(token?{token}:{}),...(data.user?{user:data.user,expires_at:data.expires_at}:{}),...(action==="helper_lookup"?{users:data.users||[]}: {}),...(action==="calendar_read"?{requests:data.requests||[],memos:data.memos||[]}: {})});
+  return reply({success:true,...(action==="leave_read"?{rows:data.rows||[],settings:data.settings||null}:{}),...(["personal_read","history_read"].includes(action)?{rows:(data.rows||[]).slice(0,100),has_more:data.has_more===true}:{}),...(action==="credential_audit"?{users:data.users||[]}:{}),...(action==="code_change_status"?{used:data.used,remaining:data.remaining,limit:data.limit,month:data.month}:{}),...(action==="push_status"?{registered:data.registered===true,disabled:data.disabled===true}:{}),...(token?{token}:{}),...(data.user?{user:data.user,expires_at:data.expires_at}:{}),...(action==="helper_lookup"?{users:data.users||[]}: {}),...(action==="calendar_read"?{requests:data.requests||[],memos:data.memos||[]}: {})});
  }catch{
   // Never log credentials, session tokens, or RPC payloads.
   return reply({success:false,message:"잠시 후 다시 시도해 주세요."},500);
