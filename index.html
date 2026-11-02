@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.11.03.1">
+  <meta name="app-version" content="2026.11.03.2">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -102,7 +102,7 @@ document.addEventListener('pointerdown', event => {
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.11.03.1</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.11.03.2</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -1645,6 +1645,10 @@ document.addEventListener('pointerdown', event => {
         body, headers: { 'x-app-session': token }
       });
       if (token !== currentSessionToken) return { success: false, sessionExpired: true };
+      if (!error && data?.success && body.action === 'leave_read') {
+        if (!Array.isArray(data.rows) || !Object.hasOwn(data, 'settings')) return { success: false, message: '연차 조회 응답을 확인하지 못했습니다. 다시 불러와 주세요.' };
+        return { success: true, rows: data.rows, settings: data.settings };
+      }
       if (!error && data?.success) return { success: true, ...(body.action === 'code_change_status' ? { remaining: data.remaining, limit: data.limit, used: data.used, month: data.month } : {}), ...(body.action === 'push_status' ? { registered: data.registered === true, disabled:data.disabled===true } : {}), ...(body.action === 'helper_lookup' ? { users: data.users || [] } : {}), ...(body.action === 'calendar_read' ? { requests: data.requests || [], memos: data.memos || [] } : {}), ...(['personal_read','history_read'].includes(body.action) ? { rows: data.rows || [], has_more: data.has_more === true } : {}), ...(body.action === 'credential_audit' ? { users: data.users || [] } : {}) };
       let message = data?.message || '잠시 후 다시 시도해 주세요.';
       if (error?.context?.status === 401) {
