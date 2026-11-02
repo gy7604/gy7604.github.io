@@ -1,4 +1,4 @@
-const CACHE_NAME = 'snnc-pwa-v38';
+const CACHE_NAME = 'snnc-pwa-v39';
 
 const FILES_TO_CACHE = [
   './',
@@ -11,6 +11,7 @@ const FILES_TO_CACHE = [
   './assets/calendar.css?v=20261102.2',
   './assets/network.js?v=20261014.1',
   './assets/weather.js?v=20261102.1',
+  './assets/leave.js?v=20261103.1',
   './icons/shift-sun-moon-v3-192.png',
   './icons/shift-sun-moon-v3-512.png',
   './icons/notification-helmet-192.png',
