@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.11.03.3">
+  <meta name="app-version" content="2026.11.03.4">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -102,7 +102,7 @@ document.addEventListener('pointerdown', event => {
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.11.03.3</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.11.03.4</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -233,7 +233,7 @@ document.addEventListener('pointerdown', event => {
    <button id="appMenuToggle" type="button" class="app-menu-toggle" aria-controls="appMenuPanel" aria-expanded="false" aria-haspopup="true" aria-label="설정 및 도구 메뉴 열기" onclick="toggleAppMenu()"><span class="app-menu-glyph" aria-hidden="true">☰</span><span>메뉴</span></button>
    <div id="appMenuPanel" class="app-menu-panel" hidden role="group" aria-label="설정 및 도구 메뉴">
      <div class="app-menu-heading">설정 및 도구</div>
-     <div id="ownerLeaveTools" class="app-menu-group" hidden><button type="button" class="btn-small" onclick="OwnerLeave.open()">내 연차 사용현황</button></div><div id="personalTools" class="app-menu-group" hidden><button type="button" class="btn-small" data-icon="☷" onclick="openPersonalView()" title="내 연차·대근 모아보기">내 연차·대근 모아보기</button></div>
+     <div id="ownerModeTools" class="app-menu-group" hidden><button id="ownerModeToggle" type="button" class="btn-small" aria-pressed="false" onclick="toggleOwnerAdminMode()">슈퍼관리자 모드로 전환</button></div><div id="ownerLeaveTools" class="app-menu-group" hidden><button type="button" class="btn-small" onclick="OwnerLeave.open()">내 연차 사용현황</button></div><div id="personalTools" class="app-menu-group" hidden><button type="button" class="btn-small" data-icon="☷" onclick="openPersonalView()" title="내 연차·대근 모아보기">내 연차·대근 모아보기</button></div>
      <div id="adminTools" class="app-menu-group" hidden>
        <button type="button" class="btn-small" data-icon="👑" onclick="openCredentialAudit()" title="개인코드 변경 여부 조회">개인코드 변경 여부 조회</button>
        <button type="button" class="btn-small" data-icon="🕒" onclick="openChangeHistory()" title="변경 이력 조회">변경 이력 조회</button>
@@ -804,6 +804,8 @@ document.addEventListener('pointerdown', event => {
 
       role:
         data.role,
+
+      owner_admin_mode: data.owner_admin_mode === true,
 
       is_active:
         data.is_active
@@ -1645,6 +1647,7 @@ document.addEventListener('pointerdown', event => {
         body, headers: { 'x-app-session': token }
       });
       if (token !== currentSessionToken) return { success: false, sessionExpired: true };
+      if (!error && data?.success && ['owner_mode','verify'].includes(body.action)) return { success: true, user: data.user, expires_at: data.expires_at };
       if (!error && data?.success && body.action === 'leave_read') {
         if (!Array.isArray(data.rows) || !Object.hasOwn(data, 'settings')) return { success: false, message: '연차 조회 응답을 확인하지 못했습니다. 다시 불러와 주세요.' };
         return { success: true, rows: data.rows, settings: data.settings };
@@ -2794,17 +2797,55 @@ let personalViewVersion=0, historyViewVersion=0, credentialViewVersion=0, histor
 const auditEl=id=>document.getElementById(id);
 function auditKstMonth(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7);}
 function auditTime(value){if(!value)return '확인 불가';const date=new Date(value);return Number.isNaN(date.getTime())?'확인 불가':new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(date);}
+let ownerModeBusy=false;
+function refreshOwnerModeButton(){
+ const eligible=Number(currentUser?.id)===29 && currentUser?.is_active===true;
+ auditEl('ownerModeTools').hidden=!eligible;
+ const button=auditEl('ownerModeToggle');
+ button.disabled=ownerModeBusy;
+ button.textContent=currentUser?.owner_admin_mode ? '일반 모드로 전환' : '슈퍼관리자 모드로 전환';
+ button.setAttribute('aria-pressed',String(currentUser?.owner_admin_mode===true));
+}
+async function toggleOwnerAdminMode(){
+ if(ownerModeBusy || Number(currentUser?.id)!==29 || !currentUser?.is_active || !currentSessionToken)return;
+ const token=currentSessionToken,enabled=currentUser.owner_admin_mode!==true;
+ ownerModeBusy=true;refreshOwnerModeButton();closeAppMenu();
+ calendarConnection('권한을 전환하고 있습니다…',true);
+ try{
+  let result=await callSessionRegistration({action:'owner_mode',enabled});
+  if(token!==currentSessionToken || result.sessionExpired)return;
+  const failed=!result.success;
+  if(failed)result=await callSessionRegistration({action:'verify'});
+  if(token!==currentSessionToken || result.sessionExpired)return;
+  const user=result.user;
+  if(!result.success || Number(user?.id)!==29 || !user?.is_active ||
+    !['user','team_admin','admin'].includes(user.role) ||
+    (user.owner_admin_mode===true && user.role!=='admin')){
+   clearAuditViews();
+   calendarConnection('권한 상태를 확인하지 못했습니다. 모드 전환을 다시 시도해 주세요.');
+   alert(result.message || '권한 상태를 확인하지 못했습니다. 다시 시도해 주세요.');return;
+  }
+  currentUser={id:user.id,name:user.name,team:user.team,role:user.role,is_active:user.is_active,owner_admin_mode:user.owner_admin_mode===true};
+  clearAuditViews();refreshAccountTools();
+  await loadData();
+  if(failed)alert(currentUser.owner_admin_mode ? '현재 슈퍼관리자 모드입니다.' : '현재 일반 모드입니다.');
+ }finally{
+  ownerModeBusy=false;refreshOwnerModeButton();
+ }
+}
 function refreshAccountTools(){
  OwnerLeave.refresh();
+ refreshOwnerModeButton();
  const superUser=isSuperAdmin();
  const welcome=auditEl('welcomeMsg');
- if(superUser)welcome.textContent='슈퍼관리자';
+ if(superUser)welcome.textContent=currentUser?.owner_admin_mode ? currentUser.name+' 님 · 슈퍼관리자 모드' : '슈퍼관리자';
  else if(currentUser)welcome.textContent='['+currentUser.team+'조] '+currentUser.name+' 님'+(isTeamAdmin()?' 🛠️(조관리자)':'');
  auditEl('personalTools').hidden=superUser||!currentUser;
  auditEl('adminTools').hidden=!superUser;
 }
 function clearAuditViews(){
  OwnerLeave.clear();
+ auditEl('ownerModeTools').hidden=true;
  ++personalViewVersion;++historyViewVersion;++credentialViewVersion;clearTimeout(historySearchTimer);
  personalViewRows=[];historyViewRows=[];credentialViewUsers=[];
  for(const id of ['personalDialog','historyDialog','credentialDialog','monthJumpDialog']){if(auditEl(id).open)auditEl(id).close();}
