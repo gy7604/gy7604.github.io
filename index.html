@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.11.03.2">
+  <meta name="app-version" content="2026.11.03.3">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -102,7 +102,7 @@ document.addEventListener('pointerdown', event => {
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.11.03.2</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.11.03.3</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -1858,7 +1858,7 @@ document.addEventListener('pointerdown', event => {
       subName =
         prompt(
           `이 근무를 대근할 분의 이름을 직접 입력하세요.\n` +
-          `(추천 대근 조: ${expectedTeamStr} 또는 당일 비번자)`,
+          (isSuperAdmin() ? '등록된 직원이 아니어도 이름을 입력해 등록할 수 있습니다.' : `(추천 대근 조: ${expectedTeamStr} 또는 당일 비번자)`),
           ""
         );
 
@@ -1877,6 +1877,13 @@ document.addEventListener('pointerdown', event => {
         subName.trim();
 
 
+      if (Array.from(subName).length > 200) {
+        alert('대근자 이름은 200자 이내로 입력해 주세요.');
+        return;
+      }
+
+      // Team admins must still select a valid, eligible employee.
+      if (!isSuperAdmin()) {
       const lookup = await callSessionRegistration({
         action: 'helper_lookup', name: subName
       });
@@ -1966,6 +1973,8 @@ document.addEventListener('pointerdown', event => {
         );
 
         return;
+
+      }
 
       }
 
