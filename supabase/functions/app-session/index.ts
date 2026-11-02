@@ -32,7 +32,7 @@ Deno.serve(async (request: Request) => {
   let body; try {body=JSON.parse(raw);} catch {return reply({success:false},400);}
   if(!body || typeof body!=="object") return reply({success:false},400);
   const action=body.action;
-  if(!["login","upgrade_short_code","verify","logout","code_change_status","push_upsert","push_enable","push_delete","push_status","request_create","vacancy_create","sub_register","sub_cancel","request_delete","memo_write","helper_lookup","calendar_read","personal_read","history_read","credential_audit","leave_read","leave_settings","leave_classify"].includes(action)) return reply({success:false},400);
+  if(!["login","upgrade_short_code","verify","logout","code_change_status","push_upsert","push_enable","push_delete","push_status","request_create","vacancy_create","sub_register","sub_cancel","request_delete","memo_write","helper_lookup","calendar_read","personal_read","history_read","credential_audit","leave_read","leave_settings","leave_classify","owner_mode"].includes(action)) return reply({success:false},400);
   const url=Deno.env.get("SUPABASE_URL"),key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if(!url || !key) return reply({success:false,message:"서버 설정을 확인해 주세요."},500);
   let rpc: string, args: Record<string,unknown>, token: string | undefined;
@@ -60,7 +60,10 @@ Deno.serve(async (request: Request) => {
    const supplied=request.headers.get("x-app-session") || "";
    if(!/^[0-9a-f]{64}$/.test(supplied)) return reply({success:false,message:"다시 로그인해 주세요."},401);
    const tokenHash=await digest(supplied);
-   if(["leave_read","leave_settings","leave_classify"].includes(action)){
+   if(action==="owner_mode"){
+    if(typeof body.enabled!=="boolean")return reply({success:false,message:"전환할 모드를 확인해 주세요."},400);
+    rpc="app_session_set_owner_mode";args={p_token_hash:tokenHash,p_enabled:body.enabled};
+   }else if(["leave_read","leave_settings","leave_classify"].includes(action)){
     if(action!=="leave_classify" && (!Number.isInteger(body.year)||body.year<1901||body.year>2199))return reply({success:false,message:"기준 연도를 확인해 주세요."},400);
     if(action==="leave_classify"){
      if(typeof body.request_id!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.request_id)||!["annual","reward"].includes(body.leave_kind))return reply({success:false},400);
