@@ -548,3 +548,92 @@ dialog::backdrop{background:#1f334f66}
   #leaveKindDialog .leave-kind-symbol{width:43px;height:43px}
 }
 @media(prefers-reduced-motion:reduce){#leaveKindDialog .leave-kind-choice{transition:none}}
+
+/* Leave request: optional-reason dialog, consistent with the existing leave cards. */
+#offReasonDialog.off-reason-dialog{
+  box-sizing:border-box;width:min(460px,calc(100vw - 28px));max-width:460px;
+  max-height:min(88dvh,820px);padding:0;overflow-y:auto;
+  border:1px solid #e2e9f1;border-radius:22px;
+  background:#fff;box-shadow:0 24px 75px rgba(23,45,74,.27);
+}
+#offReasonDialog::backdrop{background:rgba(17,32,53,.57);backdrop-filter:blur(3px)}
+#offReasonDialog .off-reason-content{padding:26px}
+#offReasonDialog .off-reason-heading{display:flex;align-items:center;gap:13px}
+#offReasonDialog .off-reason-icon{
+  width:52px;height:52px;display:grid;place-items:center;flex-shrink:0;
+  background:linear-gradient(145deg,#e2edfd,#edf5ff);border:1px solid #d5e3f3;
+  border-radius:16px;color:#315b8c;
+}
+#offReasonDialog .off-reason-icon svg{width:26px;height:26px}
+#offReasonDialog h2{font-size:21px;letter-spacing:-.65px;color:#203b5c;margin:0;font-weight:800}
+#offReasonDialog .off-reason-context{font-size:13px;margin:5px 0 0;color:#71819a;font-weight:650}
+#offReasonDialog .off-reason-intro{
+  font-size:14px;line-height:1.65;color:#51657d;
+  background:#f4f8fc;border:1px solid #e5edf5;border-radius:12px;
+  padding:12px 14px;margin:20px 0;
+}
+#offReasonDialog .off-reason-intro strong{color:#205c92}
+#offReasonDialog .off-reason-label{
+  display:flex;align-items:center;gap:7px;font-size:14px;
+  color:#243d5a;font-weight:750;margin-bottom:9px;
+}
+#offReasonDialog .off-reason-label span{color:#7a8da3;font-weight:500;font-size:12px}
+#offReasonDialog #offReasonText{
+  display:block;box-sizing:border-box;width:100%;min-height:94px;
+  margin:0;padding:13px 14px;border:1px solid #ccd9e8;border-radius:13px;
+  background:#fff;color:#26394e;font-size:15px;line-height:1.5;resize:vertical;
+}
+#offReasonDialog #offReasonText:focus{outline:3px solid #dae8f8;outline-offset:1px;border-color:#4c83ba}
+#offReasonDialog #offReasonText::placeholder{color:#97a5b6}
+#offReasonDialog .off-reason-note{font-size:12px;line-height:1.6;color:#71839a;margin:10px 0 0}
+#offReasonDialog .off-reason-warning{
+  font-size:12px;line-height:1.5;color:#a53531;
+  padding:9px 11px;margin:11px 0 0;border-radius:9px;background:#fff1ef;
+}
+#offReasonDialog .off-reason-warning[hidden]{display:none!important}
+#offReasonDialog .off-reason-actions{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:24px;
+}
+#offReasonDialog .off-reason-actions button{
+  width:100%;margin:0;min-height:53px;border-radius:12px;padding:10px;
+  font-size:13px;font-weight:750;line-height:1.4;white-space:normal;
+}
+#offReasonDialog .off-reason-plain{
+  background:#244f7c;color:#fff;
+  box-shadow:0 5px 13px #244f7c24;
+}
+#offReasonDialog .off-reason-with{background:#edf3fa;color:#2b5076;border:1px solid #d8e4f1}
+#offReasonDialog .off-reason-cancel{
+  display:block;width:116px;min-height:39px;padding:8px 12px;
+  margin:17px auto 0;background:transparent;color:#657b92;
+  font-size:13px;font-weight:650;
+}
+#offReasonDialog .off-reason-actions button:focus-visible,
+#offReasonDialog .off-reason-cancel:focus-visible{outline:3px solid #e6ad3e;outline-offset:2px}
+@media(max-width:380px){
+  #offReasonDialog .off-reason-content{padding:20px}
+  #offReasonDialog .off-reason-actions{grid-template-columns:1fr}
+  #offReasonDialog .off-reason-actions button{min-height:48px}
+}
+@media(hover:hover) and (pointer:fine){
+  #offReasonDialog .off-reason-plain:hover{background:#193f68}
+  #offReasonDialog .off-reason-with:hover{background:#e0ebf7}
+  /* PC hover: lightly raise the entire date, without modifying its cell data. */
+  .cal-grid .day-cell{
+    transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease;
+    transform-origin:center top;
+  }
+  .cal-grid .day-cell:hover{
+    position:relative;z-index:5;
+    transform:translateY(-3px) scale(1.012);
+    box-shadow:0 12px 26px rgba(27,54,87,.19);
+    background:#fff;
+  }
+  .cal-grid .day-cell.is-today:hover{
+    box-shadow:inset 0 0 0 2px #335e95,0 12px 26px rgba(27,54,87,.19);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .cal-grid .day-cell{transition:none!important}
+  .cal-grid .day-cell:hover{transform:none}
+}
