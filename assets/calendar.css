@@ -467,3 +467,84 @@ dialog::backdrop{background:#1f334f66}
 .weather-dialog p{font-size:14px;line-height:1.6;margin:10px 0}.weather-dialog .weather-location,.weather-dialog .weather-updated,.weather-dialog .weather-note{font-size:12px;color:#65758b}
 .weather-dialog button{margin-top:8px;min-height:42px;background:#203d60}
 
+/* Owner leave type picker: two equal, square choices instead of full-width buttons. */
+#leaveKindDialog.leave-kind-dialog{
+  box-sizing:border-box;
+  width:min(420px,calc(100vw - 32px));
+  max-width:420px;
+  padding:0;
+  border-radius:22px;
+  border:1px solid #e2e9f1;
+  box-shadow:0 24px 70px #172d4a35;
+}
+#leaveKindDialog .leave-kind-content{padding:26px!important;max-height:min(86dvh,740px);overflow-y:auto}
+#leaveKindDialog h2{margin:0;color:#213b58;font-size:22px;letter-spacing:-.7px;font-weight:800}
+#leaveKindDialog #leaveKindHelp{margin:11px 0 22px;color:#687a91;font-size:14px;line-height:1.55}
+#leaveKindDialog .leave-kind-options{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+#leaveKindDialog .leave-kind-choice{
+  width:100%;
+  min-width:0;
+  aspect-ratio:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  margin:0;
+  padding:12px 8px;
+  background:linear-gradient(160deg,#f8fbff 0%,#ebf3fc 100%);
+  color:#284d75;
+  border:1px solid #dbe6f1;
+  border-radius:20px;
+  box-shadow:0 5px 13px #1a3f6512;
+  transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+  text-align:center;
+}
+#leaveKindDialog .leave-kind-reward{
+  background:linear-gradient(160deg,#fffbf4 0%,#f7f0e3 100%);
+  border-color:#eee1cc;
+  color:#84613b;
+}
+#leaveKindDialog .leave-kind-symbol{
+  display:grid;
+  place-items:center;
+  width:49px;
+  height:49px;
+  border-radius:50%;
+  background:#dfeafa;
+  color:#315d8b;
+}
+#leaveKindDialog .leave-kind-reward .leave-kind-symbol{background:#f3e4ca;color:#9b6d37}
+#leaveKindDialog .leave-kind-symbol svg{display:block;width:26px;height:26px}
+#leaveKindDialog .leave-kind-name{font-size:17px;font-weight:800;letter-spacing:-.45px;white-space:nowrap}
+#leaveKindDialog .leave-kind-hint{font-size:11px;font-weight:500;opacity:.8;white-space:nowrap}
+#leaveKindDialog .leave-kind-cancel{
+  display:block;
+  width:128px;
+  min-height:40px;
+  padding:9px 14px;
+  margin:19px auto 0;
+  border-radius:11px;
+  background:#eef2f7;
+  color:#51637a;
+  font-size:14px;
+}
+#leaveKindDialog .leave-kind-choice:focus-visible,#leaveKindDialog .leave-kind-cancel:focus-visible{
+  outline:3px solid #c68f30;
+  outline-offset:3px;
+}
+@media(hover:hover){
+  #leaveKindDialog .leave-kind-choice:hover{transform:translateY(-2px);box-shadow:0 9px 18px #1a3f6521;border-color:#a8bfd7}
+  #leaveKindDialog .leave-kind-reward:hover{border-color:#dbbd88}
+}
+@media(max-width:380px){
+  #leaveKindDialog .leave-kind-content{padding:19px!important}
+  #leaveKindDialog .leave-kind-options{gap:10px}
+  #leaveKindDialog .leave-kind-name{font-size:15px}
+  #leaveKindDialog .leave-kind-symbol{width:43px;height:43px}
+}
+@media(prefers-reduced-motion:reduce){#leaveKindDialog .leave-kind-choice{transition:none}}
