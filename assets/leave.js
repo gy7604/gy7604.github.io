@@ -9,7 +9,10 @@ const OwnerLeave = (() => {
     const valid = rows.filter(r => !excluded(r));
     const count = (kind, from, to, planned=false) => valid.filter(r => (r.leave_kind || 'annual') === kind && r.shift_date >= from && r.shift_date < to && (planned ? r.shift_date > now : r.shift_date <= now)).length;
     const prior = count('annual',`${year-1}-01-01`,`${year}-01-01`);
-    const reward = Math.min(4, Math.floor(prior/5));
+    // Historical 2026 grant is already confirmed: 5 days for 2025's 20 annual-leave days.
+    // From 2027 onward, award one reward day for each four annual days used in the prior calendar year, capped at five.
+    // Keep older years' legacy display unchanged rather than retroactively rewriting old awards.
+    const reward = year === 2026 ? 5 : year >= 2027 ? Math.min(5,Math.floor(prior/4)) : Math.min(4,Math.floor(prior/5));
     const annualUsed = count('annual',start,end), rewardUsed = count('reward',`${year}-01-01`,`${year+1}-01-01`);
     const rewardExpired=now > `${year}-12-31`;
     return {start,end,prior,reward,annualUsed,rewardUsed,rewardExpired,rewardUnused:reward-rewardUsed,annualPlanned:count('annual',start,end,true),rewardPlanned:count('reward',`${year}-01-01`,`${year+1}-01-01`,true),annualRemaining:total == null ? null : total-annualUsed,rewardRemaining:rewardExpired?0:reward-rewardUsed};
@@ -38,7 +41,12 @@ const OwnerLeave = (() => {
     const s=calculate(rows,year,reset,total);
     const box=el('leaveResults'); box.replaceChildren();
     const p=document.createElement('p');
-    p.textContent=`일반 연차 (${s.start}부터 다음 리셋일 전날까지)\n총 ${total ?? '미설정'}일 · 사용 ${s.annualUsed}일 · 예정 ${s.annualPlanned}일 · 잔여 ${s.annualRemaining ?? '미설정'}일\n\n보상 연차 (${year}-01-01 ~ ${year}-12-31)\n총 ${s.reward}일 · 사용 ${s.rewardUsed}일 · 예정 ${s.rewardPlanned}일 · 잔여 ${s.rewardRemaining}일${s.rewardExpired?' (사용 기간 종료 · 미사용 '+Math.max(0,s.rewardUnused)+'일 만료)':''}\n전년도 일반 연차 사용 ${s.prior}일 기준 · 5일당 1일, 최대 4일`;
+    const rewardBasis=year===2026
+      ? '2026년 확정 지급 5일 · 2025년 일반 연차 20일 사용분'
+      : year>=2027
+        ? `전년도 일반 연차 사용 ${s.prior}일 기준 · 4일당 보상 연차 1일 · 최대 5일`
+        : '과거 연도 기존 산정 기준 · 실제 지급 기록과 비교해 확인해 주세요.';
+    p.textContent=`일반 연차 (${s.start}부터 다음 리셋일 전날까지)\n총 ${total ?? '미설정'}일 · 사용 ${s.annualUsed}일 · 예정 ${s.annualPlanned}일 · 잔여 ${s.annualRemaining ?? '미설정'}일\n\n보상 연차 (${year}-01-01 ~ ${year}-12-31)\n총 ${s.reward}일 · 사용 ${s.rewardUsed}일 · 예정 ${s.rewardPlanned}일 · 잔여 ${s.rewardRemaining}일${s.rewardExpired?' (사용 기간 종료 · 미사용 '+Math.max(0,s.rewardUnused)+'일 만료)':''}\n${rewardBasis}`;
     p.style.whiteSpace='pre-line'; box.append(p);
     const unclassified=rows.filter(r=>!excluded(r)&&!r.leave_kind).length;
     el('leaveStatus').textContent=unclassified ? `종류가 없는 기존 기록 ${unclassified}건은 일반 연차로 잠정 계산합니다. 아래 목록에서 보상 연차 사용 기록을 정정해 주세요. 과거 기록이 누락되면 보상 연차도 달라질 수 있습니다.` : '예정분은 잔여에서 차감하지 않습니다. 오늘 날짜의 휴무는 사용으로 계산합니다. 과거 기록이 모두 등록됐는지 확인해 주세요.';
