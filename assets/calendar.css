@@ -467,6 +467,20 @@ dialog::backdrop{background:#1f334f66}
 .weather-dialog p{font-size:14px;line-height:1.6;margin:10px 0}.weather-dialog .weather-location,.weather-dialog .weather-updated,.weather-dialog .weather-note{font-size:12px;color:#65758b}
 .weather-dialog button{margin-top:8px;min-height:42px;background:#203d60}
 
+
+/* Each team's consecutive leave/substitution rows are one visual card.
+   Preserve their original 4px side inset and per-week row heights. */
+.cal-grid .shift-card-group{
+  display:flex;
+  flex-direction:column;
+  margin:0 4px;
+  border-radius:10px;
+}
+.cal-grid .shift-card-group > .team-row.shift-card-row{
+  margin-left:0;
+  margin-right:0;
+}
+
 /* Owner leave type picker: two equal, square choices instead of full-width buttons. */
 #leaveKindDialog.leave-kind-dialog{
   box-sizing:border-box;
@@ -618,22 +632,22 @@ dialog::backdrop{background:#1f334f66}
 @media(hover:hover) and (pointer:fine){
   #offReasonDialog .off-reason-plain:hover{background:#193f68}
   #offReasonDialog .off-reason-with:hover{background:#e0ebf7}
-  /* PC hover: lightly raise the entire date, without modifying its cell data. */
-  .cal-grid .day-cell{
+  /* Only the hovered TEAM card rises, not the whole date. */
+  .cal-grid .shift-card-group{
     transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease;
-    transform-origin:center top;
+    transform-origin:center center;
   }
-  .cal-grid .day-cell:hover{
-    position:relative;z-index:5;
+  .cal-grid .day-cell:has(> .shift-card-group:hover){
+    position:relative;z-index:8;overflow:visible;
+  }
+  .cal-grid .shift-card-group:hover{
+    position:relative;z-index:6;
     transform:translateY(-3px) scale(1.012);
-    box-shadow:0 12px 26px rgba(27,54,87,.19);
+    box-shadow:0 10px 22px rgba(27,54,87,.17);
     background:#fff;
-  }
-  .cal-grid .day-cell.is-today:hover{
-    box-shadow:inset 0 0 0 2px #335e95,0 12px 26px rgba(27,54,87,.19);
   }
 }
 @media(prefers-reduced-motion:reduce){
-  .cal-grid .day-cell{transition:none!important}
-  .cal-grid .day-cell:hover{transform:none}
+  .cal-grid .shift-card-group{transition:none!important}
+  .cal-grid .shift-card-group:hover{transform:none}
 }
