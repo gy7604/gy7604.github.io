@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.11.03.4">
+  <meta name="app-version" content="2026.11.03.5">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -51,7 +51,7 @@ document.addEventListener('pointerdown', event => {
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="apple-touch-icon" href="/icons/shift-sun-moon-v3-180.png">
 
-  <link rel="stylesheet" href="./assets/calendar.css?v=20261102.2">
+  <link rel="stylesheet" href="./assets/calendar.css?v=20261103.5">
 <link rel="icon" type="image/png" href="/icons/shift-sun-moon-v3-192.png">
 </head>
 
@@ -102,7 +102,7 @@ document.addEventListener('pointerdown', event => {
        style="max-width: 400px; margin: 50px auto; text-align: center;">
 
     <h2>🔒 교대근무 로그인</h2>
-    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.11.03.4</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">버전 2026.11.03.5</p>
     <p style="margin:0 0 12px;font-size:12px;color:#6c757d;">제작 · 장경준</p>
 
     <input
@@ -356,7 +356,7 @@ document.addEventListener('pointerdown', event => {
 <dialog id="credentialDialog" class="audit-dialog" aria-labelledby="credentialTitle"><div class="audit-head"><h2 id="credentialTitle">개인코드 변경 현황</h2><button class="btn-small audit-secondary" data-audit-close="credentialDialog" aria-label="개인코드 변경 현황 닫기">닫기</button></div><div class="audit-body"><p class="audit-muted">슈퍼관리자 전용 · 본인 변경과 관리자 초기화를 구분합니다. 과거 기록이 없으면 변경 여부와 시각을 추측하지 않습니다.</p><div class="audit-filters"><label>이름 검색 <input id="credentialSearch" type="search" maxlength="100" placeholder="사용자 이름"></label><label>본인 변경 여부 <select id="credentialStatus"><option value="all">전체</option><option value="changed">변경 기록 있음</option><option value="unknown">과거 변경 여부 확인 불가</option></select></label></div><p id="credentialSummary" class="audit-muted" aria-live="polite"></p><div id="credentialResults"></div></div></dialog>
 
 <dialog id="monthJumpDialog"><form onsubmit="event.preventDefault();applyMonthJump()"><h3>이동할 년월 선택</h3><input id="monthJumpValue" type="month" min="1900-01" max="2200-12" required aria-label="이동할 년월"><div style="display:flex;gap:8px;margin-top:12px"><button type="button" onclick="document.getElementById('monthJumpDialog').close()">취소</button><button type="submit">이동</button></div></form></dialog>
-  <script src="./assets/leave.js?v=20261103.1"></script><script src="./vendor/supabase-2.95.0.js"></script><script src="./assets/calendar.js?v=20261024.1"></script>
+  <script src="./assets/leave.js?v=20261103.5"></script><script src="./vendor/supabase-2.95.0.js"></script><script src="./assets/calendar.js?v=20261024.1"></script>
 <script>
 
   /*
@@ -3216,7 +3216,31 @@ document.getElementById('loginCode').addEventListener('pointerdown',()=>{if(pass
 
 </script>
 <dialog id="scheduleShareDialog" style="max-width:520px;width:90%;border:0;border-radius:12px;padding:22px"><h2>배우자용 열람 공유</h2><p>기존 교대근무 달력과 모든 조의 휴무·대근·메모를 확인하는 화면입니다. 등록·수정·삭제는 불가능합니다. 링크를 가진 사람은 볼 수 있으므로 배우자에게만 전달해 주세요.</p><button id="scheduleShareIssue" onclick="issueScheduleShare()">공유 링크 발급·재발급</button><input id="scheduleShareUrl" readonly aria-label="배우자용 공유 링크" style="width:100%;font-size:14px;margin:12px 0"><button onclick="copyScheduleShare()">링크 복사</button><button onclick="revokeScheduleShare()" style="background:#b42318">공유 해제</button><p id="scheduleShareStatus" role="status"></p><button onclick="document.getElementById('scheduleShareUrl').value='';document.getElementById('scheduleShareDialog').close()">닫기</button></dialog>
-<dialog id="leaveKindDialog" class="audit-dialog" aria-labelledby="leaveKindTitle"><div class="audit-body"><h2 id="leaveKindTitle">연차 종류 선택</h2><form method="dialog"><p>이번 휴무에 사용할 연차를 선택해 주세요.</p><button value="annual">일반 연차</button> <button value="reward">보상 연차</button> <button value="cancel" class="audit-secondary">취소</button></form></div></dialog>
+<dialog id="leaveKindDialog" class="audit-dialog leave-kind-dialog" aria-labelledby="leaveKindTitle" aria-describedby="leaveKindHelp">
+  <div class="audit-body leave-kind-content">
+    <h2 id="leaveKindTitle">연차 종류 선택</h2>
+    <p id="leaveKindHelp">이번 휴무에 사용할 연차를 선택해 주세요.</p>
+    <form method="dialog">
+      <div class="leave-kind-options" role="group" aria-label="연차 종류">
+        <button type="submit" value="annual" class="leave-kind-choice leave-kind-annual">
+          <span class="leave-kind-symbol" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 15l2.5 2.5L16 12"/></svg>
+          </span>
+          <span class="leave-kind-name">일반 연차</span>
+          <span class="leave-kind-hint">기본 연차</span>
+        </button>
+        <button type="submit" value="reward" class="leave-kind-choice leave-kind-reward">
+          <span class="leave-kind-symbol" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="m8.5 12.5-2 9 5.5-3 5.5 3-2-9M12 5.7l.7 1.5 1.7.2-1.2 1.1.3 1.6L12 9.4l-1.5.7.3-1.6-1.2-1.1 1.7-.2z"/></svg>
+          </span>
+          <span class="leave-kind-name">보상 연차</span>
+          <span class="leave-kind-hint">추가 지급 연차</span>
+        </button>
+      </div>
+      <button type="submit" value="cancel" class="leave-kind-cancel audit-secondary">취소</button>
+    </form>
+  </div>
+</dialog>
 <dialog id="leaveDialog" class="audit-dialog" aria-labelledby="leaveTitle"><div class="audit-head"><h2 id="leaveTitle">내 연차 사용현황</h2><button onclick="document.getElementById('leaveDialog').close()">닫기</button></div><div class="audit-body"><form id="leaveSettings" onsubmit="event.preventDefault();OwnerLeave.save()"><div class="audit-filters"><label>기준 연도 <input id="leaveYear" type="number" min="1901" max="2199" required onchange="OwnerLeave.load()"></label><label>일반 연차 리셋일 (월-일) <input id="leaveReset" placeholder="04-01" pattern="(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])" required></label><label>해당 기간 총 일반 연차 <input id="leaveTotal" type="number" min="0" max="366" step="1" required></label></div><p class="audit-muted">기준 연도의 리셋일부터 다음 리셋일 전날까지 적용합니다. 연도별 설정을 저장하며 이전 기간 기록은 보존합니다. 보상 연차는 기준 연도 12월 31일에 만료됩니다. 휴무 1건은 1일로 계산합니다.</p><button id="leaveSave" type="submit">설정 저장</button></form><p id="leaveStatus" role="status" aria-live="polite"></p><div id="leaveResults"></div></div></dialog>
 <style>.leave-record{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #e2e8f0}.leave-record span{overflow-wrap:anywhere}.leave-record select{flex-shrink:0;max-width:48%;padding:8px}#leaveResults>p{padding:14px;background:#eff6ff;border-radius:12px;line-height:1.8}#leaveSettings input{max-width:150px}</style>
 
