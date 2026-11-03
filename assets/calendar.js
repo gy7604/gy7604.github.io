@@ -837,6 +837,10 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
          * 나머지 날짜에는 빈 행을 유지합니다.
          */
 
+        // Treat every row of this team's day as one hoverable card.
+        // Keep the existing row order, click handlers and week-height logic.
+        dayHtml += `<div class="shift-card-group shift-card-group-${team}" data-shift-team="${team}" role="group" aria-label="${team}조 근무·휴무·대근">`;
+
         for (const rowIndex of rowsForThisTeam) {
 
           /*
@@ -1043,6 +1047,8 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
           `;
 
         }
+
+        dayHtml += '</div>';
 
       });
 
