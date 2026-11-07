@@ -6,11 +6,23 @@ const context=vm.createContext({Intl,Date,currentUser:null});
 vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../assets/leave.js'),'utf8')+';globalThis.ledger=OwnerLeave;',context);
 const calc=(rows,year=2027,reset='04-01',total=20,now='2027-11-03')=>context.ledger.calculate(rows,year,reset,total,now);
 const row=(date,kind='annual',reason='연차')=>({shift_date:date,leave_kind:kind,reason});
-test('reward thresholds, cap and calendar-year boundaries',()=>{
- for(const [used,expected] of [[0,0],[4,0],[5,1],[9,1],[10,2],[14,2],[15,3],[19,3],[20,4],[25,4]]){
+test('documented 2027 reward thresholds, cap and calendar-year boundaries',()=>{
+ for(const [used,expected] of [[0,0],[3,0],[4,1],[7,1],[8,2],[11,2],[12,3],[15,3],[16,4],[19,4],[20,5],[24,5]]){
   const rows=Array.from({length:used},()=>row('2026-12-31'));
   rows.push(row('2025-12-31'),row('2027-01-01'),row('2026-07-01','reward'));
   assert.equal(calc(rows).reward,expected);
+ }
+});
+test('documented 2026 confirmed grant stays fixed at five days',()=>{
+ for(const used of [0,4,20,24]){
+  const rows=Array.from({length:used},()=>row('2025-12-31'));
+  assert.equal(calc(rows,2026,'04-01',20,'2026-11-07').reward,5);
+ }
+});
+test('pre-2026 rewards keep the historical five-day threshold and four-day cap',()=>{
+ for(const [used,expected] of [[0,0],[4,0],[5,1],[19,3],[20,4],[25,4]]){
+  const rows=Array.from({length:used},()=>row('2024-12-31'));
+  assert.equal(calc(rows,2025,'04-01',20,'2025-11-07').reward,expected);
  }
 });
 test('annual reset differs from reward expiry; future records do not reduce balance',()=>{
