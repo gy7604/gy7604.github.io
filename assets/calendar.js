@@ -1,3 +1,49 @@
+function requestRegistrationTime(request) {
+  const time = Date.parse(request.created_at || '');
+  return Number.isFinite(time) ? time : Infinity;
+}
+function compareRequestRegistration(a, b) {
+  const first = requestRegistrationTime(a), second = requestRegistrationTime(b);
+  if (first !== second) return first < second ? -1 : 1;
+  return String(a.id).localeCompare(String(b.id));
+}
+function requestRegistrationLabel(request) {
+  const time = requestRegistrationTime(request);
+  if (!Number.isFinite(time)) return '등록 시각 정보 없음';
+  const parts = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+  }).format(new Date(time));
+  return `등록 시각: ${parts} (한국시간)`;
+}
+function showRequestRegistration(id) {
+  const request = requestsData.find(r => r.id === id);
+  if (!request) return;
+  const dialog = document.createElement('dialog');
+  dialog.className = 'registration-dialog';
+  dialog.setAttribute('aria-label', '휴무 등록 정보');
+  const heading = document.createElement('h2');
+  heading.textContent = requestDisplayName(request);
+  const time = document.createElement('p');
+  time.textContent = requestRegistrationLabel(request);
+  const actions = document.createElement('div');
+  actions.className = 'dialog-actions';
+  const close = document.createElement('button');
+  close.textContent = '닫기';
+  close.onclick = () => dialog.close();
+  actions.append(close);
+  if (currentUser && (isOwnRequest(request) || isSuperAdmin())) {
+    const cancel = document.createElement('button');
+    const kind = isSupportRequest(request) ? '추가 지원' : '휴무 신청';
+    cancel.textContent = kind + ' 취소';
+    cancel.onclick = () => { dialog.close(); deleteRequest(request.id, kind); };
+    actions.append(cancel);
+  }
+  dialog.append(heading, time, actions);
+  dialog.addEventListener('close', () => dialog.remove(), {once: true});
+  document.body.append(dialog);
+  dialog.showModal();
+}
 function calendarTodayKey(now=new Date()) {
   return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
 }
@@ -804,7 +850,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
             r =>
               r.shift_date === dateStr &&
               r.team === team
-          );
+          ).sort(compareRequestRegistration);
 
 
         let suggestedTeam = '';
@@ -884,21 +930,8 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
             `;
 
 
-            if (
-              currentUser &&
-              (
-                isOwnRequest(req) ||
-                isSuperAdmin()
-              )
-            ) {
-
-              reqClick =
-                `onclick="deleteRequest('${req.id}', '${isSupportRequest(req) ? '추가 지원' : '휴무 신청'}')"`;
-
-              reqClass +=
-                ' clickable';
-
-            }
+            reqClick = `onclick="showRequestRegistration('${req.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showRequestRegistration('${req.id}')}"`;
+            reqClass += ' clickable';
 
 
             if (req.filled_by) {
@@ -1029,7 +1062,7 @@ function visibleTeamRowIndexes(weekDate, team, data, today, compact = true) {
               <div
                 class="${reqClass}"
                 ${reqClick}
-                title="${reqClick ? '클릭 시 휴무·추가 지원 신청/삭제' : ''}"
+                title="${req ? escapeRequestText(requestRegistrationLabel(req)) : (reqClick ? '클릭 시 휴무·추가 지원 신청' : '')}"
               >
                 ${reqName}
               </div>

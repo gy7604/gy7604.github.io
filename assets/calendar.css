@@ -674,3 +674,9 @@ dialog::backdrop{background:#1f334f66}
     box-shadow:none;
   }
 }
+.registration-dialog { width:min(380px,calc(100vw - 40px));box-sizing:border-box;border:0;border-radius:18px;padding:24px;color:#203b5c;box-shadow:0 16px 50px #11203540; }
+.registration-dialog::backdrop { background:rgba(17,32,53,.57); }
+.registration-dialog h2 { margin:0 0 16px;font-size:20px; }
+.registration-dialog p { font-size:14px;line-height:1.7;overflow-wrap:anywhere; }
+.registration-dialog .dialog-actions { display:flex;gap:10px;justify-content:flex-end;margin-top:20px; }
+.registration-dialog button { min-height:44px;padding:10px 16px;border:0;border-radius:10px;background:#eaf1f8;color:#203b5c;cursor:pointer;font:inherit; }
