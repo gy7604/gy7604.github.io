@@ -369,6 +369,9 @@ BEGIN
  PERFORM set_config('app.credential_event','self_change',true);
  UPDATE public.app_users SET login_code_hash=private.app_hash_code(p_new_code)
  WHERE id=u.id RETURNING credential_version INTO next_version;
+ -- Preserve currently valid device-bound passkeys, without re-enabling older revoked versions.
+ UPDATE private.app_passkeys SET credential_version=next_version
+ WHERE user_id=u.id AND credential_version=u.credential_version;
  INSERT INTO private.app_code_lookup(user_id,lookup_key_id,lookup_hash,credential_version)
  VALUES(u.id,p_lookup_key_id,p_lookup_hash,next_version)
  ON CONFLICT(user_id) DO UPDATE SET lookup_key_id=EXCLUDED.lookup_key_id,
