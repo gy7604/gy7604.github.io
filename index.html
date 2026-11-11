@@ -769,6 +769,19 @@ document.addEventListener('pointerdown', event => {
     document.getElementById('upgradeNewCode').focus();
   }
 
+  function resetCodeUpgradeUI() {
+    pendingLegacyCode='';
+    pendingAdminUpgrade=false;
+    document.getElementById('shortCodeUpgradePanel').hidden=true;
+    document.getElementById('shortCodeUpgradeStatus').hidden=true;
+    for(const id of ['upgradeNewCode','upgradeRepeatCode'])document.getElementById(id).value='';
+    for(const id of ['loginCode','loginKeyboardToggle','installAppButton','loginIphoneInstallButton'])
+      document.getElementById(id).hidden=false;
+    const loginButton=document.querySelector('#loginScreen button[onclick="login()"]');
+    if(loginButton)loginButton.hidden=false;
+    updatePasskeyUI();
+  }
+
   async function submitShortCodeUpgrade() {
     if (!pendingLegacyCode || passkeyBusy) return;
     const newCode=document.getElementById('upgradeNewCode').value;
@@ -789,9 +802,7 @@ document.addEventListener('pointerdown', event => {
       let result=data;
       if(error?.context?.clone) { try { result=await error.context.clone().json(); } catch {} }
       if(error || !result?.success) throw new Error(result?.message||'접속코드 변경에 실패했습니다.');
-      pendingLegacyCode='';
-      pendingAdminUpgrade=false;
-      status.hidden=true;
+      resetCodeUpgradeUI();
       completeSessionLogin(result,newCode);
     } catch(error) {
       status.textContent=error?.message||'접속코드 변경에 실패했습니다. 다시 시도해 주세요.';
