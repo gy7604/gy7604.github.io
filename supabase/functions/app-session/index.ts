@@ -8,6 +8,14 @@ const headers = {
 const reply = (body: unknown, status=200) => new Response(JSON.stringify(body), {status,headers});
 const hex = (bytes: Uint8Array) => Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
 const digest = async (token: string) => hex(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(token))));
+function validTeamAdminPin(code: unknown): code is string {
+ if(typeof code!=="string" || !/^[0-9]{8}$/.test(code))return false;
+ for(let i=0;i<=5;i++){
+  const a=code.charCodeAt(i),b=code.charCodeAt(i+1),c=code.charCodeAt(i+2);
+  if((b===a+1 && c===b+1)||(b===a-1 && c===b-1)||(a===b && b===c))return false;
+ }
+ return true;
+}
 // Derive a separate lookup key with a fixed purpose label. Optional dedicated secret
 // permits independent rotation; default root is the existing server-only service key.
 async function loginLookup(code: string, serviceKey: string) {
@@ -32,7 +40,7 @@ Deno.serve(async (request: Request) => {
   let body; try {body=JSON.parse(raw);} catch {return reply({success:false},400);}
   if(!body || typeof body!=="object") return reply({success:false},400);
   const action=body.action;
-  if(!["login","upgrade_short_code","verify","logout","code_change_status","push_upsert","push_enable","push_delete","push_status","request_create","vacancy_create","sub_register","sub_cancel","request_delete","memo_write","helper_lookup","calendar_read","personal_read","history_read","credential_audit","leave_read","leave_settings","leave_classify","owner_mode"].includes(action)) return reply({success:false},400);
+  if(!["login","upgrade_short_code","upgrade_team_admin_pin","verify","logout","code_change_status","push_upsert","push_enable","push_delete","push_status","request_create","vacancy_create","sub_register","sub_cancel","request_delete","memo_write","helper_lookup","calendar_read","personal_read","history_read","credential_audit","leave_read","leave_settings","leave_classify","owner_mode"].includes(action)) return reply({success:false},400);
   const url=Deno.env.get("SUPABASE_URL"),key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if(!url || !key) return reply({success:false,message:"서버 설정을 확인해 주세요."},500);
   let rpc: string, args: Record<string,unknown>, token: string | undefined;
@@ -55,6 +63,23 @@ Deno.serve(async (request: Request) => {
    token=hex(crypto.getRandomValues(new Uint8Array(32)));
    const lookup=await loginLookup(body.new_code,key);
    rpc="app_session_upgrade_short_code";
+   args={p_current_code:body.current_code,p_new_code:body.new_code,p_token_hash:await digest(token),...lookup};
+  }else if(action==="upgrade_team_admin_pin"){
+   if(typeof body.current_code!=="string" || !/^[!-~]{4,50}$/.test(body.current_code) ||
+      !validTeamAdminPin(body.new_code) || body.new_code!==body.repeat_code)
+    return reply({success:false,message:"조 관리자 새 PIN은 연속·반복 숫자 없이 8자리로 입력해 주세요."},400);
+   // Throttle by the existing keyed code/peer guard before verifying bcrypt.
+   const currentLookup=await loginLookup(body.current_code,key);
+   const peer=(request.headers.get("cf-connecting-ip")||request.headers.get("x-real-ip")||request.headers.get("x-forwarded-for")?.split(",")[0]||"unknown").trim().slice(0,128);
+   const peerKey=await crypto.subtle.importKey("raw",new TextEncoder().encode(Deno.env.get("APP_LOGIN_LOOKUP_SECRET")||key),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+   const peerHash=hex(new Uint8Array(await crypto.subtle.sign("HMAC",peerKey,new TextEncoder().encode("snnc:login-peer:v1:"+peer))));
+   const guard=await fetch(url+"/rest/v1/rpc/app_session_login_guard",{method:"POST",headers:{apikey:key,Authorization:"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify({p_lookup_hash:currentLookup.p_lookup_hash,p_peer_hash:peerHash}),signal:AbortSignal.timeout(10000)});
+   if(!guard.ok)return reply({success:false,message:"로그인 연결을 확인하고 다시 시도해 주세요."},503);
+   const allowed=await guard.json();
+   if(allowed.status!=="ok")return reply({success:false,message:"로그인 시도가 많습니다. 잠시 후 다시 시도해 주세요."},429);
+   token=hex(crypto.getRandomValues(new Uint8Array(32)));
+   const lookup=await loginLookup(body.new_code,key);
+   rpc="app_session_upgrade_team_admin_pin";
    args={p_current_code:body.current_code,p_new_code:body.new_code,p_token_hash:await digest(token),...lookup};
   }else{
    const supplied=request.headers.get("x-app-session") || "";
@@ -160,9 +185,14 @@ Deno.serve(async (request: Request) => {
   });
   if(!result.ok) return reply({success:false,message:"잠시 후 다시 시도해 주세요."},500);
   const data=await result.json();
-  if(action==="login" && data.status==="upgrade_required") return reply({success:true,requires_code_upgrade:true});
-  if(action==="upgrade_short_code" && data.status==="ok") return reply({success:true,token,user:data.user,expires_at:data.expires_at});
+  if(action==="login" && data.status==="admin_upgrade_required")
+   return reply({success:true,requires_code_upgrade:true,code_upgrade_kind:"team_admin"});
+  if(action==="login" && data.status==="upgrade_required")
+   return reply({success:true,requires_code_upgrade:true,code_upgrade_kind:"short"});
+  if(["upgrade_short_code","upgrade_team_admin_pin"].includes(action) && data.status==="ok") return reply({success:true,token,user:data.user,expires_at:data.expires_at});
   if(data.status==="code_required") return reply({success:false,message:"보안을 위해 기존 접속코드를 한 번 확인해 주세요. 4자리 코드는 변경해야 합니다."},401);
+  if(data.status==="admin_upgrade_required") return reply({success:false,message:"조 관리자 계정은 기존 접속번호로 로그인한 뒤 8자리 PIN으로 변경해야 합니다."},403);
+  if(data.status==="admin_pin_invalid") return reply({success:false,message:"조 관리자 PIN은 연속·반복 숫자가 없는 8자리 숫자로 입력해 주세요."},400);
   if(data.status==="upgrade_required") return reply({success:false,message:"4자리 접속코드는 변경해야 합니다. 기존 코드를 입력해 주세요."},403);
   if(data.status==="rate_limited") return reply({success:false,message:"잠시 후 다시 시도해 주세요."},429);
   if(data.status==="not_found") return reply({success:false,message:"해당 신청을 찾을 수 없습니다."},404);
@@ -170,7 +200,7 @@ Deno.serve(async (request: Request) => {
   if(data.status==="helper_busy") return reply({success:false,message:"이 대근자는 같은 날짜·같은 근무에 이미 등록되어 있습니다."},409);
   if(data.status==="conflict") return reply({success:false,message:action==="memo_write"?"메모가 변경되었습니다. 달력을 새로 불러온 뒤 다시 입력해 주세요.":"대근 상태가 변경되었습니다. 달력을 새로 불러온 뒤 확인해 주세요."},409);
   if(data.status==="forbidden") return reply({success:false,message:action==="memo_write"?"메모를 작성한 조의 인원만 수정·삭제할 수 있습니다.":"이 기능에 접근할 권한이 없습니다."},403);
-  if(data.status==="duplicate") return reply({success:false,message:action==="upgrade_short_code"?"이미 사용 중인 접속코드입니다. 다른 코드를 입력해 주세요.":"이 날짜에 이미 본인의 휴무 신청이 있습니다."},409);
+  if(data.status==="duplicate") return reply({success:false,message:["upgrade_short_code","upgrade_team_admin_pin"].includes(action)?"이미 사용 중인 접속코드입니다. 다른 코드를 입력해 주세요.":"이 날짜에 이미 본인의 휴무 신청이 있습니다."},409);
   if(data.status==="reason_contains_name") return reply({success:false,message:"신청자 이름은 자동으로 표시됩니다. 사유에서 본인 이름을 지우고 등록해 주세요."},400);
   if(data.status==="bad_input") return reply({success:false,message:action==="upgrade_short_code"?"새 접속코드 입력을 확인해 주세요.":"입력 정보를 확인해 주세요."},400);
   if(data.status!=="ok") return reply({success:false,message:"접속 코드 또는 세션을 확인해 주세요."},401);
