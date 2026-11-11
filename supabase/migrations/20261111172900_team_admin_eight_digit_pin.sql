@@ -1,8 +1,7 @@
 -- Team-admin (A/B/C/D) mandatory PIN rotation. Review-only migration.
 -- Apply LAST, after updated app-session, app-passkey Edge Functions and web UI
 -- are deployed; applying this to the current server first will lock managers out.
--- Super-admin, general staff and existing leave/push records are not changed.
-BEGIN;
+-- Super-admin, general staff and existing leave/push records are not changed. Apply with the transactional migration runner.
 
 CREATE TABLE IF NOT EXISTS private.app_team_admin_pin_upgrade_required (
  user_id bigint PRIMARY KEY REFERENCES public.app_users(id) ON DELETE CASCADE,
@@ -393,4 +392,3 @@ GRANT EXECUTE ON FUNCTION public.app_session_upgrade_team_admin_pin(text,text,te
 INSERT INTO private.app_team_admin_pin_upgrade_required(user_id)
  SELECT id FROM public.app_users WHERE role='team_admin' AND is_active
  ON CONFLICT(user_id) DO NOTHING;
-COMMIT;
