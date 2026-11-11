@@ -10,7 +10,8 @@ function setup(role,name,users=[]){
  const calls=[],alerts=[];
  const c=vm.createContext({Date,currentUser:{id:1,name:'Self',team:'C',role,is_active:true},currentSessionToken:'fixture',
   supabaseClient:{functions:{invoke:async(_,{body})=>{calls.push(body);return {data:{success:true,users},error:null};}}},
-  prompt:()=>name,confirm:()=>true,alert:m=>alerts.push(m),getSuggestedHelperTeam:()=> 'C조',getShiftInfo:()=> '휴무',
+  chooseSubstitution:async({manual,employeeName})=>name===null?null:manual?name:employeeName,
+  alert:m=>alerts.push(m),getSuggestedHelperTeam:()=> 'C조',getShiftInfo:()=> '휴무',
   canRegisterSubstitution:()=>true,isSuperAdmin:()=>role==='admin',isTeamAdmin:()=>role==='team_admin',isManager:()=>role!=='user',loadData:()=>{},
  });
  vm.runInContext(adapter+registration+';globalThis.accept=acceptRequest;',c);
@@ -44,4 +45,17 @@ test('blank, cancelled and overlong names never submit',async()=>{
 test('regular users still register themselves without arbitrary text input',async()=>{
  const {c,calls}=setup('user','External');await c.accept('request-id','A','2026-11-03','주간');
  assert.equal(calls.length,1);assert.equal(calls[0].filled_by,'Self');
+});
+
+test('regular users can cancel without registering a substitution',async()=>{
+ const {c,calls}=setup('user',null);await c.accept('request-id','A','2026-11-03','주간');
+ assert.equal(calls.length,0);
+});
+test('a substitution dialog left open during a session or role change cannot register',async()=>{
+ for(const change of ["currentSessionToken='different-session'","currentUser.role='user'"]){
+  const {c,calls}=setup('admin','External');
+  vm.runInContext(`chooseSubstitution=async()=>{${change};return 'External';};`,c);
+  await c.accept('request-id','A','2026-11-03','주간');
+  assert.equal(calls.length,0);
+ }
 });
