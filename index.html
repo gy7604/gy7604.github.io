@@ -134,7 +134,7 @@ document.addEventListener('pointerdown', event => {
 
     <div id="shortCodeUpgradePanel" hidden style="margin-top:14px;padding:14px;border:1px solid #e0a800;background:#fff8e1;border-radius:8px;text-align:left;">
       <strong>접속코드 변경이 필요합니다</strong>
-      <p style="font-size:13px;line-height:1.5;">기존 4자리 코드는 사용할 수 없습니다. 새 코드를 영문·숫자·특수문자로 6~50자 입력해 주세요.</p>
+      <p id="codeUpgradeHelp" style="font-size:13px;line-height:1.5;">기존 4자리 코드는 사용할 수 없습니다. 새 코드를 영문·숫자·특수문자로 6~50자 입력해 주세요.</p>
       <label for="upgradeNewCode">새 접속코드</label>
       <input id="upgradeNewCode" type="password" inputmode="text" autocomplete="new-password" maxlength="50" placeholder="6~50자">
       <label for="upgradeRepeatCode">새 접속코드 다시 입력</label>
@@ -403,6 +403,7 @@ document.addEventListener('pointerdown', event => {
   // 로그인에 성공한 현재 코드입니다. 로그아웃 시 메모리에서 지웁니다.
   let currentLoginCode = '';
   let pendingLegacyCode = '';
+  let pendingAdminUpgrade = false;
   // 서버 세션 토큰은 현재 창의 메모리에만 보관합니다.
   let currentSessionToken = '';
   let sessionExpiryTimer = null;
@@ -635,20 +636,26 @@ document.addEventListener('pointerdown', event => {
 
   let lastAutoCode = '';
   let autoCodeStatusVisible = false;
+  let autoNumericLoginTimer = null;
   function scheduleSixDigitLogin() {
-    const input = document.getElementById('loginCode');
-    const code = input.value.trim();
-    if (!/^\d{6}$/.test(code) || input.inputMode !== 'numeric') {
-      lastAutoCode = '';
+    clearTimeout(autoNumericLoginTimer);
+    const input=document.getElementById('loginCode');
+    const code=input.value.trim();
+    if (!/^([0-9]{6}|[0-9]{8})$/.test(code) || input.inputMode!=='numeric') {
+      lastAutoCode='';
       if (autoCodeStatusVisible) {
-        document.getElementById('passkeyLoginStatus').hidden = true;
-        autoCodeStatusVisible = false;
+        document.getElementById('passkeyLoginStatus').hidden=true;
+        autoCodeStatusVisible=false;
       }
       return;
     }
-    if (lastAutoCode === code || currentUser || passkeyBusy) return;
-    lastAutoCode = code;
-    login({automatic:true});
+    if (lastAutoCode===code || currentUser || passkeyBusy) return;
+    // Debounce six digits so eight-digit codes are not prematurely submitted.
+    autoNumericLoginTimer=setTimeout(()=>{
+      if(input.value.trim()!==code || currentUser || passkeyBusy) return;
+      lastAutoCode=code;
+      login({automatic:true});
+    },350);
   }
 
   async function login({automatic = false} = {}) {
@@ -727,7 +734,7 @@ document.addEventListener('pointerdown', event => {
       return;
     }
     if (sessionData.requires_code_upgrade) {
-      showShortCodeUpgrade(code);
+      showShortCodeUpgrade(code,sessionData.code_upgrade_kind);
       return;
     }
     if (!/^[0-9a-f]{64}$/.test(sessionData.token || '')) {
@@ -737,8 +744,29 @@ document.addEventListener('pointerdown', event => {
     completeSessionLogin(sessionData, code);
   }
 
-  function showShortCodeUpgrade(currentCode) {
+  function validTeamAdminPin(code) {
+    if(!/^[0-9]{8}$/.test(code))return false;
+    for(let i=0;i<6;i++){
+      const a=code.charCodeAt(i),b=code.charCodeAt(i+1),c=code.charCodeAt(i+2);
+      if((b===a+1&&c===b+1)||(b===a-1&&c===b-1)||(a===b&&b===c))return false;
+    }
+    return true;
+  }
+  function showShortCodeUpgrade(currentCode,kind='short') {
     pendingLegacyCode = currentCode;
+    pendingAdminUpgrade=kind==='team_admin';
+    const admin=pendingAdminUpgrade;
+    document.getElementById('codeUpgradeHelp').textContent=admin
+      ? '조 관리자 보안 강화: 8자리 숫자로 PIN을 반드시 변경해 주세요. 오름차순·내림차순·동일 숫자가 3개 이상 연속되는 PIN은 사용할 수 없습니다.'
+      : '기존 4자리 코드는 사용할 수 없습니다. 새 코드를 영문·숫자·특수문자로 6~50자 입력해 주세요.';
+    for(const id of ['upgradeNewCode','upgradeRepeatCode']){
+      const field=document.getElementById(id);
+      field.value='';field.inputMode=admin?'numeric':'text';
+      field.maxLength=admin?8:50;
+      field.placeholder=admin?'새 8자리 PIN':(id==='upgradeRepeatCode'?'새 코드를 다시 입력':'6~50자');
+    }
+    document.getElementById('shortCodeUpgradeStatus').hidden=true;
+    clearTimeout(autoNumericLoginTimer);
     document.getElementById('loginCode').value='';
     for (const id of ['loginCode','loginKeyboardToggle','passkeyLoginButton','passkeyPasswordButton','loginBiometricRegisterButton','installAppButton','loginIphoneInstallButton']) {
       const el=document.getElementById(id); if(el) el.hidden=true;
@@ -751,6 +779,19 @@ document.addEventListener('pointerdown', event => {
     document.getElementById('upgradeNewCode').focus();
   }
 
+  function resetCodeUpgradeUI() {
+    pendingLegacyCode='';
+    pendingAdminUpgrade=false;
+    document.getElementById('shortCodeUpgradePanel').hidden=true;
+    document.getElementById('shortCodeUpgradeStatus').hidden=true;
+    for(const id of ['upgradeNewCode','upgradeRepeatCode'])document.getElementById(id).value='';
+    for(const id of ['loginCode','loginKeyboardToggle','installAppButton','loginIphoneInstallButton'])
+      document.getElementById(id).hidden=false;
+    const loginButton=document.querySelector('#loginScreen button[onclick="login()"]');
+    if(loginButton)loginButton.hidden=false;
+    updatePasskeyUI();
+  }
+
   async function submitShortCodeUpgrade() {
     if (!pendingLegacyCode || passkeyBusy) return;
     const newCode=document.getElementById('upgradeNewCode').value;
@@ -758,19 +799,20 @@ document.addEventListener('pointerdown', event => {
     const status=document.getElementById('shortCodeUpgradeStatus');
     const button=document.getElementById('shortCodeUpgradeSubmit');
     status.hidden=false;
-    if (!/^[!-~]{6,50}$/.test(newCode) || newCode!==newCode.trim()) {
-      status.textContent='영문·숫자·키보드 특수문자로 공백 없이 6~50자를 입력해 주세요.';
+    if (pendingAdminUpgrade ? !validTeamAdminPin(newCode) : (!/^[!-~]{6,50}$/.test(newCode) || newCode!==newCode.trim())) {
+      status.textContent=pendingAdminUpgrade
+        ? '8자리 숫자를 입력해 주세요. 3개 이상 오름차순·내림차순·반복되는 숫자는 사용할 수 없습니다.'
+        : '영문·숫자·키보드 특수문자로 공백 없이 6~50자를 입력해 주세요.';
       return;
     }
     if (newCode!==repeatCode) { status.textContent='새 접속코드가 서로 다릅니다.'; return; }
     button.disabled=true; status.textContent='접속코드를 변경하고 있습니다.';
     try {
-      const {data,error}=await supabaseClient.functions.invoke('app-session',{body:{action:'upgrade_short_code',current_code:pendingLegacyCode,new_code:newCode,repeat_code:repeatCode}});
+      const {data,error}=await supabaseClient.functions.invoke('app-session',{body:{action:pendingAdminUpgrade?'upgrade_team_admin_pin':'upgrade_short_code',current_code:pendingLegacyCode,new_code:newCode,repeat_code:repeatCode}});
       let result=data;
       if(error?.context?.clone) { try { result=await error.context.clone().json(); } catch {} }
       if(error || !result?.success) throw new Error(result?.message||'접속코드 변경에 실패했습니다.');
-      pendingLegacyCode='';
-      status.hidden=true;
+      resetCodeUpgradeUI();
       completeSessionLogin(result,newCode);
     } catch(error) {
       status.textContent=error?.message||'접속코드 변경에 실패했습니다. 다시 시도해 주세요.';
@@ -1344,9 +1386,9 @@ document.addEventListener('pointerdown', event => {
       prompt(
         '이번 달 남은 변경 횟수: ' + quota.remaining + '회 / ' + quota.limit + '회\n\n' +
         "새 접속 코드를 입력하세요.\n" +
-        "(6~50자, 현재 코드와 다른 값)\n" +
-        "영문 대소문자·숫자·키보드 특수문자를 사용할 수 있습니다.\n" +
-        "한글·이모지·공백은 사용할 수 없습니다.\n\n" +
+        (currentUser?.role==='team_admin'
+          ? "조 관리자: 오름차순·내림차순·반복 숫자를 제외한 8자리 숫자 PIN만 가능합니다.\n\n"
+          : "(6~50자, 현재 코드와 다른 값)\n영문 대소문자·숫자·키보드 특수문자를 사용할 수 있습니다.\n한글·이모지·공백은 사용할 수 없습니다.\n\n") +
         "※ 접속 코드는 월 2회까지만 변경할 수 있습니다."
       );
 
@@ -1360,8 +1402,10 @@ document.addEventListener('pointerdown', event => {
       newCode.trim();
 
 
-    if (!/^[!-~]{6,50}$/.test(newCode) || newCode !== trimmedNewCode) {
-      alert("새 접속 코드는 영문 대소문자·숫자·키보드 특수문자만 사용하여 6~50자로 입력해 주세요.\n한글·이모지·공백은 사용할 수 없습니다.");
+    if (currentUser?.role==='team_admin' ? !validTeamAdminPin(newCode) : (!/^[!-~]{6,50}$/.test(newCode) || newCode!==trimmedNewCode)) {
+      alert(currentUser?.role==='team_admin'
+        ? '조 관리자 PIN은 오름차순·내림차순·반복 숫자를 제외한 8자리 숫자로 입력해 주세요.'
+        : "새 접속 코드는 영문 대소문자·숫자·키보드 특수문자만 사용하여 6~50자로 입력해 주세요.\n한글·이모지·공백은 사용할 수 없습니다.");
       return;
     }
 
@@ -3165,7 +3209,7 @@ async function registerBiometricFromLogin() {
     let result=data;
     if (error?.context?.clone) { try { result=await error.context.clone().json(); } catch {} }
     if (error || !result?.success) throw new Error(result?.message||'접속코드를 확인해 주세요.');
-    if (result.requires_code_upgrade) { showShortCodeUpgrade(code); return; }
+    if (result.requires_code_upgrade) { showShortCodeUpgrade(code,result.code_upgrade_kind); return; }
     if (!/^[0-9a-f]{64}$/.test(result.token||'') || !result.user?.is_active) throw new Error('로그인 세션을 확인하지 못했습니다.');
     provisionalToken=result.token;
     status.textContent='계정을 확인했습니다. 기기의 지문·얼굴 인식을 진행해 주세요.';
@@ -3264,10 +3308,12 @@ async function loginWithPasskey({automatic = false} = {}) {
     completeSessionLogin(result,'');
   } catch (error) {
     if (!controller.signal.aborted && !currentUser) {
-      if (error?.message?.includes('접속코드를 한 번 확인')) {
+      if (error?.message?.includes('접속코드를 한 번 확인') || error?.message?.includes('조 관리자 PIN')) {
         usePasswordLogin();
         status.hidden=false;
-        status.textContent='기존 접속코드를 한 번 입력해 주세요. 4자리 코드라면 변경 후 이용할 수 있습니다.';
+        status.textContent=error?.message?.includes('조 관리자 PIN')
+          ? '조 관리자 계정은 기존 접속번호로 로그인한 뒤 새 8자리 PIN으로 변경해야 합니다.'
+          : '기존 접속코드를 한 번 입력해 주세요. 4자리 코드라면 변경 후 이용할 수 있습니다.';
       } else {
         status.textContent = ['NotAllowedError','AbortError'].includes(error?.name)
           ? '비밀번호를 입력하거나 생체인증 로그인 버튼을 눌러 주세요.'
