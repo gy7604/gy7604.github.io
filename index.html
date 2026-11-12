@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="2026.11.11.3">
+  <meta name="app-version" content="2026.11.12.1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>교대 근무</title>
   <link rel="preconnect" href="https://lqqjyedfwlqinppcrvjf.supabase.co" crossorigin>
@@ -677,6 +677,22 @@ document.addEventListener('pointerdown', event => {
     status.textContent = message + ' 코드를 확인한 후 로그인 버튼을 눌러 주세요.';
   }
 
+  const LOGIN_BROWSER_KEY = 'snnc-login-browser-v1';
+  let loginBrowserId = null;
+  function getLoginBrowserId() {
+    try {
+      const stored=localStorage.getItem(LOGIN_BROWSER_KEY);
+      if (/^[0-9a-f]{32}$/.test(stored || '')) return stored;
+    } catch {}
+    if (!loginBrowserId) {
+      if (!globalThis.crypto?.getRandomValues) return null;
+      loginBrowserId=Array.from(crypto.getRandomValues(new Uint8Array(16)),
+        byte=>byte.toString(16).padStart(2,'0')).join('');
+    }
+    try { localStorage.setItem(LOGIN_BROWSER_KEY,loginBrowserId); } catch {}
+    return loginBrowserId;
+  }
+
   async function loginWithCode({automatic = false} = {}) {
 
     const code =
@@ -711,7 +727,7 @@ document.addEventListener('pointerdown', event => {
         method: 'POST',
         headers: {'Content-Type': 'text/plain;charset=UTF-8'},
         credentials: 'omit',
-        body: JSON.stringify({action: 'login', code})
+        body: JSON.stringify({action: 'login', code, browser_id:getLoginBrowserId()})
       });
       const data = await response.json();
       loginResult = {data, error: response.ok ? null : new Error(data?.message || '로그인 오류')};
@@ -808,7 +824,7 @@ document.addEventListener('pointerdown', event => {
     if (newCode!==repeatCode) { status.textContent='새 접속코드가 서로 다릅니다.'; return; }
     button.disabled=true; status.textContent='접속코드를 변경하고 있습니다.';
     try {
-      const {data,error}=await supabaseClient.functions.invoke('app-session',{body:{action:pendingAdminUpgrade?'upgrade_team_admin_pin':'upgrade_short_code',current_code:pendingLegacyCode,new_code:newCode,repeat_code:repeatCode}});
+      const {data,error}=await supabaseClient.functions.invoke('app-session',{body:{action:pendingAdminUpgrade?'upgrade_team_admin_pin':'upgrade_short_code',current_code:pendingLegacyCode,new_code:newCode,repeat_code:repeatCode,browser_id:getLoginBrowserId()}});
       let result=data;
       if(error?.context?.clone) { try { result=await error.context.clone().json(); } catch {} }
       if(error || !result?.success) throw new Error(result?.message||'접속코드 변경에 실패했습니다.');
@@ -3205,7 +3221,7 @@ async function registerBiometricFromLogin() {
   let provisionalToken='',keepSession=false;
   status.hidden=false; status.textContent='접속코드를 확인하고 있습니다.';
   try {
-    const {data,error}=await supabaseClient.functions.invoke('app-session',{body:{action:'login',code}});
+    const {data,error}=await supabaseClient.functions.invoke('app-session',{body:{action:'login',code,browser_id:getLoginBrowserId()}});
     let result=data;
     if (error?.context?.clone) { try { result=await error.context.clone().json(); } catch {} }
     if (error || !result?.success) throw new Error(result?.message||'접속코드를 확인해 주세요.');

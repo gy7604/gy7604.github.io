@@ -38,7 +38,7 @@ test('web and edge use a separate forced-upgrade action',()=>{
   assert.match(html,/upgrade_team_admin_pin/);
   assert.match(html,/autoNumericLoginTimer=setTimeout/);
   assert.match(edge,/validTeamAdminPin\(body\.new_code\)/);
-  assert.match(edge,/app_session_upgrade_team_admin_pin/);
+  assert.match(edge,/app_session_code_attempt/);
   assert.match(edge,/code_upgrade_kind:"team_admin"/);
   assert.match(passkey,/admin_upgrade_required/);
 });
