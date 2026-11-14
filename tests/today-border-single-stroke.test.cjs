@@ -24,13 +24,14 @@ test('reduced-motion path retains a constant visible red stroke',()=>{
  assert.match(css,/\.day-cell\.is-today::after\{\s*animation:none;\s*opacity:1;\s*box-shadow:none;/);
 });
 
-test('existing team card accent and off-day color remain unchanged',()=>{
+test('existing team card accent remains, while full off-duty label is red',()=>{
  assert.match(css,/border-left:4px solid var\(--accent\)/);
- assert.match(css,/\.cell-shift \.shift-off-letter\{color:#d22337!important/);
+ assert.match(css,/\.cal-grid \.day-cell \.team-row\.shift-card-row \.cell-shift\.s-off\{color:#d22337!important/);
+ assert.match(css,/\.cell-shift \.shift-off-letter\{color:inherit!important/);
 });
 
 test('the PWA loads the new CSS and invalidates the former cache',()=>{
- assert.match(html,/assets\/calendar\.css\?v=20261114\.4/);
- assert.match(sw,/assets\/calendar\.css\?v=20261114\.4/);
- assert.match(sw,/snnc-pwa-v58/);
+ assert.match(html,/assets\/calendar\.css\?v=20261114\.5/);
+ assert.match(sw,/assets\/calendar\.css\?v=20261114\.5/);
+ assert.match(sw,/snnc-pwa-v59/);
 });
