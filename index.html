@@ -408,6 +408,76 @@ document.addEventListener('pointerdown', event => {
   let currentSessionToken = '';
   let sessionExpiryTimer = null;
 
+  // Desktop-only auto-logout: 3 minutes without trusted keyboard, mouse or touch input.
+  // The server independently expires PC tokens; background reads never renew them.
+  const DESKTOP_IDLE_MS=3*60*1000;
+  let desktopSessionActive=false,desktopLastInputAt=0,desktopIdleTimer=null;
+  let desktopLastHeartbeatAt=0,desktopHeartbeatBusy=false;
+  function stopDesktopIdle(){
+    clearTimeout(desktopIdleTimer);desktopIdleTimer=null;
+    desktopSessionActive=false;desktopLastInputAt=0;
+    desktopLastHeartbeatAt=0;desktopHeartbeatBusy=false;
+  }
+  function endDesktopIdle(){
+    if(!desktopSessionActive||!currentSessionToken)return;
+    const token=currentSessionToken;
+    closeAppMenu();closeWakeAlarmDialog();
+    clearSessionScreen(); // Clear credentials and UI immediately, before the network responds.
+    const status=document.getElementById('passkeyLoginStatus');
+    if(status){status.hidden=false;status.textContent='PC에서 3분간 조작이 없어 자동 로그아웃되었습니다. 다시 로그인해 주세요.';}
+    // Best-effort server revocation. Even offline, the DB rejects an expired PC token.
+    supabaseClient.functions.invoke('app-session',{
+      body:{action:'logout'},headers:{'x-app-session':token}
+    }).catch(()=>{});
+  }
+  function checkDesktopIdle(){
+    if(!desktopSessionActive||!currentUser||!currentSessionToken)return;
+    const remaining=DESKTOP_IDLE_MS-(Date.now()-desktopLastInputAt);
+    if(remaining<=0){endDesktopIdle();return;}
+    clearTimeout(desktopIdleTimer);
+    desktopIdleTimer=setTimeout(checkDesktopIdle,Math.max(100,remaining));
+  }
+  async function syncDesktopActivity(token){
+    if(desktopHeartbeatBusy||!desktopSessionActive||token!==currentSessionToken)return;
+    desktopHeartbeatBusy=true;
+    try{
+      const {data,error}=await supabaseClient.functions.invoke('app-session',{
+        body:{action:'desktop_activity'},headers:{'x-app-session':token}
+      });
+      if(token!==currentSessionToken||!desktopSessionActive)return;
+      if(error?.context?.status===401||(!error&&data?.success===false)){
+        endDesktopIdle();
+      }
+      // Connection problems do not silently keep the server session alive.
+    }catch{}finally{desktopHeartbeatBusy=false;}
+  }
+  function onDesktopInput(event){
+    if(!desktopSessionActive||!currentUser||!currentSessionToken||event?.isTrusted!==true)return;
+    const now=Date.now();
+    if(now-desktopLastInputAt>=DESKTOP_IDLE_MS){endDesktopIdle();return;}
+    desktopLastInputAt=now;
+    checkDesktopIdle();
+    if(now-desktopLastHeartbeatAt>=15000&&!desktopHeartbeatBusy){
+      desktopLastHeartbeatAt=now;
+      void syncDesktopActivity(currentSessionToken);
+    }
+  }
+  function startDesktopIdle(data){
+    stopDesktopIdle();
+    if(data?.desktop_session!==true)return;
+    desktopSessionActive=true;
+    desktopLastInputAt=Date.now();
+    desktopLastHeartbeatAt=Date.now();
+    checkDesktopIdle();
+  }
+  for(const type of ['pointermove','pointerdown','keydown','wheel','touchstart']){
+    document.addEventListener(type,onDesktopInput,{passive:true,capture:true});
+  }
+  window.addEventListener('focus',checkDesktopIdle);
+  window.addEventListener('pageshow',checkDesktopIdle);
+  document.addEventListener('visibilitychange',checkDesktopIdle);
+
+
   // Fold existing controls without changing their actions or permissions.
   function closeAppMenu(){
     const panel=document.getElementById('appMenuPanel'),toggle=document.getElementById('appMenuToggle');
@@ -885,6 +955,7 @@ document.addEventListener('pointerdown', event => {
     currentSessionToken = sessionData.token;
     updateWakeAlarmPilot();
     scheduleSessionExpiry(sessionData.expires_at);
+    startDesktopIdle(sessionData);
 
 
     document
@@ -920,7 +991,8 @@ document.addEventListener('pointerdown', event => {
     document
       .getElementById('welcomeMsg')
       .innerText =
-      `[${currentUser.team}조] ${currentUser.name} 님 ${roleBadge}`;
+      `[${currentUser.team}조] ${currentUser.name} 님 ${roleBadge}` +
+      (desktopSessionActive ? ' · PC 3분 미사용 시 자동 로그아웃' : '');
 
 
     closeAppMenu();
@@ -1302,6 +1374,7 @@ document.addEventListener('pointerdown', event => {
     } finally {
       clearTimeout(sessionExpiryTimer);
       sessionExpiryTimer = null;
+      stopDesktopIdle();
       clearAuditViews();
       currentUser = null;
       currentLoginCode = '';
@@ -1668,6 +1741,7 @@ document.addEventListener('pointerdown', event => {
   }
 
   function clearSessionScreen() {
+    stopDesktopIdle();
     clearAuditViews();
     clearTimeout(sessionExpiryTimer);
     sessionExpiryTimer = null;
