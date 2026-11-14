@@ -47,6 +47,12 @@ async function loginAttemptHashes(request: Request, browserId: unknown, rootKey:
  return {p_peer_hash,p_browser_hash};
 }
 
+// The device class is inferred from request headers, not trusted as an identity.
+function isDesktopSession(request: Request): boolean {
+ const ua=request.headers.get("user-agent")||"";
+ if(request.headers.get("sec-ch-ua-mobile")==="?1")return false;
+ return !/Android|iPhone|iPad|iPod|Mobile|Tablet|Silk|Kindle|Windows Phone/i.test(ua);
+}
 Deno.serve(async (request: Request) => {
  if (request.headers.get("origin") && request.headers.get("origin")!==origin) return reply({success:false,message:"허용되지 않은 요청입니다."},403);
  if(request.method==="OPTIONS") return new Response("ok",{headers});
@@ -57,7 +63,7 @@ Deno.serve(async (request: Request) => {
   let body; try {body=JSON.parse(raw);} catch {return reply({success:false},400);}
   if(!body || typeof body!=="object") return reply({success:false},400);
   const action=body.action;
-  if(!["login","upgrade_short_code","upgrade_team_admin_pin","verify","logout","code_change_status","push_upsert","push_enable","push_delete","push_status","request_create","vacancy_create","sub_register","sub_cancel","request_delete","memo_write","helper_lookup","calendar_read","personal_read","history_read","credential_audit","leave_read","leave_settings","leave_classify","owner_mode"].includes(action)) return reply({success:false},400);
+  if(!["login","upgrade_short_code","upgrade_team_admin_pin","desktop_activity","verify","logout","code_change_status","push_upsert","push_enable","push_delete","push_status","request_create","vacancy_create","sub_register","sub_cancel","request_delete","memo_write","helper_lookup","calendar_read","personal_read","history_read","credential_audit","leave_read","leave_settings","leave_classify","owner_mode"].includes(action)) return reply({success:false},400);
   const url=Deno.env.get("SUPABASE_URL"),key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if(!url || !key) return reply({success:false,message:"서버 설정을 확인해 주세요."},500);
   let rpc: string, args: Record<string,unknown>, token: string | undefined;
@@ -105,7 +111,9 @@ Deno.serve(async (request: Request) => {
    const supplied=request.headers.get("x-app-session") || "";
    if(!/^[0-9a-f]{64}$/.test(supplied)) return reply({success:false,message:"다시 로그인해 주세요."},401);
    const tokenHash=await digest(supplied);
-   if(action==="owner_mode"){
+   if(action==="desktop_activity"){
+    rpc="app_session_desktop_activity";args={p_token_hash:tokenHash};
+   }else if(action==="owner_mode"){
     if(typeof body.enabled!=="boolean")return reply({success:false,message:"전환할 모드를 확인해 주세요."},400);
     rpc="app_session_set_owner_mode";args={p_token_hash:tokenHash,p_enabled:body.enabled};
    }else if(["leave_read","leave_settings","leave_classify"].includes(action)){
@@ -205,11 +213,23 @@ Deno.serve(async (request: Request) => {
   });
   if(!result.ok) return reply({success:false,message:"잠시 후 다시 시도해 주세요."},500);
   const data=await result.json();
+  let desktopSession: boolean | undefined;
+  if(isCodeAttempt && data.status==="ok"){
+   // Bind before releasing the token; fail closed if the binding cannot be saved.
+   desktopSession=isDesktopSession(request);
+   const bound=await fetch(url+"/rest/v1/rpc/app_session_bind_device",{
+    method:"POST",headers:{apikey:key,Authorization:"Bearer "+key,"Content-Type":"application/json"},
+    body:JSON.stringify({p_token_hash:await digest(token!),p_is_desktop:desktopSession}),
+    signal:AbortSignal.timeout(10000),
+   });
+   if(!bound.ok||(await bound.json()).status!=="ok")
+    return reply({success:false,message:"로그인 보안 설정을 확인하고 다시 시도해 주세요."},503);
+  }
   if(action==="login" && data.status==="admin_upgrade_required")
    return reply({success:true,requires_code_upgrade:true,code_upgrade_kind:"team_admin"});
   if(action==="login" && data.status==="upgrade_required")
    return reply({success:true,requires_code_upgrade:true,code_upgrade_kind:"short"});
-  if(["upgrade_short_code","upgrade_team_admin_pin"].includes(action) && data.status==="ok") return reply({success:true,token,user:data.user,expires_at:data.expires_at});
+  if(["upgrade_short_code","upgrade_team_admin_pin"].includes(action) && data.status==="ok") return reply({success:true,token,user:data.user,expires_at:data.expires_at,desktop_session:desktopSession===true});
   if(data.status==="code_required") return reply({success:false,message:"보안을 위해 기존 접속코드를 한 번 확인해 주세요. 4자리 코드는 변경해야 합니다."},401);
   if(data.status==="admin_upgrade_required") return reply({success:false,message:"조 관리자 계정은 기존 접속번호로 로그인한 뒤 8자리 PIN으로 변경해야 합니다."},403);
   if(data.status==="admin_pin_invalid") return reply({success:false,message:"조 관리자 PIN은 연속·반복 숫자가 없는 8자리 숫자로 입력해 주세요."},400);
@@ -224,7 +244,7 @@ Deno.serve(async (request: Request) => {
   if(data.status==="reason_contains_name") return reply({success:false,message:"신청자 이름은 자동으로 표시됩니다. 사유에서 본인 이름을 지우고 등록해 주세요."},400);
   if(data.status==="bad_input") return reply({success:false,message:action==="upgrade_short_code"?"새 접속코드 입력을 확인해 주세요.":"입력 정보를 확인해 주세요."},400);
   if(data.status!=="ok") return reply({success:false,message:"접속 코드 또는 세션을 확인해 주세요."},401);
-  return reply({success:true,...(action==="leave_read"?{rows:data.rows||[],settings:data.settings||null}:{}),...(["personal_read","history_read"].includes(action)?{rows:(data.rows||[]).slice(0,100),has_more:data.has_more===true}:{}),...(action==="credential_audit"?{users:data.users||[]}:{}),...(action==="code_change_status"?{used:data.used,remaining:data.remaining,limit:data.limit,month:data.month}:{}),...(action==="push_status"?{registered:data.registered===true,disabled:data.disabled===true}:{}),...(token?{token}:{}),...(data.user?{user:data.user,expires_at:data.expires_at}:{}),...(action==="helper_lookup"?{users:data.users||[]}: {}),...(action==="calendar_read"?{requests:data.requests||[],memos:data.memos||[]}: {})});
+  return reply({success:true,...(action==="leave_read"?{rows:data.rows||[],settings:data.settings||null}:{}),...(["personal_read","history_read"].includes(action)?{rows:(data.rows||[]).slice(0,100),has_more:data.has_more===true}:{}),...(action==="credential_audit"?{users:data.users||[]}:{}),...(action==="code_change_status"?{used:data.used,remaining:data.remaining,limit:data.limit,month:data.month}:{}),...(action==="push_status"?{registered:data.registered===true,disabled:data.disabled===true}:{}),...(token?{token}:{}),...(data.user?{user:data.user,expires_at:data.expires_at,desktop_session:desktopSession===true}:{}),...(action==="helper_lookup"?{users:data.users||[]}: {}),...(action==="calendar_read"?{requests:data.requests||[],memos:data.memos||[]}: {})});
  }catch{
   // Never log credentials, session tokens, or RPC payloads.
   return reply({success:false,message:"잠시 후 다시 시도해 주세요."},500);

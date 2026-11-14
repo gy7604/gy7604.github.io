@@ -787,3 +787,10 @@ dialog::backdrop{background:#1f334f66}
 .registration-dialog p { font-size:14px;line-height:1.7;overflow-wrap:anywhere; }
 .registration-dialog .dialog-actions { display:flex;gap:10px;justify-content:flex-end;margin-top:20px; }
 .registration-dialog button { min-height:44px;padding:10px 16px;border:0;border-radius:10px;background:#eaf1f8;color:#203b5c;cursor:pointer;font:inherit; }
+
+/* 휴무인 조 표기(A휴·B휴·C휴·D휴): 글자 '휴'만 빨간색. */
+.cell-shift .shift-off-letter{color:#d22337!important;font-weight:800}
+
+/* A failed request is visible, but never presented as a forecast condition. */
+.day-date-part .weather-badge.weather-unavailable{color:#64748b;opacity:.8;cursor:help}
+.day-date-part .weather-badge.weather-unavailable[aria-busy="true"]{opacity:.65}
