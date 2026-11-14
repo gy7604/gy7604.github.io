@@ -2,7 +2,9 @@
 (function(){
 'use strict';
 const REGION={name:'광양시 금호동',latitude:34.9374,longitude:127.7246};
-const CACHE_KEY='shift-weather-gwangyang-geumho-v1',TTL=30*60*1000,MAX_AGE=6*60*60*1000;
+// A failed network request must not make all date icons vanish. The last forecast
+// may be shown for up to 24h, clearly marked as old, while it is refreshed.
+const CACHE_KEY='shift-weather-gwangyang-geumho-v1',TTL=30*60*1000,MAX_AGE=24*60*60*1000;
 const STATES={
 0:['☀️','맑음'],1:['🌤️','대체로 맑음'],2:['⛅','구름 조금'],3:['☁️','흐림'],
 45:['🌫️','안개'],48:['🌫️','착빙 안개'],
@@ -33,34 +35,47 @@ function normalize(payload,today=dayKey()){
  return rows;
 }
 function url(){const q=new URLSearchParams({latitude:String(REGION.latitude),longitude:String(REGION.longitude),daily:'weather_code,temperature_2m_min,temperature_2m_max,precipitation_probability_max',timezone:'Asia/Seoul',forecast_days:'7'});return 'https://api.open-meteo.com/v1/forecast?'+q}
-let rows=[],fetchedAt=0,inflight=null,nextAttempt=0,credit,dialog,status='idle',renderPending=false;
-function readCache(){try{const v=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');if(!v||v.day!==dayKey()||typeof v.time!=='number'||v.time>Date.now()||Date.now()-v.time>MAX_AGE||!Array.isArray(v.rows))return null;
+let rows=[],fetchedAt=0,inflight=null,nextAttempt=0,retryTimer=null,credit,dialog,status='idle',renderPending=false;
+function readCache(){try{const v=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');if(!v||typeof v.time!=='number'||v.time>Date.now()||Date.now()-v.time>MAX_AGE||!Array.isArray(v.rows))return null;
  const payload={daily:{time:v.rows.map(r=>r.date),weather_code:v.rows.map(r=>r.code),temperature_2m_min:v.rows.map(r=>r.min),temperature_2m_max:v.rows.map(r=>r.max),precipitation_probability_max:v.rows.map(r=>r.rain)}};
  return {rows:normalize(payload),time:v.time}}catch{return null}}
 function timeLabel(){return new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',hour12:false}).format(fetchedAt)}
 function validRows(){const today=dayKey();if(!fetchedAt||Date.now()-fetchedAt>MAX_AGE)return [];return rows.filter(r=>r.date>=today&&r.date<=dayAfter(today,6))}
 function apply(){
  if(!credit)return;
- const data=validRows(),byDate=new Map(data.map(r=>[r.date,r]));
+ const data=validRows(),byDate=new Map(data.map(r=>[r.date,r])),today=dayKey(),last=dayAfter(today,6);
  document.querySelectorAll('#calendarGrid .day-cell').forEach(cell=>{
   const date=cell.id.slice('calendar-day-'.length),header=cell.querySelector('.day-date-part');if(!header)return;
   const row=byDate.get(date);let button=header.querySelector('.weather-badge');
-  if(!row){button?.remove();return}
-  const [icon,label]=state(row.code),old=status==='error'||Date.now()-fetchedAt>TTL;
-  const text=REGION.name+' '+date+' '+label+' 예보'+(old?' · 이전 조회 자료':'');
+  // Older dates and dates beyond the actual forecast window never show made-up weather.
+  if(!row&&(date<today||date>last)){button?.remove();return}
   if(!button){button=document.createElement('button');button.type='button';button.className='weather-badge';button.dataset.weatherDate=date;header.append(button)}
+  const stale=!!row&&(status==='error'||Date.now()-fetchedAt>TTL);
+  let icon,label;
+  if(row)[icon,label]=state(row.code);
+  else [icon,label]=status==='error'?['⚠️','예보 연결 실패']:['…','예보 조회 중'];
+  const title=row
+   ? REGION.name+' '+date+' '+label+' 예보'+(stale?' · 이전 조회 자료':'')
+   : REGION.name+' '+date+' '+label+(status==='error'?' · 눌러서 다시 시도':'');
   if(button.textContent!==icon)button.textContent=icon;
-  button.title=text;button.setAttribute('aria-label',text);button.classList.toggle('weather-stale',old);
+  button.title=title;button.setAttribute('aria-label',title);
+  button.setAttribute('aria-busy',String(!row&&status==='loading'));
+  button.classList.toggle('weather-stale',stale);
+  button.classList.toggle('weather-unavailable',!row);
  });
  const p=credit.querySelector('span');
- p.textContent=REGION.name+' · 오늘부터 7일 예보'+(status==='loading'?' · 불러오는 중':status==='error'?(data.length?' · 갱신 실패, 이전 조회 '+timeLabel()+' 자료':' · 날씨 연결을 확인해 주세요'):data.length?' · 조회 '+timeLabel():'');
- credit.querySelector('button').hidden=status!=='error';credit.querySelector('button').disabled=!!inflight;
+ p.textContent=REGION.name+' · 오늘부터 7일 예보'
+   +(status==='loading'?' · 불러오는 중':status==='error'
+      ?(data.length?' · 연결 불안정, 이전 조회 '+timeLabel()+' 자료':' · 날씨 조회 실패 (⚠ 아이콘을 눌러 재시도)')
+      :data.length?' · 조회 '+timeLabel():'');
+ credit.querySelector('button').hidden=status!=='error';
+ credit.querySelector('button').disabled=!!inflight;
 }
 function queueApply(){if(renderPending)return;renderPending=true;requestAnimationFrame(()=>{renderPending=false;apply()})}
 async function refresh(force=false){
  if(inflight)return inflight;
  if(!force&&Date.now()<nextAttempt)return;
- const cache=readCache();if(cache){rows=cache.rows;fetchedAt=cache.time}
+ const cache=readCache();if(cache&&cache.time>fetchedAt){rows=cache.rows;fetchedAt=cache.time}
  if(!force&&cache&&Date.now()-fetchedAt<TTL){status='ready';apply();return}
  status='loading';apply();
  inflight=(async()=>{
@@ -70,13 +85,23 @@ async function refresh(force=false){
   if(!response.ok)throw new Error('weather unavailable');
   const fresh=normalize(await response.json());
   rows=fresh;fetchedAt=Date.now();status='ready';nextAttempt=Date.now()+TTL;
+  if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null;}
   try{localStorage.setItem(CACHE_KEY,JSON.stringify({day:dayKey(),time:fetchedAt,rows}))}catch{}
- }catch{status='error';nextAttempt=Date.now()+60000}
+ }catch{
+  status='error';nextAttempt=Date.now()+60000;
+  // Recover automatically when the weather API comes back; do not wait 30 minutes.
+  if(retryTimer!==null)clearTimeout(retryTimer);
+  retryTimer=setTimeout(()=>{
+   retryTimer=null;
+   if(document.visibilityState==='visible'&&navigator.onLine!==false)refresh();
+  },60000);
+ }
  finally{clearTimeout(timer);inflight=null;apply()}
  })();return inflight;
 }
 function openDetails(date){
- const row=validRows().find(r=>r.date===date);if(!row)return;
+ const row=validRows().find(r=>r.date===date);
+ if(!row){if(status==='error')refresh(true);return;}
  const [icon,label]=state(row.code);
  dialog.querySelector('h2').textContent=icon+' '+label;
  dialog.querySelector('.weather-location').textContent=REGION.name+' · '+date;
@@ -91,7 +116,7 @@ function init(){
  const calendar=grid.closest('.app-calendar');if(!calendar)return;
  credit=document.createElement('div');credit.className='weather-credit';
  credit.innerHTML='<span role="status"></span> <button type="button" hidden>날씨 다시 시도</button> <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">날씨 자료: Open-Meteo</a>';
- calendar.after(credit);credit.querySelector('button').addEventListener('click',()=>{if(Date.now()>=nextAttempt)refresh(true)});
+ calendar.after(credit);credit.querySelector('button').addEventListener('click',()=>refresh(true));
  dialog=document.createElement('dialog');dialog.className='weather-dialog';dialog.setAttribute('aria-labelledby','weatherDialogTitle');
  dialog.innerHTML='<h2 id="weatherDialogTitle"></h2><p class="weather-location"></p><p class="weather-temperature"></p><p class="weather-rain"></p><p class="weather-updated"></p><p class="weather-note">하루 대표 예보이며 시간대별 날씨는 다를 수 있습니다. 예보 범위 밖의 날짜에는 아이콘이 표시되지 않습니다.</p><button type="button">닫기</button>';
  document.body.append(dialog);dialog.querySelector('button').addEventListener('click',()=>dialog.close());
