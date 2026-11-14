@@ -7,6 +7,11 @@ const decode=(value:string)=>Uint8Array.from(atob(value.replace(/-/g,'+').replac
 const digest=async(value:string)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),b=>b.toString(16).padStart(2,'0')).join('');
 const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers});
 const messages:Record<string,string>={invalid:'생체인증 등록 또는 세션을 확인해 주세요. 기존 코드로 로그인할 수 있습니다.',code_required:'보안을 위해 기존 접속코드를 한 번 확인해 주세요. 4자리 코드는 변경해야 합니다.',upgrade_required:'4자리 접속코드는 변경해야 합니다. 기존 코드를 입력해 주세요.',admin_upgrade_required:'조 관리자 PIN 변경이 필요합니다. 기존 접속코드로 로그인해 새 8자리 PIN을 설정해 주세요.',forbidden:'이 계정 또는 패스키로 생체인증을 사용할 수 없습니다.',reauth:'기존 접속코드로 다시 로그인한 뒤 15분 이내에 등록해 주세요.',rate_limited:'잠시 후 다시 시도해 주세요.',limit:'등록 가능한 패스키 수를 초과했습니다.',conflict:'이미 등록된 패스키입니다.'};
+function isDesktopSession(request:Request):boolean{
+ const ua=request.headers.get('user-agent')||'';
+ if(request.headers.get('sec-ch-ua-mobile')==='?1')return false;
+ return !/Android|iPhone|iPad|iPod|Mobile|Tablet|Silk|Kindle|Windows Phone/i.test(ua);
+}
 Deno.serve(async(request:Request)=>{
  if(request.headers.get('origin')!==origin) return reply({success:false,message:'허용되지 않은 요청입니다.'},403);
  if(request.method==='OPTIONS') return new Response('ok',{headers});
@@ -70,7 +75,16 @@ Deno.serve(async(request:Request)=>{
   if(!result.verified)return reply({success:false,message:messages.invalid},401);
   const token=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
   const login=await rpc({p_action:'login_finish',p_token_hash:await digest(token),p_challenge_id:body.challenge_id,p_credential_id:response.id,p_payload:{expected_counter:k.counter,new_counter:result.authenticationInfo.newCounter,backed_up:result.authenticationInfo.credentialBackedUp}});
-  return login.status==='ok'?reply({success:true,token,user:login.user,expires_at:login.expires_at}):failed(login);
+  if(login.status!=='ok')return failed(login);
+  const desktopSession=isDesktopSession(request);
+  const bind=await fetch(url+'/rest/v1/rpc/app_session_bind_device',{
+   method:'POST',headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},
+   body:JSON.stringify({p_token_hash:await digest(token),p_is_desktop:desktopSession}),
+   signal:AbortSignal.timeout(10000)
+  });
+  if(!bind.ok||(await bind.json()).status!=='ok')
+   return reply({success:false,message:'로그인 보안 설정을 확인하고 다시 시도해 주세요.'},503);
+  return reply({success:true,token,user:login.user,expires_at:login.expires_at,desktop_session:desktopSession});
  }catch{
   // Do not log passwords, session tokens or authenticator responses.
   return reply({success:false,message:'생체인증을 확인하지 못했습니다. 기존 접속코드로 로그인할 수 있습니다.'},400);
