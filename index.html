@@ -51,7 +51,7 @@ document.addEventListener('pointerdown', event => {
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="apple-touch-icon" href="/icons/shift-sun-moon-v3-180.png">
 
-  <link rel="stylesheet" href="./assets/calendar.css?v=20261111.3">
+  <link rel="stylesheet" href="./assets/calendar.css?v=20261114.3">
 <link rel="icon" type="image/png" href="/icons/shift-sun-moon-v3-192.png">
 </head>
 
@@ -367,7 +367,7 @@ document.addEventListener('pointerdown', event => {
 <dialog id="credentialDialog" class="audit-dialog" aria-labelledby="credentialTitle"><div class="audit-head"><h2 id="credentialTitle">개인코드 변경 현황</h2><button class="btn-small audit-secondary" data-audit-close="credentialDialog" aria-label="개인코드 변경 현황 닫기">닫기</button></div><div class="audit-body"><p class="audit-muted">슈퍼관리자 전용 · 본인 변경과 관리자 초기화를 구분합니다. 과거 기록이 없으면 변경 여부와 시각을 추측하지 않습니다.</p><div class="audit-filters"><label>이름 검색 <input id="credentialSearch" type="search" maxlength="100" placeholder="사용자 이름"></label><label>본인 변경 여부 <select id="credentialStatus"><option value="all">전체</option><option value="changed">변경 기록 있음</option><option value="unknown">과거 변경 여부 확인 불가</option></select></label></div><p id="credentialSummary" class="audit-muted" aria-live="polite"></p><div id="credentialResults"></div></div></dialog>
 
 <dialog id="monthJumpDialog"><form onsubmit="event.preventDefault();applyMonthJump()"><h3>이동할 년월 선택</h3><input id="monthJumpValue" type="month" min="1900-01" max="2200-12" required aria-label="이동할 년월"><div style="display:flex;gap:8px;margin-top:12px"><button type="button" onclick="document.getElementById('monthJumpDialog').close()">취소</button><button type="submit">이동</button></div></form></dialog>
-  <script src="./assets/leave.js?v=20261103.5"></script><script src="./vendor/supabase-2.95.0.js"></script><script src="./assets/calendar.js?v=20261110.1"></script>
+  <script src="./assets/leave.js?v=20261103.5"></script><script src="./vendor/supabase-2.95.0.js"></script><script src="./assets/calendar.js?v=20261114.2"></script>
 <script>
 
   /*
@@ -407,6 +407,76 @@ document.addEventListener('pointerdown', event => {
   // 서버 세션 토큰은 현재 창의 메모리에만 보관합니다.
   let currentSessionToken = '';
   let sessionExpiryTimer = null;
+
+  // Desktop-only auto-logout: 3 minutes without trusted keyboard, mouse or touch input.
+  // The server independently expires PC tokens; background reads never renew them.
+  const DESKTOP_IDLE_MS=3*60*1000;
+  let desktopSessionActive=false,desktopLastInputAt=0,desktopIdleTimer=null;
+  let desktopLastHeartbeatAt=0,desktopHeartbeatBusy=false;
+  function stopDesktopIdle(){
+    clearTimeout(desktopIdleTimer);desktopIdleTimer=null;
+    desktopSessionActive=false;desktopLastInputAt=0;
+    desktopLastHeartbeatAt=0;desktopHeartbeatBusy=false;
+  }
+  function endDesktopIdle(){
+    if(!desktopSessionActive||!currentSessionToken)return;
+    const token=currentSessionToken;
+    closeAppMenu();closeWakeAlarmDialog();
+    clearSessionScreen(); // Clear credentials and UI immediately, before the network responds.
+    const status=document.getElementById('passkeyLoginStatus');
+    if(status){status.hidden=false;status.textContent='PC에서 3분간 조작이 없어 자동 로그아웃되었습니다. 다시 로그인해 주세요.';}
+    // Best-effort server revocation. Even offline, the DB rejects an expired PC token.
+    supabaseClient.functions.invoke('app-session',{
+      body:{action:'logout'},headers:{'x-app-session':token}
+    }).catch(()=>{});
+  }
+  function checkDesktopIdle(){
+    if(!desktopSessionActive||!currentUser||!currentSessionToken)return;
+    const remaining=DESKTOP_IDLE_MS-(Date.now()-desktopLastInputAt);
+    if(remaining<=0){endDesktopIdle();return;}
+    clearTimeout(desktopIdleTimer);
+    desktopIdleTimer=setTimeout(checkDesktopIdle,Math.max(100,remaining));
+  }
+  async function syncDesktopActivity(token){
+    if(desktopHeartbeatBusy||!desktopSessionActive||token!==currentSessionToken)return;
+    desktopHeartbeatBusy=true;
+    try{
+      const {data,error}=await supabaseClient.functions.invoke('app-session',{
+        body:{action:'desktop_activity'},headers:{'x-app-session':token}
+      });
+      if(token!==currentSessionToken||!desktopSessionActive)return;
+      if(error?.context?.status===401||(!error&&data?.success===false)){
+        endDesktopIdle();
+      }
+      // Connection problems do not silently keep the server session alive.
+    }catch{}finally{desktopHeartbeatBusy=false;}
+  }
+  function onDesktopInput(event){
+    if(!desktopSessionActive||!currentUser||!currentSessionToken||event?.isTrusted!==true)return;
+    const now=Date.now();
+    if(now-desktopLastInputAt>=DESKTOP_IDLE_MS){endDesktopIdle();return;}
+    desktopLastInputAt=now;
+    checkDesktopIdle();
+    if(now-desktopLastHeartbeatAt>=15000&&!desktopHeartbeatBusy){
+      desktopLastHeartbeatAt=now;
+      void syncDesktopActivity(currentSessionToken);
+    }
+  }
+  function startDesktopIdle(data){
+    stopDesktopIdle();
+    if(data?.desktop_session!==true)return;
+    desktopSessionActive=true;
+    desktopLastInputAt=Date.now();
+    desktopLastHeartbeatAt=Date.now();
+    checkDesktopIdle();
+  }
+  for(const type of ['pointermove','pointerdown','keydown','wheel','touchstart']){
+    document.addEventListener(type,onDesktopInput,{passive:true,capture:true});
+  }
+  window.addEventListener('focus',checkDesktopIdle);
+  window.addEventListener('pageshow',checkDesktopIdle);
+  document.addEventListener('visibilitychange',checkDesktopIdle);
+
 
   // Fold existing controls without changing their actions or permissions.
   function closeAppMenu(){
@@ -885,6 +955,7 @@ document.addEventListener('pointerdown', event => {
     currentSessionToken = sessionData.token;
     updateWakeAlarmPilot();
     scheduleSessionExpiry(sessionData.expires_at);
+    startDesktopIdle(sessionData);
 
 
     document
@@ -920,7 +991,8 @@ document.addEventListener('pointerdown', event => {
     document
       .getElementById('welcomeMsg')
       .innerText =
-      `[${currentUser.team}조] ${currentUser.name} 님 ${roleBadge}`;
+      `[${currentUser.team}조] ${currentUser.name} 님 ${roleBadge}` +
+      (desktopSessionActive ? ' · PC 3분 미사용 시 자동 로그아웃' : '');
 
 
     closeAppMenu();
@@ -1302,6 +1374,7 @@ document.addEventListener('pointerdown', event => {
     } finally {
       clearTimeout(sessionExpiryTimer);
       sessionExpiryTimer = null;
+      stopDesktopIdle();
       clearAuditViews();
       currentUser = null;
       currentLoginCode = '';
@@ -1668,6 +1741,7 @@ document.addEventListener('pointerdown', event => {
   }
 
   function clearSessionScreen() {
+    stopDesktopIdle();
     clearAuditViews();
     clearTimeout(sessionExpiryTimer);
     sessionExpiryTimer = null;
@@ -3457,7 +3531,7 @@ document.getElementById('loginCode').addEventListener('pointerdown',()=>{if(pass
 <dialog id="leaveDialog" class="audit-dialog" aria-labelledby="leaveTitle"><div class="audit-head"><h2 id="leaveTitle">내 연차 사용현황</h2><button onclick="document.getElementById('leaveDialog').close()">닫기</button></div><div class="audit-body"><form id="leaveSettings" onsubmit="event.preventDefault();OwnerLeave.save()"><div class="audit-filters"><label>기준 연도 <input id="leaveYear" type="number" min="1901" max="2199" required onchange="OwnerLeave.load()"></label><label>일반 연차 리셋일 (월-일) <input id="leaveReset" placeholder="04-01" pattern="(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])" required></label><label>해당 기간 총 일반 연차 <input id="leaveTotal" type="number" min="0" max="366" step="1" required></label></div><p class="audit-muted">기준 연도의 리셋일부터 다음 리셋일 전날까지 적용합니다. 연도별 설정을 저장하며 이전 기간 기록은 보존합니다. 보상 연차는 기준 연도 12월 31일에 만료됩니다. 2026년 지급분은 확정 5일이며, 2027년부터는 전년도 일반 연차 사용 4일당 1일, 최대 5일로 산정합니다. 휴무 1건은 1일로 계산합니다.</p><button id="leaveSave" type="submit">설정 저장</button></form><p id="leaveStatus" role="status" aria-live="polite"></p><div id="leaveResults"></div></div></dialog>
 <style>.leave-record{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #e2e8f0}.leave-record span{overflow-wrap:anywhere}.leave-record select{flex-shrink:0;max-width:48%;padding:8px}#leaveResults>p{padding:14px;background:#eff6ff;border-radius:12px;line-height:1.8}#leaveSettings input{max-width:150px}</style>
 
-<script src="./assets/weather.js?v=20261102.1"></script>
+<script src="./assets/weather.js?v=20261114.1"></script>
 </body>
 </html>
 
